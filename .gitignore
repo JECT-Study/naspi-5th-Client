@@ -32,3 +32,6 @@ dist-ssr
 # Docs
 MVP.md
 ARCHITECTURE.md
+
+# Firebase
+.firebase/
