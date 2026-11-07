@@ -29,9 +29,8 @@ dist-ssr
 *.sln
 *.sw?
 
-# Docs
-MVP.md
-ARCHITECTURE.md
+# Docs (비공개 기획·설계 문서)
+docs/
 
 # Firebase
 .firebase/
