@@ -7,4 +7,28 @@
 
   --container-app-tablet: 48rem; /* 768px */
   --container-app-desktop: 80rem; /* 1280px */
+
+  /* 토스트 페이드 인 (사라질 때는 Toaster의 transition으로 페이드 아웃) */
+  --animate-toast-in: toast-in 200ms ease-out;
+
+  @keyframes toast-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  /* 바텀시트 슬라이드 인 (닫힐 때는 BottomSheet의 transition으로 슬라이드 아웃) */
+  --animate-sheet-in: sheet-in 250ms ease-out;
+
+  @keyframes sheet-in {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
 }
