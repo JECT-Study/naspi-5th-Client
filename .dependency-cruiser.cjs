@@ -28,7 +28,8 @@ module.exports = {
       to: { path: ENTRY },
     },
 
-    // 레이어 방향: main → App → (layouts | pages) → components → hooks → stores → apis → libs → utils
+    // 레이어 방향: main → App → layouts → (pages | overlays) → components → hooks → stores → apis → libs → utils
+    // overlays(주소 없는 작업형 화면)는 AppLayout이 그리고, 페이지는 overlayStore로 열기만 한다
     {
       name: 'utils-no-internal',
       comment: 'utils/는 프로젝트 내부를 import하지 않는다',
@@ -48,13 +49,13 @@ module.exports = {
       comment: 'apis/는 libs/, utils/만 import한다',
       severity: 'error',
       from: { path: '^src/apis/' },
-      to: { path: ['^src/(stores|hooks|components|layouts|pages)/', ENTRY] },
+      to: { path: ['^src/(stores|hooks|components|layouts|pages|overlays)/', ENTRY] },
     },
     {
       name: 'stores-no-upper',
       severity: 'error',
       from: { path: '^src/stores/' },
-      to: { path: ['^src/(hooks|components|layouts|pages)/', ENTRY] },
+      to: { path: ['^src/(hooks|components|layouts|pages|overlays)/', ENTRY] },
     },
     {
       name: 'stores-apis-type-only',
@@ -67,13 +68,44 @@ module.exports = {
       name: 'hooks-no-upper',
       severity: 'error',
       from: { path: '^src/hooks/' },
-      to: { path: ['^src/(components|layouts|pages)/', ENTRY] },
+      to: { path: ['^src/(components|layouts|pages|overlays)/', ENTRY] },
     },
     {
       name: 'components-no-upper',
       severity: 'error',
       from: { path: '^src/components/' },
+      to: { path: ['^src/(layouts|pages|overlays)/', ENTRY] },
+    },
+
+    // overlays: 주소 없는 작업형 화면 (새 리그, 코드로 참여, 종목 상장, 주문, 공시 쓰기)
+    {
+      name: 'overlays-no-upper',
+      comment: 'overlays는 layouts, pages를 import하지 않는다',
+      severity: 'error',
+      from: { path: '^src/overlays/' },
       to: { path: ['^src/(layouts|pages)/', ENTRY] },
+    },
+    {
+      name: 'pages-not-overlays',
+      comment:
+        '페이지는 오버레이를 import하지 않고 overlayStore(hooks/useOverlay)로 연다. 그리는 곳은 AppLayout',
+      severity: 'error',
+      from: { path: '^src/pages/' },
+      to: { path: '^src/overlays/' },
+    },
+    {
+      name: 'no-cross-overlay',
+      comment: '다른 오버레이 폴더를 import하지 않는다. 공유할 UI는 src/components/로 옮긴다',
+      severity: 'error',
+      from: { path: '^src/overlays/([^/]+)/' },
+      to: { path: '^src/overlays/', pathNot: '^src/overlays/$1/' },
+    },
+    {
+      name: 'overlay-components-not-overlay',
+      comment: '오버레이 전용 컴포넌트는 자기 오버레이 파일을 import하지 않는다',
+      severity: 'error',
+      from: { path: '^src/overlays/([^/]+)/components/' },
+      to: { path: '^src/overlays/$1/[^/]+$' },
     },
 
     // layouts, pages
@@ -138,6 +170,25 @@ module.exports = {
         pathNot: '^src/apis/domains/$1/',
         dependencyTypesNot: ['type-only'],
       },
+    },
+
+    // mocks: API 준비 전 임시 데이터. service·socket만 바꾸면 실제 API로 전환되도록 사용처를 제한한다
+    {
+      name: 'mocks-only-from-service',
+      comment: 'mocks/는 apis/domains의 service, socket 파일에서만 import한다',
+      severity: 'error',
+      from: {
+        path: '^src/',
+        pathNot: ['^src/mocks/', '^src/apis/domains/[^/]+/[^/]+\\.(service|socket)\\.ts$'],
+      },
+      to: { path: '^src/mocks/' },
+    },
+    {
+      name: 'mocks-type-only',
+      comment: 'mocks/는 프로젝트 내부에서 타입만 import한다',
+      severity: 'error',
+      from: { path: '^src/mocks/' },
+      to: { path: '^src/', pathNot: '^src/mocks/', dependencyTypesNot: ['type-only'] },
     },
 
     {
