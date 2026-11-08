@@ -13,14 +13,13 @@ import {
   type StockFormErrors,
 } from '@/apis/domains/stock/stock.validation';
 import Button from '@/components/Button';
-import FloatingFooter, { FLOATING_FOOTER_SPACE_TALL } from '@/components/FloatingFooter';
+import FloatingFooter from '@/components/FloatingFooter';
 import StockListingFields from '@/components/StockListingFields';
 import TaskHeader from '@/components/TaskHeader';
 import TextField from '@/components/TextField';
 import { useOpenOverlay } from '@/hooks/useOverlay';
 import { getApiErrorCode } from '@/libs/apiError';
 import { notify } from '@/libs/notify';
-import { cn } from '@/utils/cn';
 
 // 새 리그 (오버레이): 리그 이름 → (입력을 마치면) 방장 종목 상장 → 대기실 생성
 // 서비스 정책 2.1: 방장이 상장해야 생성 완료
@@ -78,12 +77,7 @@ function LeagueCreateOverlay() {
   return (
     <>
       <TaskHeader title="새 리그" />
-      <main
-        className={cn(
-          'flex min-h-0 flex-1 flex-col gap-10 overflow-y-auto px-9 pt-4',
-          FLOATING_FOOTER_SPACE_TALL,
-        )}
-      >
+      <main className="flex min-h-0 flex-1 flex-col gap-10 overflow-y-auto px-9 pt-4">
         <section>
           <h2 className="text-lg font-bold">리그 이름을 입력해 주세요.</h2>
           <p className="mt-1 text-sm text-gray-500">
@@ -118,30 +112,30 @@ function LeagueCreateOverlay() {
             />
           </section>
         )}
-      </main>
-      <FloatingFooter>
-        <div className="flex flex-col items-center gap-3">
-          {isListingVisible && (
-            <Button
-              className="w-full"
-              disabled={!canSubmit}
-              isPending={isPending}
-              pendingLabel="생성 중..."
-              onClick={handleSubmit}
+        <FloatingFooter>
+          <div className="flex flex-col items-center gap-3">
+            {isListingVisible && (
+              <Button
+                className="w-full"
+                disabled={!canSubmit}
+                isPending={isPending}
+                pendingLabel="생성 중..."
+                onClick={handleSubmit}
+              >
+                대기실 생성하기
+              </Button>
+            )}
+            {/* 작업형 화면끼리 전환: 오버레이 내용만 바꾼다 (기록은 그대로) */}
+            <button
+              type="button"
+              className="text-xs text-gray-500 underline"
+              onClick={() => openOverlay({ type: 'leagueJoin' })}
             >
-              대기실 생성하기
-            </Button>
-          )}
-          {/* 작업형 화면끼리 전환: 오버레이 내용만 바꾼다 (기록은 그대로) */}
-          <button
-            type="button"
-            className="text-xs text-gray-500 underline"
-            onClick={() => openOverlay({ type: 'leagueJoin' })}
-          >
-            또는 코드로 참여하기
-          </button>
-        </div>
-      </FloatingFooter>
+              또는 코드로 참여하기
+            </button>
+          </div>
+        </FloatingFooter>
+      </main>
     </>
   );
 }
