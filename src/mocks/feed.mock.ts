@@ -24,7 +24,7 @@ const FEED_TEMPLATES: FeedItem[] = [
     firstComment: {
       commentId: 1,
       authorName: '김수빈',
-      content: '작심삼일 아니고?',
+      content: '좋아요',
       createdAt: minutesAgo(1),
     },
     createdAt: minutesAgo(1),
@@ -55,10 +55,9 @@ const FEED_TEMPLATES: FeedItem[] = [
     sentiment: 'BULLISH',
     commentCount: 2,
     firstComment: {
-      // 내 댓글: 댓글 삭제 확인용
       commentId: 2,
-      authorName: '김진영',
-      content: '기대됩니다. 오늘 바로 매수하러 갑니다.',
+      authorName: '문예림',
+      content: '좋아요',
       createdAt: minutesAgo(30),
     },
     createdAt: minutesAgo(120),
@@ -93,8 +92,8 @@ const FEED_TEMPLATES: FeedItem[] = [
     commentCount: 1,
     firstComment: {
       commentId: 3,
-      authorName: '이세영',
-      content: '오늘도 성실하네요.',
+      authorName: '고관우',
+      content: '좋아요',
       createdAt: minutesAgo(5),
     },
     createdAt: minutesAgo(10),
@@ -112,9 +111,10 @@ const FEED_TEMPLATES: FeedItem[] = [
     myReaction: null,
     commentCount: 2,
     firstComment: {
+      // 내 댓글: 댓글 삭제 확인용
       commentId: 4,
-      authorName: '노민영',
-      content: '오늘은 칼퇴 가능?',
+      authorName: '김진영',
+      content: '좋아요',
       createdAt: minutesAgo(15),
     },
     createdAt: minutesAgo(20),

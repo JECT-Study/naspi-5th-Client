@@ -74,14 +74,14 @@ feedMock.forEach((item, index) => {
   const targetId = isDisclosure(item) ? item.disclosureId : item.newsId;
   Array.from({ length: item.commentCount }, (_, i) => {
     const preview = i === 0 ? item.firstComment : null;
-    const authorName = preview?.authorName ?? (i % 2 === 0 ? '이세영' : WITHDRAWN_USER_NAME);
+    const authorName = preview?.authorName ?? (i % 2 === 0 ? '송우진' : WITHDRAWN_USER_NAME);
     comments.push({
       commentId: nextCommentId++,
       targetType,
       targetId,
       authorName,
       authorId: authorName === meMock.name ? meMock.userId : null,
-      content: preview?.content ?? '좋은 소식이네요!',
+      content: preview?.content ?? '좋아요',
       createdAt: preview?.createdAt ?? new Date(Date.now() - (i + 1) * 60_000).toISOString(),
     });
   });
