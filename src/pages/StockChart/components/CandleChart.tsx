@@ -31,6 +31,8 @@ const COLORS = {
   downVolume: 'rgba(49, 130, 246, 0.3)',
   text: '#9CA3AF',
   grid: '#F3F4F6',
+  // 캔들·거래량 영역 구분선: 가로 눈금선(grid)보다 진하게 해서 구분되게
+  paneSeparator: '#D1D5DB',
   crosshair: '#9CA3AF',
   label: '#111827',
   averagePrice: '#6B7280',
@@ -74,6 +76,10 @@ interface ChartRefs {
   candle: ISeriesApi<'Candlestick'>;
   volume: ISeriesApi<'Histogram'>;
 }
+
+/** 거래량을 그리는 영역(pane) 순번과, 전체 높이 중 캔들 영역 비율 */
+const VOLUME_PANE_INDEX = 1;
+const CANDLE_PANE_RATIO = 0.78;
 
 /** 봉이 차트 왼쪽·오른쪽 이 비율 안에 있으면 글자를 안쪽으로 붙인다 */
 const EDGE_RATIO = 0.3;
@@ -148,6 +154,12 @@ function CandleChart({ bars, averagePrice }: CandleChartProps) {
         textColor: COLORS.text,
         fontSize: 11,
         fontFamily: getComputedStyle(document.body).fontFamily,
+        // 캔들 영역과 거래량 영역 사이 구분선. 손으로 경계를 끌어 크기를 바꾸지는 못하게 한다
+        panes: {
+          separatorColor: COLORS.paneSeparator,
+          separatorHoverColor: 'transparent',
+          enableResize: false,
+        },
       },
       grid: {
         vertLines: { visible: false },
@@ -160,12 +172,14 @@ function CandleChart({ bars, averagePrice }: CandleChartProps) {
         borderVisible: false,
         timeVisible: true,
         secondsVisible: false,
-        barSpacing: 9,
-        minBarSpacing: 4,
+        // 봉 간격을 좁혀 한 화면에 더 많은 봉을 보여준다 (두 손가락으로 더 줄이거나 늘릴 수 있음)
+        barSpacing: 6,
+        minBarSpacing: 2,
         rightOffset: 3,
       },
       crosshair: {
-        mode: CrosshairMode.Magnet,
+        // 손가락(마우스)을 올리면 가로선이 그 봉의 시가·고가·저가·종가 중 가장 가까운 값에 붙는다
+        mode: CrosshairMode.MagnetOHLC,
         vertLine: {
           color: COLORS.crosshair,
           style: LineStyle.LargeDashed,
@@ -192,16 +206,22 @@ function CandleChart({ bars, averagePrice }: CandleChartProps) {
       priceLineStyle: LineStyle.Dotted,
       priceFormat: { type: 'price', precision: 0, minMove: 100 },
     });
-    // 캔들은 가운데, 거래량은 아래쪽 20%에 그려서 겹치지 않게 한다
     // 위·아래 여백은 최고·최저 표시 글자가 들어갈 자리
-    candle.priceScale().applyOptions({ scaleMargins: { top: 0.15, bottom: 0.3 } });
-    const volume = chart.addSeries(HistogramSeries, {
-      priceFormat: { type: 'volume' },
-      priceScaleId: '',
-      lastValueVisible: false,
-      priceLineVisible: false,
-    });
-    volume.priceScale().applyOptions({ scaleMargins: { top: 0.8, bottom: 0 } });
+    candle.priceScale().applyOptions({ scaleMargins: { top: 0.15, bottom: 0.15 } });
+    // 거래량은 캔들 아래 별도 영역(pane 1)에 그린다 (v5 panes). 캔들과 겹치지 않고 구분선으로 나뉜다
+    const volume = chart.addSeries(
+      HistogramSeries,
+      {
+        priceFormat: { type: 'volume' },
+        lastValueVisible: false,
+        priceLineVisible: false,
+      },
+      VOLUME_PANE_INDEX,
+    );
+    volume.priceScale().applyOptions({ scaleMargins: { top: 0.15, bottom: 0 } });
+    // 캔들 : 거래량 높이 비율
+    chart.panes()[0]?.setStretchFactor(CANDLE_PANE_RATIO);
+    chart.panes()[VOLUME_PANE_INDEX]?.setStretchFactor(1 - CANDLE_PANE_RATIO);
 
     // 손가락(마우스)을 올린 봉을 찾아 왼쪽 위 정보에 보여준다. 차트 밖이면 마지막 봉
     chart.subscribeCrosshairMove((param) => {
@@ -314,7 +334,7 @@ function CandleChart({ bars, averagePrice }: CandleChartProps) {
         )}
       </dl>
       <div className="relative">
-        <div ref={containerRef} className="h-72 w-full" />
+        <div ref={containerRef} className="h-80 w-full" />
         {extremeLabels && (
           <>
             <ExtremeLabel kind="high" label={extremeLabels.high} color={COLORS.up} />

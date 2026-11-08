@@ -57,11 +57,13 @@ const applyTrade = (
     };
     return;
   }
+  // 새 봉의 시가는 직전 봉의 종가. 고가·저가는 시가와 첫 체결가를 함께 본다 (고가 ≥ 시가·종가 ≥ 저가)
+  const open = last?.close ?? price;
   bars.push({
     time: bucket,
-    open: last?.close ?? price,
-    high: price,
-    low: price,
+    open,
+    high: Math.max(open, price),
+    low: Math.min(open, price),
     close: price,
     volume,
   });

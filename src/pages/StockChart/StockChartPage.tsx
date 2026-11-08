@@ -87,7 +87,7 @@ function StockChartPage() {
         )}
       </main>
       {/* 이 종목을 갖고 있지 않으면 사기만 보여준다. 종목 화면은 바깥 틀이 스크롤해서 sticky로 띄운다 */}
-      <FloatingFooter position="sticky">
+      <FloatingFooter className="px-9">
         <div className="flex gap-3">
           {hasHolding && (
             <Button variant="secondary" className="flex-1" onClick={() => openOrder('SELL')}>

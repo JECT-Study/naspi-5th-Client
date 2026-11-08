@@ -5,7 +5,7 @@ import type { Ranking } from '@/apis/domains/league/league.types';
 import { sortRankings } from '@/apis/domains/league/league.utils';
 import Button from '@/components/Button';
 import ChangeRate from '@/components/ChangeRate';
-import FloatingFooter, { FLOATING_FOOTER_SPACE } from '@/components/FloatingFooter';
+import FloatingFooter from '@/components/FloatingFooter';
 import LeagueHeader from '@/components/LeagueHeader';
 import LoadError from '@/components/LoadError';
 import { useOpenLeagueEntry } from '@/hooks/useOpenLeagueEntry';
@@ -88,19 +88,14 @@ function LeagueResultPage() {
   return (
     <>
       <LeagueHeader leagueName={result.data?.name ?? ''} badge="종료" />
-      <main
-        className={cn(
-          'flex min-h-0 flex-1 flex-col gap-8 overflow-y-auto px-9 pt-4',
-          FLOATING_FOOTER_SPACE,
-        )}
-      >
+      <main className="flex min-h-0 flex-1 flex-col gap-8 overflow-y-auto px-9 pt-4">
         {renderContent()}
+        <FloatingFooter>
+          <Button className="w-full" onClick={() => openLeagueEntry('leagueCreate')}>
+            새 리그 만들기
+          </Button>
+        </FloatingFooter>
       </main>
-      <FloatingFooter>
-        <Button className="w-full" onClick={() => openLeagueEntry('leagueCreate')}>
-          새 리그 만들기
-        </Button>
-      </FloatingFooter>
       {selected && (
         <ParticipantAssetsSheet participant={selected} onClose={() => setSelected(null)} />
       )}

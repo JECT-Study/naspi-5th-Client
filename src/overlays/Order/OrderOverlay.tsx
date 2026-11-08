@@ -29,7 +29,7 @@ import {
 import { stockQueries } from '@/apis/domains/stock/stock.queries';
 import type { StockDetail, StockId } from '@/apis/domains/stock/stock.types';
 import Button from '@/components/Button';
-import FloatingFooter, { FLOATING_FOOTER_SPACE } from '@/components/FloatingFooter';
+import FloatingFooter from '@/components/FloatingFooter';
 import LoadError from '@/components/LoadError';
 import TaskHeader from '@/components/TaskHeader';
 import { useCloseOverlay } from '@/hooks/useOverlay';
@@ -262,7 +262,7 @@ function OrderForm({ roomId, side, stock, assets }: OrderFormProps) {
       <main
         className={cn(
           'flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto px-9 pt-2',
-          keypadTarget ? 'pb-4' : FLOATING_FOOTER_SPACE,
+          keypadTarget && 'pb-4',
         )}
         onClick={handleMainClick}
       >
@@ -361,15 +361,15 @@ function OrderForm({ roomId, side, stock, assets }: OrderFormProps) {
                 `예상 ${formatNumber(estimateMarketAmount(stock, side, quantity))}원`
           }
         />
+        {/* 키패드가 내려가 있으면 버튼만 화면 아래에 띄운다 */}
+        {!keypadTarget && <FloatingFooter>{orderButton}</FloatingFooter>}
       </main>
-      {/* 키패드가 올라와 있으면 키패드와 버튼을 아래에 붙이고, 내려가 있으면 버튼만 화면 아래에 띄운다 */}
-      {keypadTarget ? (
+      {/* 키패드가 올라와 있으면 키패드와 버튼을 아래에 붙인다 */}
+      {keypadTarget && (
         <footer className="flex shrink-0 flex-col gap-2 px-9 pt-2 pb-6">
           <NumericKeypad onPress={handleKeypadPress} />
           {orderButton}
         </footer>
-      ) : (
-        <FloatingFooter>{orderButton}</FloatingFooter>
       )}
     </>
   );

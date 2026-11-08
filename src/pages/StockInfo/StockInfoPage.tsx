@@ -72,7 +72,7 @@ function StockInfoPage() {
         </div>
       </main>
       {stock.data?.isMine && (
-        <FloatingFooter position="sticky">
+        <FloatingFooter className="px-9">
           <Button
             className="w-full"
             onClick={() => openOverlay({ type: 'disclosureCreate', roomId })}

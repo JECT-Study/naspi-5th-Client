@@ -2,10 +2,9 @@ import { useInfiniteQuery } from '@tanstack/react-query';
 import { feedQueries } from '@/apis/domains/feed/feed.queries';
 import Button from '@/components/Button';
 import FeedList from '@/components/FeedList';
-import FloatingFooter, { FLOATING_FOOTER_SPACE } from '@/components/FloatingFooter';
+import FloatingFooter from '@/components/FloatingFooter';
 import { useOpenOverlay } from '@/hooks/useOverlay';
 import { useRoomId } from '@/hooks/useRoomId';
-import { cn } from '@/utils/cn';
 
 // 리그 피드: 공시·뉴스 최신순, 스크롤하면 10건씩 더 불러온다 + 하단 공시 쓰기
 function FeedPage() {
@@ -15,12 +14,7 @@ function FeedPage() {
 
   return (
     <>
-      <main
-        className={cn(
-          'flex min-h-0 flex-1 flex-col overflow-y-auto px-9 pt-2',
-          FLOATING_FOOTER_SPACE,
-        )}
-      >
+      <main className="flex min-h-0 flex-1 flex-col overflow-y-auto px-9 pt-2">
         <FeedList
           variant="feed"
           roomId={roomId}
@@ -44,15 +38,15 @@ function FeedPage() {
             </p>
           }
         />
+        <FloatingFooter>
+          <Button
+            className="w-full"
+            onClick={() => openOverlay({ type: 'disclosureCreate', roomId })}
+          >
+            공시 쓰기
+          </Button>
+        </FloatingFooter>
       </main>
-      <FloatingFooter>
-        <Button
-          className="w-full"
-          onClick={() => openOverlay({ type: 'disclosureCreate', roomId })}
-        >
-          공시 쓰기
-        </Button>
-      </FloatingFooter>
     </>
   );
 }

@@ -12,7 +12,7 @@ import {
 import Button from '@/components/Button';
 import ConfirmModal from '@/components/ConfirmModal';
 import Dropdown from '@/components/Dropdown';
-import FloatingFooter, { FLOATING_FOOTER_SPACE } from '@/components/FloatingFooter';
+import FloatingFooter from '@/components/FloatingFooter';
 import { MoreIcon } from '@/components/icons';
 import LeagueHeader from '@/components/LeagueHeader';
 import LoadError from '@/components/LoadError';
@@ -21,7 +21,6 @@ import { useOpenOverlay } from '@/hooks/useOverlay';
 import { useRoomId } from '@/hooks/useRoomId';
 import { getApiErrorCode } from '@/libs/apiError';
 import { notify } from '@/libs/notify';
-import { cn } from '@/utils/cn';
 import { formatKstDateTime, getDaysUntil } from '@/utils/date';
 import InviteCodeSection from './components/InviteCodeSection';
 import MemberRow from './components/MemberRow';
@@ -200,12 +199,7 @@ function WaitingPage() {
           )
         }
       />
-      <main
-        className={cn(
-          'flex min-h-0 flex-1 flex-col gap-8 overflow-y-auto px-9 pt-4',
-          FLOATING_FOOTER_SPACE,
-        )}
-      >
+      <main className="flex min-h-0 flex-1 flex-col gap-8 overflow-y-auto px-9 pt-4">
         {daysUntilExpiry <= EXPIRY_BANNER_DAYS && (
           <p className="rounded-lg bg-gray-100 px-4 py-2 text-center text-sm">
             대기실이 {formatExpiry(daysUntilExpiry)} 사라져요. 그 전에 리그를 시작해 주세요.
@@ -256,29 +250,29 @@ function WaitingPage() {
             </ul>
           </section>
         )}
+        <FloatingFooter>
+          {/* 방장 포함 참여자(상장 완료)가 3명 이상이어야 누를 수 있다 */}
+          {isHost && (
+            <Button
+              className="w-full"
+              disabled={listedCount < MIN_MEMBERS_TO_START}
+              onClick={() => setModal({ type: 'start' })}
+            >
+              리그 시작하기
+            </Button>
+          )}
+          {!isHost && myStock && (
+            <Button variant="secondary" className="w-full" onClick={openListing}>
+              내 종목 수정하기
+            </Button>
+          )}
+          {!isHost && !myStock && (
+            <Button className="w-full" onClick={openListing}>
+              내 종목 상장하기
+            </Button>
+          )}
+        </FloatingFooter>
       </main>
-      <FloatingFooter>
-        {/* 방장 포함 참여자(상장 완료)가 3명 이상이어야 누를 수 있다 */}
-        {isHost && (
-          <Button
-            className="w-full"
-            disabled={listedCount < MIN_MEMBERS_TO_START}
-            onClick={() => setModal({ type: 'start' })}
-          >
-            리그 시작하기
-          </Button>
-        )}
-        {!isHost && myStock && (
-          <Button variant="secondary" className="w-full" onClick={openListing}>
-            내 종목 수정하기
-          </Button>
-        )}
-        {!isHost && !myStock && (
-          <Button className="w-full" onClick={openListing}>
-            내 종목 상장하기
-          </Button>
-        )}
-      </FloatingFooter>
 
       {modal?.type === 'rename' && (
         <RoomNameEditModal roomId={roomId} currentName={room.name} onClose={closeModal} />

@@ -8,13 +8,12 @@ import { MAX_ACTIVE_ROOMS } from '@/apis/domains/room/room.utils';
 import { isInviteCodeComplete, normalizeInviteCode } from '@/apis/domains/room/room.validation';
 import Button from '@/components/Button';
 import FieldMessage from '@/components/FieldMessage';
-import FloatingFooter, { FLOATING_FOOTER_SPACE_TALL } from '@/components/FloatingFooter';
+import FloatingFooter from '@/components/FloatingFooter';
 import { SpinnerIcon } from '@/components/icons';
 import TaskHeader from '@/components/TaskHeader';
 import { useOpenOverlay } from '@/hooks/useOverlay';
 import { getApiErrorCode } from '@/libs/apiError';
 import { notify } from '@/libs/notify';
-import { cn } from '@/utils/cn';
 import CodeInput from './components/CodeInput';
 
 // 입장 단계에서 입력창 위에 보여주는 실패 안내. 이 경우 다른 코드를 넣어야 하므로 입장 버튼을 막는다
@@ -148,37 +147,32 @@ function LeagueJoinOverlay({ initialInviteCode = '' }: LeagueJoinOverlayProps) {
   return (
     <>
       <TaskHeader title="코드로 참여" />
-      <main
-        className={cn(
-          'flex min-h-0 flex-1 flex-col overflow-y-auto px-9 pt-4',
-          FLOATING_FOOTER_SPACE_TALL,
-        )}
-      >
+      <main className="flex min-h-0 flex-1 flex-col overflow-y-auto px-9 pt-4">
         {isConfirmStep ? renderConfirmStep() : renderCodeStep()}
-      </main>
-      <FloatingFooter>
-        <div className="flex flex-col items-center gap-3">
-          {isConfirmStep && (
-            <Button
-              className="w-full"
-              disabled={Boolean(joinErrorMessage)}
-              isPending={join.isPending}
-              pendingLabel="입장 중..."
-              onClick={() => join.mutate({ inviteCode })}
+        <FloatingFooter>
+          <div className="flex flex-col items-center gap-3">
+            {isConfirmStep && (
+              <Button
+                className="w-full"
+                disabled={Boolean(joinErrorMessage)}
+                isPending={join.isPending}
+                pendingLabel="입장 중..."
+                onClick={() => join.mutate({ inviteCode })}
+              >
+                대기실 입장하기
+              </Button>
+            )}
+            {/* 작업형 화면끼리 전환: 오버레이 내용만 바꾼다 (기록은 그대로) */}
+            <button
+              type="button"
+              className="text-xs text-gray-500 underline"
+              onClick={() => openOverlay({ type: 'leagueCreate' })}
             >
-              대기실 입장하기
-            </Button>
-          )}
-          {/* 작업형 화면끼리 전환: 오버레이 내용만 바꾼다 (기록은 그대로) */}
-          <button
-            type="button"
-            className="text-xs text-gray-500 underline"
-            onClick={() => openOverlay({ type: 'leagueCreate' })}
-          >
-            또는 새 리그 만들기
-          </button>
-        </div>
-      </FloatingFooter>
+              또는 새 리그 만들기
+            </button>
+          </div>
+        </FloatingFooter>
+      </main>
     </>
   );
 }
