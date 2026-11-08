@@ -19,6 +19,10 @@ export default defineConfig([
     languageOptions: {
       globals: globals.browser,
     },
+    rules: {
+      // tsconfig의 noUnusedParameters와 같게 _로 시작하는 인자는 안 쓰는 것을 허용한다
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+    },
   },
   // Prettier와 겹치는 스타일 규칙 끄기 (항상 마지막에 둘 것)
   prettier,
