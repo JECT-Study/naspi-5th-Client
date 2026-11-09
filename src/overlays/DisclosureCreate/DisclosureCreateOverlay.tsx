@@ -122,7 +122,9 @@ function DisclosureCreateOverlay({ roomId }: DisclosureCreateOverlayProps) {
         <div className="flex flex-1 flex-col gap-1">
           <textarea
             aria-label="내용"
-            placeholder="내용을 입력해 주세요."
+            placeholder={
+              '친구들과 공유할 소식을 작성해 주세요.\n작성한 소식을 바탕으로 내 종목의 AI 공시브리핑이 발행돼요.'
+            }
             maxLength={DISCLOSURE_CONTENT_MAX_LENGTH}
             value={content}
             className="min-h-40 flex-1 resize-none text-sm outline-none"

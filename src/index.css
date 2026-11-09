@@ -1,5 +1,17 @@
 @import 'tailwindcss';
 
+/* 누를 수 있는 요소에 손가락 커서 (Tailwind v4는 button 기본 커서가 화살표라 여기서 한 번에 준다)
+   링크(a)는 브라우저 기본이 손가락이라 따로 쓰지 않는다. 비활성 버튼은 기본 화살표 그대로 */
+@layer base {
+  button:not(:disabled),
+  [role='button']:not([aria-disabled='true']),
+  [role='tab'],
+  input[type='checkbox']:not(:disabled),
+  label:has(input[type='checkbox']:not(:disabled)) {
+    cursor: pointer;
+  }
+}
+
 @theme {
   --breakpoint-*: initial;
   --breakpoint-tablet: 48rem; /* 768px */

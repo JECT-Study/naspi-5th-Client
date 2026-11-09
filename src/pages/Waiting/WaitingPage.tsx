@@ -16,7 +16,6 @@ import FloatingFooter from '@/components/FloatingFooter';
 import { MoreIcon } from '@/components/icons';
 import LeagueHeader from '@/components/LeagueHeader';
 import LoadError from '@/components/LoadError';
-import NoticeModal from '@/components/NoticeModal';
 import { useOpenOverlay } from '@/hooks/useOverlay';
 import { useRoomId } from '@/hooks/useRoomId';
 import { getApiErrorCode } from '@/libs/apiError';
@@ -32,6 +31,8 @@ type WaitingModal =
   | { type: 'leave' }
   | { type: 'kick'; member: WaitingMember }
   | { type: 'start' };
+
+const ROOM_DELETED_MESSAGE = '리그가 삭제되었어요.';
 
 // 만료 배너는 만료 2일 전부터 보여준다 (화면설계서 대기실 10)
 const EXPIRY_BANNER_DAYS = 2;
@@ -54,8 +55,6 @@ function WaitingPage() {
   const queryClient = useQueryClient();
   const { data: room, isPending, isError, refetch } = useQuery(roomQueries.waiting(roomId));
   const [modal, setModal] = useState<WaitingModal | null>(null);
-  // 리그 시작 완료 모달 (1초 뒤 리그로 이동)
-  const [isStarted, setIsStarted] = useState(false);
   const closeModal = () => setModal(null);
   // 종목 상장은 대기실 위에 오버레이로 연다
   const openOverlay = useOpenOverlay();
@@ -66,8 +65,9 @@ function WaitingPage() {
     queryClient.invalidateQueries({ queryKey: roomKeys.mine() });
   };
 
-  // 대기실이 사라지거나 내가 나간 뒤에는 메인으로 가고, 이 대기실 캐시를 지운다
-  const exitToMain = () => {
+  // 대기실이 사라지거나 내가 나간 뒤에는 완료 토스트를 띄우고 메인으로 가며, 이 대기실 캐시를 지운다 (대기실 1-3-1, 4-2-1)
+  const exitToMain = (message: string) => {
+    notify.success(message);
     navigate('/leagues', { replace: true });
     queryClient.removeQueries({ queryKey: roomKeys.room(roomId) });
     queryClient.invalidateQueries({ queryKey: roomKeys.mine() });
@@ -82,12 +82,13 @@ function WaitingPage() {
   // 실패하면 공통 토스트 (libs/queryClient)
   const deleteMutation = useMutation({
     mutationFn: () => deleteRoom(roomId),
-    onSuccess: exitToMain,
+    onSuccess: () => exitToMain(ROOM_DELETED_MESSAGE),
     meta: { action: '삭제' },
   });
+  // 방장이 혼자 나가면 대기실이 사라지므로 완료 문구가 다르다. 누를 때 문구를 넘겨받는다
   const leaveMutation = useMutation({
-    mutationFn: () => leaveRoom(roomId),
-    onSuccess: exitToMain,
+    mutationFn: (_successMessage: string) => leaveRoom(roomId),
+    onSuccess: (_data, successMessage) => exitToMain(successMessage),
     meta: { action: '퇴장' },
   });
   const kickMutation = useMutation({
@@ -100,9 +101,12 @@ function WaitingPage() {
   });
   const startMutation = useMutation({
     mutationFn: () => startRoom(roomId),
+    // 시작 완료 토스트를 띄우고 리그 피드로 간다 (대기실 7-1-1)
     onSuccess: () => {
       closeModal();
-      setIsStarted(true);
+      invalidateRoom();
+      notify.success('리그가 시작되었어요.');
+      navigate(`/leagues/${roomId}`, { replace: true });
     },
     meta: {
       action: '리그 시작',
@@ -116,13 +120,6 @@ function WaitingPage() {
       }
     },
   });
-
-  // 시작 완료 모달이 1초 뒤 닫히면 리그로 간다
-  // TODO(API): 서버가 방장에게도 LEAGUE_STARTED를 보내면 그 즉시 이동해 이 모달이 잘린다. 스펙 확인
-  const handleStartedDone = () => {
-    invalidateRoom();
-    navigate(`/leagues/${roomId}`, { replace: true });
-  };
 
   if (isPending || isError) {
     return (
@@ -166,12 +163,12 @@ function WaitingPage() {
       : [];
   };
 
+  // 방장이 나가는데 상장한 친구가 없으면 대기실이 사라진다 (대기실 4-3)
+  const isLeaveDeletingRoom = isHost && listedFriends.length === 0;
+
   const getLeaveDescription = () => {
-    if (isHost) {
-      return listedFriends.length > 0
-        ? '가장 먼저 상장한 친구에게 방장 권한이 넘어가요.'
-        : '나가면 대기실이 사라져요.';
-    }
+    if (isLeaveDeletingRoom) return '나가면 대기실이 사라져요.';
+    if (isHost) return '가장 먼저 상장한 친구에게 방장 권한이 넘어가요.';
     return myStock ? '이 리그의 참여가 취소돼요.' : '이 리그의 대기가 취소돼요.';
   };
 
@@ -293,7 +290,11 @@ function WaitingPage() {
           description={getLeaveDescription()}
           confirmLabel="나가기"
           isPending={leaveMutation.isPending}
-          onConfirm={() => leaveMutation.mutate()}
+          onConfirm={() =>
+            leaveMutation.mutate(
+              isLeaveDeletingRoom ? ROOM_DELETED_MESSAGE : '리그에서 퇴장했어요.',
+            )
+          }
           onCancel={closeModal}
         />
       )}
@@ -316,7 +317,6 @@ function WaitingPage() {
           onCancel={closeModal}
         />
       )}
-      {isStarted && <NoticeModal title="리그가 시작되었어요." onDone={handleStartedDone} />}
     </>
   );
 }

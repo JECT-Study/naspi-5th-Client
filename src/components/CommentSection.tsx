@@ -6,7 +6,8 @@ import type { Comment, CommentTargetType } from '@/apis/domains/comment/comment.
 import type { RoomId } from '@/apis/domains/room/room.types';
 import { formatRelativeTime } from '@/utils/date';
 import ConfirmModal from './ConfirmModal';
-import { ReplyIcon, TrashIcon } from './icons';
+import Dropdown from './Dropdown';
+import { MoreIcon, ReplyIcon } from './icons';
 import LoadError from './LoadError';
 
 interface CommentSectionProps {
@@ -53,13 +54,12 @@ function CommentSection({ roomId, targetType, targetId, onChanged }: CommentSect
                   {formatRelativeTime(new Date(comment.createdAt))}
                 </span>
                 {comment.isMine && (
-                  <button
-                    type="button"
-                    aria-label="댓글 삭제"
-                    onClick={() => setDeleteTarget(comment)}
-                  >
-                    <TrashIcon className="size-3.5 text-gray-400" />
-                  </button>
+                  // 댓글 미트볼 → 드롭다운 '삭제하기' → 확인 모달 (공시 상세 6, 뉴스 상세 3)
+                  <Dropdown
+                    label="댓글 메뉴"
+                    icon={<MoreIcon className="size-3.5 text-gray-400" />}
+                    items={[{ label: '삭제하기', onSelect: () => setDeleteTarget(comment) }]}
+                  />
                 )}
               </div>
               <p className="mt-0.5 text-sm wrap-break-word whitespace-pre-line text-gray-700">

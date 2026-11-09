@@ -223,6 +223,8 @@ const findRoom = (roomId: RoomId) => rooms.find((room) => room.roomId === roomId
 const getRoomOrFail = (roomId: RoomId) => findRoom(roomId) ?? fail('ROOM_DELETED', 404);
 const myRooms = () => rooms.filter((room) => room.members.some(isMe));
 const countListed = (room: MockRoom) => room.members.filter((member) => member.stock).length;
+const expiresAtOf = (room: MockRoom) =>
+  new Date(Date.parse(room.createdAt) + WAITING_ROOM_LIFETIME_DAYS * DAY_MS).toISOString();
 const activeRoomCount = () => myRooms().filter((room) => room.status !== 'ENDED').length;
 // 리그 종료 시각: 시작한 KST 날짜 + 7일, 09:00 KST(= 00:00 UTC) (서비스 정책 2.3)
 const getLeagueEndAt = (start: Date) => {
@@ -267,6 +269,7 @@ export const mockRoomServer = {
           listedCount: countListed(room),
           isListed: Boolean(findMyMember(room).stock),
           createdAt: room.createdAt,
+          expiresAt: expiresAtOf(room),
         })),
       ended: mine
         .filter((room) => room.status === 'ENDED')
@@ -297,9 +300,7 @@ export const mockRoomServer = {
       roomId: room.roomId,
       name: room.name,
       inviteCode: room.inviteCode,
-      expiresAt: new Date(
-        Date.parse(room.createdAt) + WAITING_ROOM_LIFETIME_DAYS * DAY_MS,
-      ).toISOString(),
+      expiresAt: expiresAtOf(room),
       members: room.members.map((member) => ({
         ...member,
         name: isMe(member) ? meMock.name : member.name,

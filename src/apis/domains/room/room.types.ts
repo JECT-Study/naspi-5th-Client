@@ -36,6 +36,8 @@ export interface WaitingRoom {
   isListed: boolean;
   /** 대기실 생성 시각 (ISO 8601, UTC) */
   createdAt: string;
+  /** 대기실 만료 시각. 메인 대기실 카드의 "만료 예정" 표시용. TODO(API): 요청 필드 */
+  expiresAt: string;
 }
 
 export interface EndedRoom {
