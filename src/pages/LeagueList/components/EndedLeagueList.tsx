@@ -11,9 +11,9 @@ function EndedLeagueList({ ended }: EndedLeagueListProps) {
     return (
       <div className="flex flex-1 items-center justify-center">
         <p className="text-center text-sm text-gray-500">
-          리그가 끝나도 결과를
+          리그가 끝나도
           <br />
-          다시 확인할 수 있어요.
+          결과를 다시 확인할 수 있어요.
         </p>
       </div>
     );

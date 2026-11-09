@@ -12,7 +12,8 @@ import CommentInput from '@/components/CommentInput';
 import CommentSection from '@/components/CommentSection';
 import ConfirmModal from '@/components/ConfirmModal';
 import DisclosureReactions from '@/components/DisclosureReactions';
-import { ChatIcon, TrashIcon } from '@/components/icons';
+import Dropdown from '@/components/Dropdown';
+import { ChatIcon, MoreIcon } from '@/components/icons';
 import LoadError from '@/components/LoadError';
 import PageHeader from '@/components/PageHeader';
 import StockAvatar from '@/components/StockAvatar';
@@ -104,13 +105,12 @@ function DisclosureDetailPage() {
                 {formatRelativeTime(new Date(item.createdAt))}
               </span>
               {item.isMine && (
-                <button
-                  type="button"
-                  aria-label="공시 삭제"
-                  onClick={() => setIsDeleteModalOpen(true)}
-                >
-                  <TrashIcon className="size-4 text-gray-400" />
-                </button>
+                // 공시 미트볼 → 드롭다운 '삭제하기' → 확인 모달 (공시 상세 2, 2-1, 2-1-1)
+                <Dropdown
+                  label="공시 메뉴"
+                  icon={<MoreIcon className="size-4 text-gray-400" />}
+                  items={[{ label: '삭제하기', onSelect: () => setIsDeleteModalOpen(true) }]}
+                />
               )}
             </div>
             <h2 className="font-bold">{item.title}</h2>

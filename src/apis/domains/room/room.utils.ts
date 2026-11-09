@@ -38,6 +38,8 @@ export interface ActiveRoom {
   status: 'ONGOING' | 'WAITING';
   /** 정렬 기준: 진행 중이면 리그 시작 시각, 대기 중이면 대기실 생성 시각 */
   since: string;
+  /** 진행 중인 리그의 종료 예정 시각 (D-day 표시용). 대기 중이면 null */
+  endAt: string | null;
 }
 
 /** 진행 중·대기 중 리그를 리그 시작(대기실 생성) 시각이 이른 순으로 (GNB 드로어 나의 리그) */
@@ -48,11 +50,13 @@ export const getActiveRooms = (rooms: MyRoomsResponse): ActiveRoom[] =>
       name: room.name,
       status: 'ONGOING' as const,
       since: room.startedAt,
+      endAt: room.endAt,
     })),
     ...rooms.waiting.map((room) => ({
       roomId: room.roomId,
       name: room.name,
       status: 'WAITING' as const,
       since: room.createdAt,
+      endAt: null,
     })),
   ].sort((a, b) => Date.parse(a.since) - Date.parse(b.since));

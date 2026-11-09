@@ -62,6 +62,7 @@ function OngoingLeagueList({ ongoing, waiting }: OngoingLeagueListProps) {
               name={room.name}
               badge={room.isListed ? '상장 완료' : '상장 대기'}
               meta={`${room.listedCount}명 상장 완료`}
+              date={`${formatKstDate(new Date(room.expiresAt))} 만료 예정`}
             />
           ))}
         </>
