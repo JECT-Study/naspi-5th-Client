@@ -5,7 +5,6 @@ import type { Ranking } from '@/apis/domains/league/league.types';
 import { sortRankings } from '@/apis/domains/league/league.utils';
 import Button from '@/components/Button';
 import ChangeRate from '@/components/ChangeRate';
-import FloatingFooter from '@/components/FloatingFooter';
 import LeagueHeader from '@/components/LeagueHeader';
 import LoadError from '@/components/LoadError';
 import { useOpenLeagueEntry } from '@/hooks/useOpenLeagueEntry';
@@ -90,11 +89,12 @@ function LeagueResultPage() {
       <LeagueHeader leagueName={result.data?.name ?? ''} badge="종료" />
       <main className="flex min-h-0 flex-1 flex-col gap-8 overflow-y-auto px-9 pt-4">
         {renderContent()}
-        <FloatingFooter>
+        {/* 화면설계서 v1.4: 리그 결과의 '새 리그 만들기'는 플로팅이 아닌 일반 버튼 */}
+        <div className="mt-auto pt-4 pb-6">
           <Button className="w-full" onClick={() => openLeagueEntry('leagueCreate')}>
             새 리그 만들기
           </Button>
-        </FloatingFooter>
+        </div>
       </main>
       {selected && (
         <ParticipantAssetsSheet participant={selected} onClose={() => setSelected(null)} />
