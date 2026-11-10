@@ -8,6 +8,7 @@ import {
   type TransitionEvent,
 } from 'react';
 import { createPortal } from 'react-dom';
+import { useContainTouchScroll } from '@/hooks/useContainTouchScroll';
 import { cn } from '@/utils/cn';
 import { CloseIcon } from './icons';
 
@@ -49,6 +50,10 @@ function BottomSheet({ title, children, onClose }: BottomSheetProps) {
   const dragRef = useRef<SheetDrag | null>(null);
   const collapsedHeightRef = useRef(0);
   const panelRef = useRef<HTMLDivElement>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  useContainTouchScroll(rootRef, contentRef);
 
   useEffect(() => {
     const previousFocus = document.activeElement as HTMLElement | null;
@@ -148,7 +153,7 @@ function BottomSheet({ title, children, onClose }: BottomSheetProps) {
   };
 
   return createPortal(
-    <div className="fixed inset-0 z-50 flex justify-center">
+    <div ref={rootRef} className="fixed inset-0 z-50 flex justify-center">
       <div
         aria-hidden="true"
         className={cn(
@@ -203,7 +208,12 @@ function BottomSheet({ title, children, onClose }: BottomSheetProps) {
               </button>
             </div>
           </div>
-          <div className="min-h-0 flex-1 overflow-y-auto px-7 pb-8">{children}</div>
+          <div
+            ref={contentRef}
+            className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-7 pb-8"
+          >
+            {children}
+          </div>
         </div>
       </div>
     </div>,
