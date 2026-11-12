@@ -34,3 +34,6 @@ docs/
 
 # Firebase
 .firebase/
+
+# 로컬 https 인증서 (mkcert)
+.cert/

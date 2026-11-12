@@ -41,6 +41,6 @@ jobs:
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_NASPI_BC42A }}
-          projectId: naspi-bc42a
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_NASPI_10A75 }}
+          projectId: naspi-10a75
           channelId: live
