@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router';
 import { roomKeys } from '@/apis/domains/room/room.queries';
 import { createRoom } from '@/apis/domains/room/room.service';
 import type { RoomErrorCode } from '@/apis/domains/room/room.types';
-import { MAX_ACTIVE_ROOMS } from '@/apis/domains/room/room.utils';
+import { ACTIVE_ROOM_LIMIT_MESSAGE } from '@/apis/domains/room/room.utils';
 import { ROOM_NAME_MAX_LENGTH } from '@/apis/domains/room/room.validation';
 import type { ListStockRequest } from '@/apis/domains/stock/stock.types';
 import {
@@ -46,7 +46,7 @@ function LeagueCreateOverlay() {
     },
     onError: (error) => {
       if ((getApiErrorCode(error) as RoomErrorCode | undefined) === 'ACTIVE_ROOM_LIMIT_EXCEEDED') {
-        notify.error(`리그는 동시에 ${MAX_ACTIVE_ROOMS}개까지만 진행할 수 있어요.`);
+        notify.error(ACTIVE_ROOM_LIMIT_MESSAGE);
       }
     },
   });

@@ -31,9 +31,9 @@ function WithdrawModal({ onClose }: WithdrawModalProps) {
 
   return (
     <ConfirmModal
-      title="정말 탈퇴하시겠습니까?"
+      title="회원 탈퇴할까요?"
       description={
-        '진행 중인 모든 리그에서 제외됩니다.\n상장한 종목과 공시, 뉴스, 댓글은 모두 유지됩니다.'
+        '진행 중인 모든 리그에서 제외돼요.\n상장한 종목과 공시, 뉴스, 댓글은 모두 유지돼요.'
       }
       confirmLabel="탈퇴하기"
       confirmDisabled={!isAgreed}
@@ -51,7 +51,7 @@ function WithdrawModal({ onClose }: WithdrawModalProps) {
           checked={isAgreed}
           onChange={(event) => setIsAgreed(event.target.checked)}
         />
-        안내를 확인했고, 되돌릴 수 없다는 것을 이해했습니다.
+        안내를 확인했고, 탈퇴를 되돌릴 수 없다는 점을 이해했어요.
       </label>
       {isError && (
         <FieldMessage className="mt-2">

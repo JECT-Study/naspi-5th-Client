@@ -17,7 +17,7 @@ function LogoutModal({ onClose }: LogoutModalProps) {
 
   return (
     <ConfirmModal
-      title="정말 로그아웃 하시겠습니까?"
+      title="로그아웃할까요?"
       confirmLabel="로그아웃"
       isPending={isPending}
       onConfirm={() => mutate()}

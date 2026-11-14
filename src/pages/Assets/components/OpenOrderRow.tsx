@@ -8,7 +8,7 @@ interface OpenOrderRowProps {
   onCancel: (order: OpenOrder) => void;
 }
 
-// 대기 중인 주문 한 줄: 종목, {수량}주 {구매/판매}/ 주당 {단가}원, 주문 일시, 취소 (내 자산, 종목 - 내 주식)
+// 대기 중인 주문 한 줄: 종목, {매수/매도} {수량}주 / 주당 {단가}원, 주문 일시, 취소 (내 자산, 종목 - 내 주식)
 function OpenOrderRow({ order, onCancel }: OpenOrderRowProps) {
   return (
     <div className="flex items-center gap-3 py-2">
@@ -16,7 +16,7 @@ function OpenOrderRow({ order, onCancel }: OpenOrderRowProps) {
       <div className="min-w-0 flex-1">
         <p className="truncate font-bold">{order.stockName}</p>
         <p className="truncate text-sm text-gray-500">
-          {formatNumber(order.quantity)}주 {order.side === 'BUY' ? '구매' : '판매'}/ 주당{' '}
+          {order.side === 'BUY' ? '매수' : '매도'} {formatNumber(order.quantity)}주 / 주당{' '}
           {formatNumber(order.price)}원
         </p>
       </div>

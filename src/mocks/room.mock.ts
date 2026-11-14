@@ -231,12 +231,13 @@ const getLeagueEndAt = (start: Date) => {
   const kstDay = Math.floor((start.getTime() + 9 * 60 * 60 * 1000) / DAY_MS);
   return new Date((kstDay + LEAGUE_DAYS) * DAY_MS).toISOString();
 };
-const randomInviteCode = () => {
-  const letters = Array.from({ length: 4 }, () =>
-    String.fromCharCode(65 + Math.floor(Math.random() * 26)),
+// 영문 대문자·숫자를 섞은 랜덤 7자 (설계서 v.1.5 대기실 2)
+const INVITE_CODE_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+const randomInviteCode = () =>
+  Array.from(
+    { length: 7 },
+    () => INVITE_CODE_CHARS[Math.floor(Math.random() * INVITE_CODE_CHARS.length)],
   ).join('');
-  return `${letters}${String(Math.floor(Math.random() * 1000)).padStart(3, '0')}`;
-};
 const removeRoom = (roomId: RoomId) => {
   const index = rooms.findIndex((room) => room.roomId === roomId);
   if (index >= 0) rooms.splice(index, 1);

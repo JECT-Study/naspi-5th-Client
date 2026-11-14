@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router';
 import { roomKeys, roomQueries } from '@/apis/domains/room/room.queries';
 import { joinRoom } from '@/apis/domains/room/room.service';
 import type { RoomErrorCode } from '@/apis/domains/room/room.types';
-import { MAX_ACTIVE_ROOMS } from '@/apis/domains/room/room.utils';
+import { ACTIVE_ROOM_LIMIT_MESSAGE } from '@/apis/domains/room/room.utils';
 import { isInviteCodeComplete, normalizeInviteCode } from '@/apis/domains/room/room.validation';
 import Button from '@/components/Button';
 import FieldMessage from '@/components/FieldMessage';
@@ -58,7 +58,7 @@ function LeagueJoinOverlay({ initialInviteCode = '' }: LeagueJoinOverlayProps) {
     },
     onError: (error) => {
       if ((getApiErrorCode(error) as RoomErrorCode | undefined) === 'ACTIVE_ROOM_LIMIT_EXCEEDED') {
-        notify.error(`리그는 동시에 ${MAX_ACTIVE_ROOMS}개까지만 진행할 수 있어요.`);
+        notify.error(ACTIVE_ROOM_LIMIT_MESSAGE);
       }
     },
   });
@@ -80,11 +80,9 @@ function LeagueJoinOverlay({ initialInviteCode = '' }: LeagueJoinOverlayProps) {
     return (
       <>
         <h2 className="text-lg font-bold">
-          {isChecking ? '코드를 확인 중이에요...' : '코드를 입력해 주세요.'}
+          {isChecking ? '초대 코드를 확인 중이에요...' : '초대 코드를 입력해 주세요.'}
         </h2>
-        <p className="mt-1 text-sm text-gray-500">
-          공유 받은 참여 코드를 통해 대기실에 입장하세요.
-        </p>
+        <p className="mt-1 text-sm text-gray-500">공유받은 초대 코드로 대기실에 입장하세요.</p>
         {hasCheckError && (
           <FieldMessage className="mt-3">
             {isInvalidCode
@@ -136,7 +134,7 @@ function LeagueJoinOverlay({ initialInviteCode = '' }: LeagueJoinOverlayProps) {
           className="mt-4 text-sm text-gray-500"
           onClick={() => handleCodeChange('')}
         >
-          ← 코드 다시 입력하기
+          ← 초대 코드 다시 입력하기
         </button>
       </>
     );

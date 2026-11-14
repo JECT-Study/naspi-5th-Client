@@ -72,7 +72,7 @@ function DisclosureCreateOverlay({ roomId }: DisclosureCreateOverlayProps) {
     if (files.length === 0) return;
 
     if (images.length + files.length > DISCLOSURE_MAX_IMAGES) {
-      notify.error(`최대 ${DISCLOSURE_MAX_IMAGES}장의 사진까지 업로드 할 수 있어요.`);
+      notify.error(`최대 ${DISCLOSURE_MAX_IMAGES}장의 사진까지 업로드할 수 있어요.`);
       return;
     }
     if (!files.every(isDisclosureImage)) {
@@ -123,7 +123,7 @@ function DisclosureCreateOverlay({ roomId }: DisclosureCreateOverlayProps) {
           <textarea
             aria-label="내용"
             placeholder={
-              '친구들과 공유할 소식을 작성해 주세요.\n작성한 소식을 바탕으로 내 종목의 AI 공시브리핑이 발행돼요.'
+              '오늘 있었던 일을 친구들과 공유해 주세요.\n작성한 소식을 바탕으로 내 종목의 AI 공시브리핑이 발행돼요.'
             }
             maxLength={DISCLOSURE_CONTENT_MAX_LENGTH}
             value={content}
