@@ -14,9 +14,10 @@ interface OrderCancelModalProps {
   onClose: () => void;
 }
 
-// 주문을 취소할까요? (그만두기 / 취소하기) (내 자산 1-1)
+// 주문을 취소할까요? (주문 유지 / 주문 취소) (내 자산 1-1)
+// 일부 체결된 주문은 아직 체결되지 않은 수량만 취소된다 (서버가 처리)
 // - 성공: 주문 취소 토스트(공통 5-4) 후 닫는다
-// - 그 사이 체결됨: 주문 취소 실패 토스트(공통 5-5) 후 닫는다 (취소할 주문이 더는 없으므로)
+// - 그 사이 전량 체결됨: 주문 취소 실패 토스트(공통 5-5) 후 닫는다 (취소할 수량이 더는 없으므로)
 // - 그 밖의 실패: "주문 취소" 실패 토스트, 모달은 그대로 (X 없는 모달은 요청이 성공해야 닫힌다)
 function OrderCancelModal({ roomId, order, onClose }: OrderCancelModalProps) {
   const queryClient = useQueryClient();
@@ -48,9 +49,9 @@ function OrderCancelModal({ roomId, order, onClose }: OrderCancelModalProps) {
   return (
     <ConfirmModal
       title="주문을 취소할까요?"
-      description={`${order.stockName} 대기 중인 주문을 취소할게요.`}
-      cancelLabel="그만두기"
-      confirmLabel="취소하기"
+      description="아직 체결되지 않은 수량만 취소해요."
+      cancelLabel="주문 유지"
+      confirmLabel="주문 취소"
       isPending={isPending}
       onConfirm={() => mutate()}
       onCancel={onClose}

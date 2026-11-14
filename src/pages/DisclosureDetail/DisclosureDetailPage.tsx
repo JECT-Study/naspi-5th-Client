@@ -178,7 +178,7 @@ function DisclosureDetailPage() {
 
       {isDeleteModalOpen && (
         <ConfirmModal
-          title="이 공시를 정말 삭제하시겠습니까?"
+          title="공시를 삭제할까요?"
           description="발행된 뉴스는 삭제되지 않아요."
           confirmLabel="삭제하기"
           isPending={deleteMutation.isPending}

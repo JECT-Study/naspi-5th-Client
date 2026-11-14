@@ -23,9 +23,9 @@ function FeedPage() {
             <div className="flex flex-1 flex-col items-center justify-center gap-2 text-center">
               <p className="font-bold">첫 공시를 작성해 보세요!</p>
               <p className="text-sm text-gray-500">
-                친구들과 공유하고 싶은 소식을 올리고,
+                친구들과 소식을 나누고
                 <br />
-                AI의 공시 브리핑 뉴스를 확인해 보세요.
+                AI 공시브리핑을 확인해 보세요.
               </p>
             </div>
           }

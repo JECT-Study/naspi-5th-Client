@@ -1,4 +1,7 @@
-import { MAX_ACTIVE_ROOMS, isActiveRoomLimitReached } from '@/apis/domains/room/room.utils';
+import {
+  ACTIVE_ROOM_LIMIT_MESSAGE,
+  isActiveRoomLimitReached,
+} from '@/apis/domains/room/room.utils';
 import { notify } from '@/libs/notify';
 import { useMyRooms } from './useMyRooms';
 import { useOpenOverlay } from './useOverlay';
@@ -16,7 +19,7 @@ export const useOpenLeagueEntry = () => {
 
   return (type: LeagueEntry) => {
     if (rooms && isActiveRoomLimitReached(rooms)) {
-      notify.error(`리그는 동시에 ${MAX_ACTIVE_ROOMS}개까지만 진행할 수 있어요.`);
+      notify.error(ACTIVE_ROOM_LIMIT_MESSAGE);
       return;
     }
     openOverlay({ type });

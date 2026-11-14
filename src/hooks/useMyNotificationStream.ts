@@ -45,7 +45,7 @@ export const useMyNotificationStream = (roomId: RoomId) => {
           const stockName = findStockName(stockId);
           // 공통 5-6: {종목 이름} {매매 구분} 주문이 체결됐어요. + 확인하기 → 종목 - 내 주식
           notify.success(
-            `${stockName ? `${stockName} ` : ''}${side === 'BUY' ? '구매' : '판매'} 주문이 체결됐어요.`,
+            `${stockName ? `${stockName} ` : ''}${side === 'BUY' ? '매수' : '매도'} 주문이 체결됐어요.`,
             { link: { label: '확인하기', to: `/leagues/${roomId}/stocks/${stockId}/mine` } },
           );
           break;

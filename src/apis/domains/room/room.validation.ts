@@ -6,22 +6,22 @@ import { hangulToQwerty } from '@/utils/hangulKeyboard';
  */
 export const ROOM_NAME_MAX_LENGTH = 12;
 
-/** 초대 코드 자릿수 (서비스 정책 2.1: 앞 4자리 영문 + 뒤 3자리 숫자) */
+/**
+ * 초대 코드 자릿수. 영문 대문자·숫자를 섞은 랜덤 7자 (설계서 v.1.5 대기실 2)
+ * v.1.4까지는 앞 4자리 영문 + 뒤 3자리 숫자였다
+ */
 export const INVITE_CODE_LENGTH = 7;
-const INVITE_CODE_LETTER_COUNT = 4;
-const LETTER_REGEX = /^[A-Z]$/;
-const DIGIT_REGEX = /^\d$/;
+const INVITE_CODE_CHAR_REGEX = /^[A-Z0-9]$/;
 
 /**
- * 입력값을 초대 코드 형식으로 맞춘다. 대문자로 바꾸고, 자리에 맞지 않는 글자는 버린다
+ * 입력값을 초대 코드 형식으로 맞춘다. 대문자로 바꾸고, 영문·숫자가 아닌 글자는 버린다
  * 한글 자판 상태로 쳤으면 같은 자리의 영문으로 바꾼다 (한/영 전환을 깜빡해도 입력되게)
- * 예: 'kk-k k12a3' → 'KKKK123', 'ㅏㅏㅏㅏ123' → 'KKKK123'
+ * 예: 'k7-q 2a9x' → 'K7Q2A9X', 'ㅏ7ㅂ2' → 'K7Q2'
  */
 export const normalizeInviteCode = (value: string): string =>
-  Array.from(hangulToQwerty(value).toUpperCase()).reduce((code, char) => {
-    if (code.length >= INVITE_CODE_LENGTH) return code;
-    const pattern = code.length < INVITE_CODE_LETTER_COUNT ? LETTER_REGEX : DIGIT_REGEX;
-    return pattern.test(char) ? code + char : code;
-  }, '');
+  Array.from(hangulToQwerty(value).toUpperCase())
+    .filter((char) => INVITE_CODE_CHAR_REGEX.test(char))
+    .slice(0, INVITE_CODE_LENGTH)
+    .join('');
 
 export const isInviteCodeComplete = (code: string): boolean => code.length === INVITE_CODE_LENGTH;

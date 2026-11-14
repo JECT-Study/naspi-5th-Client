@@ -32,7 +32,7 @@ type WaitingModal =
   | { type: 'kick'; member: WaitingMember }
   | { type: 'start' };
 
-const ROOM_DELETED_MESSAGE = '리그가 삭제되었어요.';
+const ROOM_DELETED_MESSAGE = '대기실을 삭제했어요.';
 
 // 만료 배너는 만료 2일 전부터 보여준다 (화면설계서 대기실 10)
 const EXPIRY_BANNER_DAYS = 2;
@@ -44,8 +44,9 @@ const formatExpiry = (days: number) => {
 };
 
 // 대기실 (화면설계서 대기실). 역할: 방장 / 참여자(상장 완료) / 대기자(아직 상장 전)
-// - 상단 메뉴: 방장만 (리그 이름 수정, 리그 삭제)
-// - 내 종목 메뉴: 방장·참여자 (내 종목 수정하기, 리그 나가기)
+// - 상단 메뉴: 방장만 (리그 이름 수정, 대기실 삭제)
+// - 내 종목 메뉴: 방장·참여자 (내 종목 수정하기, 대기실 나가기)
+// - 리그 시작 전 삭제·나가기 문구에는 '대기실'을 쓴다 (설계서 v.1.5)
 // - 대기자는 내 종목 영역 없이 대기 중인 친구에 내 이름이 나오고, 그 메뉴로 상장·나가기
 // - 친구 메뉴: 방장만, 상장한 친구·대기 중인 친구 모두 (내보내기)
 // - 하단: 방장 리그 시작하기 (참여자 3명 이상일 때 활성화), 참여자 내 종목 수정하기, 대기자 내 종목 상장하기
@@ -146,15 +147,15 @@ function WaitingPage() {
   const openLeaveModal = () => setModal({ type: 'leave' });
   const headerMenu = [
     { label: '리그 이름 수정', onSelect: () => setModal({ type: 'rename' }) },
-    { label: '리그 삭제', onSelect: () => setModal({ type: 'delete' }) },
+    { label: '대기실 삭제', onSelect: () => setModal({ type: 'delete' }) },
   ];
   const myStockActions = [
     { label: '내 종목 수정하기', onSelect: openListing },
-    { label: '리그 나가기', onSelect: openLeaveModal },
+    { label: '대기실 나가기', onSelect: openLeaveModal },
   ];
   const myWaitingActions = [
     { label: '내 종목 상장하기', onSelect: openListing },
-    { label: '리그 나가기', onSelect: openLeaveModal },
+    { label: '대기실 나가기', onSelect: openLeaveModal },
   ];
   const getMemberActions = (member: WaitingMember) => {
     if (member.isMe) return myWaitingActions;
@@ -203,7 +204,7 @@ function WaitingPage() {
           </p>
         )}
 
-        <InviteCodeSection leagueName={room.name} inviteCode={room.inviteCode} />
+        <InviteCodeSection inviteCode={room.inviteCode} />
 
         <section>
           <div className="flex items-center justify-between">
@@ -292,7 +293,7 @@ function WaitingPage() {
           isPending={leaveMutation.isPending}
           onConfirm={() =>
             leaveMutation.mutate(
-              isLeaveDeletingRoom ? ROOM_DELETED_MESSAGE : '리그에서 퇴장했어요.',
+              isLeaveDeletingRoom ? ROOM_DELETED_MESSAGE : '대기실에서 나왔어요.',
             )
           }
           onCancel={closeModal}

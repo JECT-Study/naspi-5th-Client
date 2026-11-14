@@ -71,7 +71,7 @@ function CommentSection({ roomId, targetType, targetId, onChanged }: CommentSect
       </ul>
       {deleteTarget && (
         <ConfirmModal
-          title="이 댓글을 정말 삭제하시겠습니까?"
+          title="댓글을 삭제할까요?"
           confirmLabel="삭제하기"
           isPending={isPending}
           onConfirm={() => mutate(deleteTarget)}

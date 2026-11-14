@@ -9,7 +9,7 @@ interface CodeInputProps {
   hasError?: boolean;
 }
 
-// 초대 코드 7칸 (영문 4 + 숫자 3). 보이지 않는 입력창 하나를 칸 위에 겹쳐서 붙여넣기·지우기를 그대로 쓴다
+// 초대 코드 7칸 (영문·숫자 섞인 7자). 보이지 않는 입력창 하나를 칸 위에 겹쳐서 붙여넣기·지우기를 그대로 쓴다
 // 확인 중에는 막았다가(disabled), 끝나면 다시 입력할 수 있게 포커스를 돌려준다
 function CodeInput({ value, onChange, disabled = false, hasError = false }: CodeInputProps) {
   const inputRef = useRef<HTMLInputElement>(null);

@@ -52,7 +52,11 @@ interface OrderOverlayProps {
   side: OrderSide;
 }
 
-const SIDE_LABEL: Record<OrderSide, string> = { BUY: '구매', SELL: '판매' };
+// 제목·제출 버튼은 '매수·매도', 안내 문장("원하는 가격에 구매할 수 있어요.")은 '구매·판매' (설계서 v.1.5 주문)
+const SIDE_LABEL: Record<OrderSide, string> = { BUY: '매수', SELL: '매도' };
+const SIDE_VERB: Record<OrderSide, string> = { BUY: '구매', SELL: '판매' };
+const getOrderTitle = (stockName: string, side: OrderSide) =>
+  `${stockName} ${SIDE_LABEL[side]} 주문`;
 const ORDER_TYPES: { type: OrderType; label: string }[] = [
   { type: 'MARKET', label: '시장가' },
   { type: 'LIMIT', label: '지정가' },
@@ -76,6 +80,7 @@ function OrderForm({ roomId, side, stock, assets }: OrderFormProps) {
   const closeOverlay = useCloseOverlay();
   const { stockId } = stock;
   const sideLabel = SIDE_LABEL[side];
+  const sideVerb = SIDE_VERB[side];
 
   const [orderType, setOrderType] = useState<OrderType>('MARKET');
   // 지정가는 오버레이를 처음 열 때의 현재가로 시작한다 (주문 5)
@@ -252,13 +257,13 @@ function OrderForm({ roomId, side, stock, assets }: OrderFormProps) {
       isPending={isPending}
       onClick={handleSubmit}
     >
-      {sideLabel}하기
+      {sideLabel} 주문하기
     </Button>
   );
 
   return (
     <>
-      <TaskHeader title={`${stock.name} ${sideLabel}하기`} />
+      <TaskHeader title={getOrderTitle(stock.name, side)} />
       <main
         className={cn(
           'flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto px-9 pt-2',
@@ -290,7 +295,7 @@ function OrderForm({ roomId, side, stock, assets }: OrderFormProps) {
 
         <div className="flex flex-col gap-2">
           <p className="text-sm font-bold">
-            {isLimit ? '원하는 가격에' : '가장 빠른 가격에'} {sideLabel}할 수 있어요.
+            {isLimit ? '원하는 가격에' : '가장 빠른 가격에'} {sideVerb}할 수 있어요.
           </p>
           {side === 'BUY' ? (
             <p className="text-xs text-gray-500">
@@ -375,7 +380,7 @@ function OrderForm({ roomId, side, stock, assets }: OrderFormProps) {
   );
 }
 
-// 구매하기·판매하기 (오버레이, 차트의 사기/팔기)
+// 매수 주문·매도 주문 (오버레이, 차트의 사기/팔기)
 function OrderOverlay({ roomId, stockId, side }: OrderOverlayProps) {
   const stock = useQuery(stockQueries.detail(roomId, stockId));
   const assets = useQuery(assetQueries.mine(roomId));
@@ -384,7 +389,7 @@ function OrderOverlay({ roomId, stockId, side }: OrderOverlayProps) {
     return <OrderForm roomId={roomId} side={side} stock={stock.data} assets={assets.data} />;
   }
 
-  const title = `${stock.data?.name ?? ''} ${SIDE_LABEL[side]}하기`;
+  const title = getOrderTitle(stock.data?.name ?? '', side);
   return (
     <>
       <TaskHeader title={title} />
