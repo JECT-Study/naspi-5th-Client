@@ -1,9 +1,6 @@
-import { useContext, useEffect, useId, useRef, type KeyboardEvent, type ReactNode } from 'react';
+import { useEffect, useId, useRef, type KeyboardEvent, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
-import { useStore } from 'zustand';
-import { sessionStore } from '@/libs/session';
 import { CloseIcon } from './icons';
-import { KeepOnSessionExpiredContext } from './sessionModalContext';
 
 interface ModalProps {
   title: string;
@@ -20,15 +17,7 @@ interface ModalProps {
 // 가운데 뜨는 모달의 틀. 열고 닫기는 부르는 쪽에서 조건부 렌더링으로 한다
 // 닫기 규칙(화면설계서 공통): X 버튼이 있으면 X·바깥 클릭으로 닫히고, 없으면 내부 버튼으로만 닫힌다
 // 부모에 transform이 생겨도 위치가 틀어지지 않도록 body에 그린다
-// 모달은 한 번에 하나: 재로그인 모달이 떠 있으면 나머지 모달은 숨긴다 (로그인 모달 쪽은 KeepOnSessionExpiredContext)
-function Modal(props: ModalProps) {
-  const isSessionExpired = useStore(sessionStore, (state) => state.isExpired);
-  const keepOnSessionExpired = useContext(KeepOnSessionExpiredContext);
-  if (isSessionExpired && !keepOnSessionExpired) return null;
-  return <ModalPanel {...props} />;
-}
-
-function ModalPanel({ title, description, children, footer, onClose }: ModalProps) {
+function Modal({ title, description, children, footer, onClose }: ModalProps) {
   const titleId = useId();
   const descriptionId = useId();
   const panelRef = useRef<HTMLDivElement>(null);

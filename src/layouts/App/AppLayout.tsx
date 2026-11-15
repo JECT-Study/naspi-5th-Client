@@ -1,12 +1,14 @@
+import { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Outlet, useLocation } from 'react-router';
+import { Outlet, useLocation, useNavigate } from 'react-router';
 import { useStore } from 'zustand';
-import LoginModal from '@/components/LoginModal';
 import NetworkErrorPage from '@/components/NetworkErrorPage';
 import Toaster from '@/components/Toaster';
 import { useSyncOverlayWithHistory } from '@/hooks/useOverlay';
+import type { LandingState } from '@/libs/loginReturnPath';
 import { networkErrorStore } from '@/libs/networkError';
 import { clearSessionExpired, sessionStore } from '@/libs/session';
+import { useGnbDrawerStore } from '@/stores/gnbDrawerStore';
 import DisclosureCreateOverlay from '@/overlays/DisclosureCreate/DisclosureCreateOverlay';
 import LeagueCreateOverlay from '@/overlays/LeagueCreate/LeagueCreateOverlay';
 import LeagueJoinOverlay from '@/overlays/LeagueJoin/LeagueJoinOverlay';
@@ -20,7 +22,7 @@ const renderOverlay = (overlay: Overlay) => {
     case 'leagueCreate':
       return <LeagueCreateOverlay />;
     case 'leagueJoin':
-      return <LeagueJoinOverlay initialInviteCode={overlay.inviteCode} />;
+      return <LeagueJoinOverlay />;
     case 'stockListing':
       return <StockListingOverlay roomId={overlay.roomId} />;
     case 'order':
@@ -32,20 +34,31 @@ const renderOverlay = (overlay: Overlay) => {
 
 // 모든 화면의 바깥 틀
 // 작업형 화면(오버레이)은 주소 없이 지금 화면 위에 덮는다. 아래 화면은 그대로라 스크롤·차트 실시간이 유지된다
-// 토스트·네트워크 오류·재로그인 안내도 이 틀 안에 띄운다
+// 토스트·네트워크 오류도 이 틀 안에 띄운다
 function AppLayout() {
+  const { pathname, search } = useLocation();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { pathname } = useLocation();
+  const clearGnbDrawer = useGnbDrawerStore((state) => state.clearGnbDrawer);
   const overlay = useOverlayStore((state) => state.overlay);
   const hasNetworkError = useStore(networkErrorStore, (state) => state.hasNetworkError);
   const isSessionExpired = useStore(sessionStore, (state) => state.isExpired);
   useSyncOverlayWithHistory();
 
-  // 재로그인하면 지금 화면에서 실패했던 조회를 다시 한다
-  const handleRelogin = () => {
+  // 세션 만료 (공통 2-2): 랜딩으로 보내고 그 위에 재로그인 모달을 띄운다
+  // 보던 주소를 넘겨서, 재로그인 모달로 로그인하면 보던 화면으로 돌아온다
+  // 오버레이는 주소를 바꾸지 않으므로 지금 주소가 곧 오버레이를 닫은 화면의 주소다 (오버레이는 이동하며 닫힌다)
+  useEffect(() => {
+    if (!isSessionExpired) return;
     clearSessionExpired();
-    queryClient.invalidateQueries();
-  };
+    // 랜딩에서 이미 확인한 경우(로그인 확인 요청)는 따로 보내지 않는다
+    if (pathname === '/') return;
+    // 이전 사용자의 캐시를 비운다. 남아 있으면 랜딩이 예전 "로그인됨" 결과를 보고 다시 앱으로 보낸다
+    queryClient.clear();
+    clearGnbDrawer();
+    const landingState: LandingState = { returnPath: pathname + search, isSessionExpired: true };
+    navigate('/', { replace: true, state: landingState });
+  }, [isSessionExpired, pathname, search, navigate, queryClient, clearGnbDrawer]);
 
   return (
     <AppFrame>
@@ -58,10 +71,6 @@ function AppLayout() {
         </div>
       )}
       {hasNetworkError && <NetworkErrorPage />}
-      {/* 랜딩에서는 원래 로그인 모달이 떠 있으므로 띄우지 않는다 (공통 2-2) */}
-      {isSessionExpired && pathname !== '/' && (
-        <LoginModal variant="expired" onLoggedIn={handleRelogin} />
-      )}
       <Toaster />
     </AppFrame>
   );

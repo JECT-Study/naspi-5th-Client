@@ -6,7 +6,7 @@ import type { StockId } from '@/apis/domains/stock/stock.types';
 /** 작업형 화면 (화면설계서 공통 4-4). 주소 없이 지금 화면 위에 덮어 띄운다 */
 export type Overlay =
   | { type: 'leagueCreate' }
-  | { type: 'leagueJoin'; inviteCode?: string }
+  | { type: 'leagueJoin' }
   | { type: 'stockListing'; roomId: RoomId }
   | { type: 'order'; roomId: RoomId; stockId: StockId; side: OrderSide }
   | { type: 'disclosureCreate'; roomId: RoomId };

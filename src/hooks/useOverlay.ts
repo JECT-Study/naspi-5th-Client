@@ -24,28 +24,16 @@ const isOverlayEntry = (location: Location) =>
 
 const toPath = ({ pathname, search, hash }: Location) => ({ pathname, search, hash });
 
-interface OpenOverlayOptions {
-  /**
-   * 기록을 쌓지 않고 지금 기록을 오버레이 기록으로 바꾼다 (초대 링크로 들어온 첫 화면 등)
-   * search를 함께 넘기면 주소의 쿼리도 바꾼다
-   */
-  replace?: boolean;
-  search?: string;
-}
-
 /** 오버레이 열기. 이미 오버레이가 열려 있으면(작업형 화면끼리 전환) 기록을 더 쌓지 않는다 */
 export const useOpenOverlay = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const setOverlay = useOverlayStore((state) => state.setOverlay);
 
-  return (overlay: Overlay, { replace = false, search }: OpenOverlayOptions = {}) => {
+  return (overlay: Overlay) => {
     setOverlay(overlay);
-    if (isOverlayEntry(location) && !replace) return;
-    navigate(
-      { ...toPath(location), ...(search !== undefined && { search }) },
-      { replace, state: { [OVERLAY_HISTORY_KEY]: true } },
-    );
+    if (isOverlayEntry(location)) return;
+    navigate(toPath(location), { state: { [OVERLAY_HISTORY_KEY]: true } });
   };
 };
 
@@ -79,7 +67,7 @@ export const useSyncOverlayWithHistory = () => {
   useEffect(() => {
     // 주소(기록)가 실제로 바뀌었을 때만 맞춘다
     // 오버레이를 연 직후, 기록이 바뀌기 전에 이 effect가 먼저 돌면 열린 오버레이를 닫아 버리기 때문
-    // (첫 화면의 effect에서 초대 링크 오버레이를 여는 경우 등)
+    // (첫 화면의 effect에서 오버레이를 여는 경우 등)
     const isFirstRun = previousKeyRef.current === null;
     if (previousKeyRef.current === location.key) return;
     previousKeyRef.current = location.key;
