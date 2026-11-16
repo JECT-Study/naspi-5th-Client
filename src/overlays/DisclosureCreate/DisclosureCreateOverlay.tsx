@@ -22,6 +22,7 @@ import StockAvatar from '@/components/StockAvatar';
 import TaskHeader from '@/components/TaskHeader';
 import { isForcedNavigation } from '@/hooks/useOverlay';
 import { notify } from '@/libs/notify';
+import { maxLengthHandlers } from '@/utils/maxLength';
 import ImageAttachments from './components/ImageAttachments';
 
 interface DisclosureCreateOverlayProps {
@@ -110,7 +111,7 @@ function DisclosureCreateOverlay({ roomId }: DisclosureCreateOverlayProps) {
             maxLength={DISCLOSURE_TITLE_MAX_LENGTH}
             value={title}
             className="text-lg font-bold outline-none"
-            onChange={(event) => setTitle(event.target.value)}
+            {...maxLengthHandlers<HTMLInputElement>((event) => setTitle(event.target.value))}
           />
           <CharCounter
             length={title.length}
@@ -128,7 +129,7 @@ function DisclosureCreateOverlay({ roomId }: DisclosureCreateOverlayProps) {
             maxLength={DISCLOSURE_CONTENT_MAX_LENGTH}
             value={content}
             className="min-h-40 flex-1 resize-none text-sm outline-none"
-            onChange={(event) => setContent(event.target.value)}
+            {...maxLengthHandlers<HTMLTextAreaElement>((event) => setContent(event.target.value))}
           />
           <CharCounter
             length={content.length}

@@ -1,7 +1,5 @@
 import { apiClient, unwrap } from '@/apis/client';
 import type { ApiResponse } from '@/apis/types';
-import { delay } from '@/mocks/delay';
-import { meMock } from '@/mocks/user.mock';
 import type { MyName, UpdateMyNameRequest } from './user.types';
 
 /**
@@ -13,15 +11,11 @@ export const getMe = (): Promise<MyName> =>
     .get<ApiResponse<MyName>>('/api/members/me/name', { skipSessionExpiredModal: true })
     .then(unwrap);
 
-// TODO: API가 준비되면 apiClient 호출로 바꾼다
-export const updateMyName = async (request: UpdateMyNameRequest): Promise<MyName> => {
-  await delay(300);
-  // 다시 조회해도 바뀐 이름이 나오도록 mock 원본을 고친다
-  meMock.name = request.name;
-  return { name: meMock.name };
-};
+/** 내 이름 수정. 실패 코드: 101 이름 규칙 위반 (003·103은 세션 만료로 처리된다) */
+export const updateMyName = (request: UpdateMyNameRequest): Promise<MyName> =>
+  apiClient.post<ApiResponse<MyName>>('/api/members/me/name', request).then(unwrap);
 
-// TODO: API가 준비되면 apiClient 호출로 바꾼다
+/** 회원 탈퇴. 바로 처리되고 로그아웃된다 (003·103은 세션 만료로 처리된다) */
 export const withdraw = async (): Promise<void> => {
-  await delay(300);
+  await apiClient.post('/api/members/me/withdraw');
 };

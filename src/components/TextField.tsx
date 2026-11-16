@@ -1,5 +1,6 @@
 import { useId, type ComponentProps } from 'react';
 import { cn } from '@/utils/cn';
+import { maxLengthHandlers } from '@/utils/maxLength';
 import FieldMessage from './FieldMessage';
 
 interface TextFieldProps extends ComponentProps<'input'> {
@@ -9,7 +10,16 @@ interface TextFieldProps extends ComponentProps<'input'> {
   error?: string;
 }
 
-function TextField({ label, error, className, id, ...props }: TextFieldProps) {
+// maxLength를 넘는 한글(조합 중인 글자)은 조합이 끝나면 잘라 낸다 (utils/maxLength)
+function TextField({
+  label,
+  error,
+  className,
+  id,
+  onChange,
+  onCompositionEnd,
+  ...props
+}: TextFieldProps) {
   const generatedId = useId();
   const inputId = id ?? generatedId;
   const errorId = `${inputId}-error`;
@@ -31,6 +41,7 @@ function TextField({ label, error, className, id, ...props }: TextFieldProps) {
           error && 'border-red-500 focus:border-red-500',
         )}
         {...props}
+        {...maxLengthHandlers(onChange, onCompositionEnd)}
       />
     </div>
   );

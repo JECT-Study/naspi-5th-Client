@@ -1,5 +1,5 @@
 import { MutationCache, QueryCache, QueryClient } from '@tanstack/react-query';
-import { getApiErrorCode } from './apiError';
+import { getApiErrorCode, isSessionEndedError } from './apiError';
 import { isNetworkError, reportNetworkError } from './networkError';
 import { notify } from './notify';
 
@@ -32,6 +32,8 @@ export const queryClient = new QueryClient({
         reportNetworkError();
         return;
       }
+      // 로그인이 끝났으면(401·003·103) 랜딩 + 재로그인 모달로 가므로 따로 알리지 않는다 (apis/client)
+      if (isSessionEndedError(error)) return;
       // 처음 불러오기 실패는 화면이 "정보를 불러오지 못했어요."로 보여준다
       // 이미 보고 있던 데이터를 다시 불러오다 실패한 경우만 토스트로 알린다
       if (query.state.data !== undefined) notify.error('정보를 불러오지 못했어요.');
@@ -40,6 +42,8 @@ export const queryClient = new QueryClient({
   mutationCache: new MutationCache({
     // 변경 실패: 화면이 직접 안내하는 에러가 아니면 요청 처리 실패 토스트 (공통 5-1)
     onError: (error, _variables, _context, mutation) => {
+      // 로그인이 끝났으면(401·003·103) 랜딩 + 재로그인 모달로 가므로 토스트를 띄우지 않는다 (apis/client)
+      if (isSessionEndedError(error)) return;
       if (isHandledByScreen(error, mutation.meta?.handledErrors)) return;
       notify.requestFailed(mutation.meta?.action ?? '요청 처리');
     },

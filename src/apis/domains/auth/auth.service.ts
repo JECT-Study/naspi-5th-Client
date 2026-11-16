@@ -1,4 +1,6 @@
-import { delay } from '@/mocks/delay';
+import { apiClient, unwrap } from '@/apis/client';
+import type { ApiResponse } from '@/apis/types';
+import type { SignupRequest, SignupResponse } from './auth.types';
 
 /** 카카오 로그인 시작 주소 (백엔드 Spring Security가 처리한다. Swagger에는 없다) */
 const KAKAO_LOGIN_URL = `${import.meta.env.VITE_API_BASE_URL}/oauth2/authorization/kakao`;
@@ -15,7 +17,14 @@ export const startKakaoLogin = () => {
   window.location.assign(KAKAO_LOGIN_URL);
 };
 
-// TODO: API가 준비되면 apiClient 호출로 바꾼다
+/**
+ * 이름 입력 회원가입. 카카오 로그인에서 받은 가입 대기 세션(10분)이 있어야 한다
+ * 성공하면 가입한 회원으로 로그인된다. 실패 코드는 SignupErrorCode
+ */
+export const signup = (request: SignupRequest): Promise<SignupResponse> =>
+  apiClient.post<ApiResponse<SignupResponse>>('/api/members/signup', request).then(unwrap);
+
+/** 로그아웃 (서비스 로그인만 끝낸다. 카카오 계정은 로그아웃하지 않는다). 로그인 안 한 상태여도 성공한다 */
 export const logout = async (): Promise<void> => {
-  await delay(300);
+  await apiClient.post('/api/auth/logout');
 };

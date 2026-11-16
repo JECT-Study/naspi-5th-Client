@@ -1,5 +1,6 @@
 import { useId, type ComponentProps } from 'react';
 import { cn } from '@/utils/cn';
+import { maxLengthHandlers } from '@/utils/maxLength';
 import CharCounter from './CharCounter';
 import FieldMessage from './FieldMessage';
 
@@ -14,6 +15,7 @@ interface TextAreaProps extends Omit<ComponentProps<'textarea'>, 'value'> {
 }
 
 // 여러 줄 입력 + 글자 수 (종목 소개, 공시 본문, 후기)
+// maxLength를 넘는 한글(조합 중인 글자)은 조합이 끝나면 잘라 낸다 (utils/maxLength)
 function TextArea({
   label,
   error,
@@ -22,6 +24,8 @@ function TextArea({
   counterFrom,
   className,
   id,
+  onChange,
+  onCompositionEnd,
   ...props
 }: TextAreaProps) {
   const generatedId = useId();
@@ -50,6 +54,7 @@ function TextArea({
           aria-describedby={error ? errorId : undefined}
           className="min-h-16 w-full resize-none outline-none"
           {...props}
+          {...maxLengthHandlers(onChange, onCompositionEnd)}
         />
         <CharCounter length={value.length} max={maxLength} showFrom={counterFrom} />
       </div>

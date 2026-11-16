@@ -66,7 +66,7 @@ const listed = (name: string, description: string, listedAt: string): ListedStoc
 });
 
 const ME_ID = meMock.userId;
-// 내 이름은 이름 수정을 반영하도록 meMock에서 읽는다
+// 내 이름은 meMock에서 읽는다 (이름 수정은 실제 API라 리그 목업에는 반영되지 않는다)
 const me = (isHost: boolean, stock: ListedStock | null): MockMember => ({
   userId: ME_ID,
   name: meMock.name,

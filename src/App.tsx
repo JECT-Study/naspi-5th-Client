@@ -17,6 +17,7 @@ import MarketPage from '@/pages/Market/MarketPage';
 import NewsDetailPage from '@/pages/NewsDetail/NewsDetailPage';
 import OrderHistoryPage from '@/pages/OrderHistory/OrderHistoryPage';
 import RankingPage from '@/pages/Ranking/RankingPage';
+import SignupPage from '@/pages/Signup/SignupPage';
 import StockChartPage from '@/pages/StockChart/StockChartPage';
 import StockInfoPage from '@/pages/StockInfo/StockInfoPage';
 import StockMinePage from '@/pages/StockMine/StockMinePage';
@@ -34,6 +35,9 @@ const router = createBrowserRouter([
     ),
     children: [
       { path: '/', element: <LandingPage /> },
+      // 카카오 로그인 결과로 백엔드가 보내는 주소: 이름 입력 필요(/signup), 로그인 실패(/login-failure)
+      { path: '/signup', element: <SignupPage /> },
+      { path: '/login-failure', element: <LandingPage /> },
       { path: '*', element: <ErrorPage /> },
       {
         element: <AuthLayout />,

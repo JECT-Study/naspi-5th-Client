@@ -191,6 +191,22 @@ module.exports = {
       to: { path: '^src/', pathNot: '^src/mocks/', dependencyTypesNot: ['type-only'] },
     },
 
+    // msw: 개발 모드에서 실제 API 요청을 가로채는 가짜 서버. 앱 코드가 기대지 않도록 진입점에서만 켠다
+    {
+      name: 'msw-only-from-entry',
+      comment: 'msw/는 main.tsx에서만 import한다 (개발 모드에서만 켜고 운영 빌드에서는 빠진다)',
+      severity: 'error',
+      from: { path: '^src/', pathNot: ['^src/msw/', ENTRY] },
+      to: { path: '^src/msw/' },
+    },
+    {
+      name: 'msw-type-only',
+      comment: 'msw/는 프로젝트 내부에서 타입만 import한다 (응답 모양을 API 타입에 맞춘다)',
+      severity: 'error',
+      from: { path: '^src/msw/' },
+      to: { path: '^src/', pathNot: '^src/msw/', dependencyTypesNot: ['type-only'] },
+    },
+
     {
       name: 'not-to-unresolvable',
       comment: '존재하지 않는 경로 import 금지',
