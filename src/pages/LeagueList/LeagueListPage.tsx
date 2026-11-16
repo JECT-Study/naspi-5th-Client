@@ -1,9 +1,7 @@
-import { useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router';
 import LoadError from '@/components/LoadError';
 import { useMyRooms } from '@/hooks/useMyRooms';
 import { useOpenLeagueEntry } from '@/hooks/useOpenLeagueEntry';
-import { useOpenOverlay } from '@/hooks/useOverlay';
 import EndedLeagueList from './components/EndedLeagueList';
 import LeagueTabs, { type LeagueTab } from './components/LeagueTabs';
 import MainHeader, { type LeagueEntryAction } from './components/MainHeader';
@@ -12,7 +10,6 @@ import OngoingLeagueList from './components/OngoingLeagueList';
 // 메인: 진행 중인 리그(+대기실) / 종료된 리그
 // 탭은 URL(?tab=ended)에 둬서 리그 결과에서 뒤로 가기 하면 종료된 리그 탭으로 돌아온다
 function LeagueListPage() {
-  const openOverlay = useOpenOverlay();
   const [searchParams, setSearchParams] = useSearchParams();
   const tab: LeagueTab = searchParams.get('tab') === 'ended' ? 'ended' : 'ongoing';
   const { data: rooms, isPending, isError, refetch } = useMyRooms();
@@ -25,15 +22,6 @@ function LeagueListPage() {
   const openLeagueEntry = useOpenLeagueEntry();
   const handleEntrySelect = (action: LeagueEntryAction) =>
     openLeagueEntry(action === 'create' ? 'leagueCreate' : 'leagueJoin');
-
-  // 초대 링크(/leagues?code=ABCD123)로 들어오면 코드를 채운 코드로 참여를 띄우고, 주소의 코드는 지운다
-  const inviteCode = searchParams.get('code');
-  const handledInviteCodeRef = useRef<string | null>(null);
-  useEffect(() => {
-    if (!inviteCode || handledInviteCodeRef.current === inviteCode) return;
-    handledInviteCodeRef.current = inviteCode;
-    openOverlay({ type: 'leagueJoin', inviteCode }, { replace: true, search: '' });
-  }, [inviteCode, openOverlay]);
 
   const renderContent = () => {
     if (isPending) {

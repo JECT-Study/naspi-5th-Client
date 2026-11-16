@@ -1,8 +1,14 @@
 // API layer type
-// API 스펙 확정 전 화면설계서·서비스 정책 1.1 기준으로 정의. 확정되면 필드명과 구조를 맞춘다
 
-// 카카오 로그인
-export interface LoginResponse {
-  /** 카카오 이름에 한글이 없어 회원가입 단계에서 이름을 받아야 하는지 (서비스 정책 1.2) */
-  isNameRequired: boolean;
+// 이름 입력 회원가입 (POST /api/members/signup)
+// 카카오 이름에 한글이 없어 자동 가입되지 않은 신규 회원이 /signup에서 이름을 입력해 가입을 마친다
+export interface SignupRequest {
+  name: string;
 }
+
+export interface SignupResponse {
+  memberId: number;
+}
+
+/** 가입 실패 코드: 100 가입 대기 정보 없음(세션 만료 등), 101 이름 규칙 위반, 102 이미 가입한 카카오 계정 */
+export type SignupErrorCode = '100' | '101' | '102';

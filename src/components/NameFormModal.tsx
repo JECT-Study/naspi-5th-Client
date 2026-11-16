@@ -1,34 +1,27 @@
 import { useId, useState, type FormEvent } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { userKeys } from '@/apis/domains/user/user.queries';
-import { updateMyName } from '@/apis/domains/user/user.service';
 import { NAME_MAX_LENGTH, validateNameForm } from '@/apis/domains/user/user.validation';
 import ConfirmModal from './ConfirmModal';
 import TextField from './TextField';
 
 interface NameFormModalProps {
   title: string;
-  onSaved: () => void;
+  isPending: boolean;
+  /** 서버가 거절한 이유 (이름 규칙 위반 등). 다시 입력을 시작하면 부르는 쪽에서 지운다 */
+  serverError?: string;
+  /** 입력값이 바뀔 때 (서버 오류 문구를 지우는 데 쓴다) */
+  onChange?: () => void;
+  /** 검사를 통과한 이름 (앞뒤 공백 제거) */
+  onSubmit: (name: string) => void;
 }
 
-// 이름 입력 모달 (공통 3, 로그인 후 이름이 유효하지 않을 때): 최대 5자 한글, 공란이면 확인 비활성화, 취소 없음
+// 이름 입력 모달 (공통 3): 최대 5자 한글, 공란이면 확인 비활성화, 취소·X 없음
 // 잘못된 이름·저장 실패 시 입력값을 그대로 두고 모달을 유지한다
+// 저장(API 호출)은 부르는 쪽이 한다. 지금은 이름 입력 회원가입(/signup)에서 쓴다
 // 드로어의 이름 수정(공통 1-2)은 모달이 아니라 드로어 안에서 한다 (layouts/Auth/components/MyNameField)
-function NameFormModal({ title, onSaved }: NameFormModalProps) {
-  const queryClient = useQueryClient();
+function NameFormModal({ title, isPending, serverError, onChange, onSubmit }: NameFormModalProps) {
   const formId = useId();
   const [name, setName] = useState('');
   const [error, setError] = useState<string>();
-
-  const { mutate, isPending } = useMutation({
-    mutationFn: updateMyName,
-    onSuccess: (user) => {
-      queryClient.setQueryData(userKeys.me(), user);
-      onSaved();
-    },
-    // 실패하면 입력값을 그대로 두고 "저장 중 문제가 발생했어요. …" (공통 5-1, libs/queryClient)
-    meta: { action: '저장' },
-  });
 
   const handleSubmit = (event: FormEvent) => {
     event.preventDefault();
@@ -37,7 +30,7 @@ function NameFormModal({ title, onSaved }: NameFormModalProps) {
       setError(errors.name);
       return;
     }
-    mutate({ name: name.trim() });
+    onSubmit(name.trim());
   };
 
   return (
@@ -54,11 +47,12 @@ function NameFormModal({ title, onSaved }: NameFormModalProps) {
           placeholder="이름을 입력해 주세요."
           value={name}
           maxLength={NAME_MAX_LENGTH}
-          error={error}
+          error={error ?? serverError}
           autoFocus
           onChange={(event) => {
             setName(event.target.value);
             setError(undefined);
+            onChange?.();
           }}
         />
       </form>

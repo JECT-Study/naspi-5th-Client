@@ -4,6 +4,7 @@ import { commentKeys } from '@/apis/domains/comment/comment.queries';
 import { createComment } from '@/apis/domains/comment/comment.service';
 import type { CommentTargetType } from '@/apis/domains/comment/comment.types';
 import type { RoomId } from '@/apis/domains/room/room.types';
+import { maxLengthHandlers } from '@/utils/maxLength';
 import CharCounter from './CharCounter';
 import { SendIcon } from './icons';
 
@@ -53,7 +54,7 @@ function CommentInput({ roomId, targetType, targetId, onChanged }: CommentInputP
           maxLength={COMMENT_MAX_LENGTH}
           value={content}
           className="w-full resize-none bg-transparent text-sm outline-none"
-          onChange={(event) => setContent(event.target.value)}
+          {...maxLengthHandlers<HTMLTextAreaElement>((event) => setContent(event.target.value))}
         />
         <CharCounter
           length={content.length}

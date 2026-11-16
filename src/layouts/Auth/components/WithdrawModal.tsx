@@ -12,7 +12,8 @@ interface WithdrawModalProps {
 
 type WithdrawStep = 'confirm' | 'done';
 
-// 탈퇴 확인 → 완료 안내(1초) → 랜딩
+// 탈퇴 확인 → 완료 안내(1초) → 랜딩 (POST /api/members/me/withdraw)
+// 실패하면 체크박스 아래 문구(공통 1-4-2). 세션이 끝났으면(401·003·103) 랜딩 + 재로그인 모달로 간다
 function WithdrawModal({ onClose }: WithdrawModalProps) {
   const endSession = useEndSession();
   const [step, setStep] = useState<WithdrawStep>('confirm');

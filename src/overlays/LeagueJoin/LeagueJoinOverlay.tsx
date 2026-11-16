@@ -5,7 +5,7 @@ import { roomKeys, roomQueries } from '@/apis/domains/room/room.queries';
 import { joinRoom } from '@/apis/domains/room/room.service';
 import type { RoomErrorCode } from '@/apis/domains/room/room.types';
 import { ACTIVE_ROOM_LIMIT_MESSAGE } from '@/apis/domains/room/room.utils';
-import { isInviteCodeComplete, normalizeInviteCode } from '@/apis/domains/room/room.validation';
+import { isInviteCodeComplete } from '@/apis/domains/room/room.validation';
 import Button from '@/components/Button';
 import FieldMessage from '@/components/FieldMessage';
 import FloatingFooter from '@/components/FloatingFooter';
@@ -23,18 +23,12 @@ const JOIN_ERROR_MESSAGES: Partial<Record<RoomErrorCode, string>> = {
   ROOM_DELETED: '삭제된 대기실이에요. 다른 초대 코드를 입력해 주세요.',
 };
 
-interface LeagueJoinOverlayProps {
-  /** 초대 링크(/leagues?code=ABCD123)로 들어오면 채워 둘 코드 */
-  initialInviteCode?: string;
-}
-
 // 코드로 참여 (오버레이): 코드 7자리 입력 → 자동 확인 → "이 대기실에 입장할까요?" → 대기실
-// 초대 링크로 들어오면 코드가 채워진 채로 바로 확인한다
-function LeagueJoinOverlay({ initialInviteCode = '' }: LeagueJoinOverlayProps) {
+function LeagueJoinOverlay() {
   const navigate = useNavigate();
   const openOverlay = useOpenOverlay();
   const queryClient = useQueryClient();
-  const [inviteCode, setInviteCode] = useState(() => normalizeInviteCode(initialInviteCode));
+  const [inviteCode, setInviteCode] = useState('');
 
   const isCodeComplete = isInviteCodeComplete(inviteCode);
   const preview = useQuery({ ...roomQueries.invite(inviteCode), enabled: isCodeComplete });

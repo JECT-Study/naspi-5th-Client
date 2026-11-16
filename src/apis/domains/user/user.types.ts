@@ -1,11 +1,10 @@
 // API layer type
-// API 스펙 확정 전 화면설계서 기준으로 정의. 확정되면 필드명과 구조를 맞춘다
 
 export type UserId = number;
 
-// 내 정보 조회
-export interface User {
-  userId: UserId;
+// 내 이름 조회·수정 응답 (GET·POST /api/members/me/name)
+// 내 정보 API는 이름만 준다. 회원 ID가 필요해지면(리그 API 연동 때) 백엔드에 요청한다
+export interface MyName {
   name: string;
 }
 
