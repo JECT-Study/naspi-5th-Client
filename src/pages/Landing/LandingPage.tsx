@@ -3,7 +3,9 @@ import { useQuery } from '@tanstack/react-query';
 import { Navigate, useLocation, useNavigate } from 'react-router';
 import { userQueries } from '@/apis/domains/user/user.queries';
 import Button from '@/components/Button';
+import ErrorPage from '@/components/ErrorPage';
 import LoginModal from '@/components/LoginModal';
+import { isSessionEndedError } from '@/libs/apiError';
 import {
   clearLoginReturnPath,
   readLoginReturnPath,
@@ -28,6 +30,8 @@ const getInitialModal = (pathname: string, state: LandingState | null): LandingM
 //   재로그인 모달을 닫으면 보던 주소는 버리고, 그 뒤 '친구들과 시작하기'로 로그인하면 메인
 // - 카카오 로그인에 실패하면 백엔드가 /login-failure 로 보낸다 → 로그인 실패 안내(공통 2-1)
 //   다시 시도하면 처음 로그인할 때 저장한 돌아갈 주소를 그대로 쓴다. 닫으면 / 로
+// - 로그인 확인이 서버 오류 등으로 실패하면 로그인 여부를 알 수 없어 [공통 오류] 페이지 (공통 7)
+//   '메인 페이지로 이동'을 누르면 메인의 로그인 가드가 다시 확인한다 (실패한 조회는 새 화면이 열릴 때 다시 한다)
 function LandingPage() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -41,6 +45,7 @@ function LandingPage() {
   }, [me.isSuccess]);
 
   if (me.isSuccess) return <Navigate to={readLoginReturnPath() ?? '/leagues'} replace />;
+  if (me.isError && !isSessionEndedError(me.error)) return <ErrorPage />;
 
   // 재로그인·실패 안내를 닫으면 / 로 바꾼다. 넘겨받은 주소를 버리고, 새로고침해도 다시 뜨지 않게 한다
   const closeToLanding = () => {

@@ -18,7 +18,7 @@ import CodeInput from './components/CodeInput';
 
 // 입장 단계에서 입력창 위에 보여주는 실패 안내. 이 경우 다른 코드를 넣어야 하므로 입장 버튼을 막는다
 const JOIN_ERROR_MESSAGES: Partial<Record<RoomErrorCode, string>> = {
-  ROOM_FULL: '정원이 가득 찬 대기실이에요. 다른 초대 코드를 입력해 주세요.',
+  ROOM_FULL: '정원이 가득 찼어요. 다른 초대 코드를 입력해 주세요.',
   ROOM_ALREADY_STARTED: '이미 시작된 리그예요. 다른 초대 코드를 입력해 주세요.',
   ROOM_DELETED: '삭제된 대기실이에요. 다른 초대 코드를 입력해 주세요.',
 };
