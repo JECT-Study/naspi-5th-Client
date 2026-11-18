@@ -1,5 +1,6 @@
 import { createBrowserRouter } from 'react-router';
 import { RouterProvider } from 'react-router/dom';
+import ErrorPage from '@/components/ErrorPage';
 import AppFrame from '@/layouts/App/AppFrame';
 import AppLayout from '@/layouts/App/AppLayout';
 import AuthLayout from '@/layouts/Auth/AuthLayout';
@@ -8,7 +9,6 @@ import RoomTabsLayout from '@/layouts/RoomTabs/RoomTabsLayout';
 import StockLayout from '@/layouts/Stock/StockLayout';
 import AssetsPage from '@/pages/Assets/AssetsPage';
 import DisclosureDetailPage from '@/pages/DisclosureDetail/DisclosureDetailPage';
-import ErrorPage from '@/pages/Error/ErrorPage';
 import FeedPage from '@/pages/Feed/FeedPage';
 import LandingPage from '@/pages/Landing/LandingPage';
 import LeagueListPage from '@/pages/LeagueList/LeagueListPage';

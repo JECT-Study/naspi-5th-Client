@@ -42,6 +42,8 @@ const LOGGED_OUT_SCENARIOS: MswScenario[] = [
  */
 export const createHandlers = (scenario: MswScenario) => {
   const me = { isLoggedIn: !LOGGED_OUT_SCENARIOS.includes(scenario), name: '김진영' };
+  // me-error: 첫 로그인 확인만 실패시켜서 '메인 페이지로 이동'으로 회복되는 것까지 볼 수 있게 한다
+  let shouldFailMe = scenario === 'me-error';
 
   // 로그인이 필요한 요청: 로그인 안 했으면 401. session-expired면 이번 요청에서 세션이 끝난다
   const requireLogin = (handle: () => MockResponse | Promise<MockResponse>) => {
@@ -50,9 +52,13 @@ export const createHandlers = (scenario: MswScenario) => {
   };
 
   return [
-    http.get('*/api/members/me/name', () =>
-      me.isLoggedIn ? success({ name: me.name }) : unauthorized(),
-    ),
+    http.get('*/api/members/me/name', () => {
+      if (shouldFailMe) {
+        shouldFailMe = false;
+        return serverError();
+      }
+      return me.isLoggedIn ? success({ name: me.name }) : unauthorized();
+    }),
 
     http.post('*/api/members/signup', async ({ request }) => {
       const failed = SIGNUP_FAILURES[scenario];

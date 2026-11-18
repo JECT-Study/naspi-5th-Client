@@ -16,6 +16,8 @@
 //   withdraw-error   회원 탈퇴: 서버 오류 (500)
 //   session-expired  이름 수정·탈퇴를 하면 세션 만료 (401) → 랜딩 + 재로그인 모달
 //                    (로그아웃은 실제 서버처럼 세션이 없어도 성공한다)
+//   me-error         첫 로그인 확인(내 이름 조회)만 서버 오류 (500), 그다음부터 로그인됨
+//                    앱 화면·랜딩 모두 [공통 오류] 페이지 → '메인 페이지로 이동'하면 메인
 
 export const MSW_SCENARIOS = [
   'logged-out',
@@ -30,6 +32,7 @@ export const MSW_SCENARIOS = [
   'logout-error',
   'withdraw-error',
   'session-expired',
+  'me-error',
 ] as const;
 
 export type MswScenario = (typeof MSW_SCENARIOS)[number];

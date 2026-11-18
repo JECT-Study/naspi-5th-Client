@@ -5,12 +5,14 @@ import { createDisclosure } from '@/apis/domains/disclosure/disclosure.service';
 import {
   DISCLOSURE_CONTENT_COUNTER_FROM,
   DISCLOSURE_CONTENT_MAX_LENGTH,
+  DISCLOSURE_IMAGE_MAX_MB,
   DISCLOSURE_IMAGE_TYPES,
   DISCLOSURE_MAX_IMAGES,
   DISCLOSURE_TITLE_COUNTER_FROM,
   DISCLOSURE_TITLE_MAX_LENGTH,
   isDisclosureFilled,
   isDisclosureImage,
+  isDisclosureImageSizeAllowed,
 } from '@/apis/domains/disclosure/disclosure.validation';
 import { feedKeys } from '@/apis/domains/feed/feed.queries';
 import type { RoomId } from '@/apis/domains/room/room.types';
@@ -65,7 +67,9 @@ function DisclosureCreateOverlay({ roomId }: DisclosureCreateOverlayProps) {
     meta: { action: '게시' },
   });
 
-  // 사진 개수 초과(4-2)·형식 오류(4-3)는 토스트로 알린다
+  // 사진 선택 (공시 쓰기 4, v.1.7)
+  // - 개수 초과(4-2)·형식 오류(4-4): 고른 사진을 하나도 올리지 않고 토스트
+  // - 용량 초과(4-3): 50MB를 넘는 사진만 빼고 나머지는 올린다
   const handleFilesSelected = (event: ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files ?? []);
     // 같은 파일을 다시 고를 수 있게 비운다
@@ -80,7 +84,11 @@ function DisclosureCreateOverlay({ roomId }: DisclosureCreateOverlayProps) {
       notify.error('이미지를 업로드하지 못했어요.');
       return;
     }
-    setImages((prev) => [...prev, ...files]);
+    const allowedFiles = files.filter(isDisclosureImageSizeAllowed);
+    if (allowedFiles.length < files.length) {
+      notify.error(`${DISCLOSURE_IMAGE_MAX_MB}MB 이하의 사진만 업로드할 수 있어요.`);
+    }
+    if (allowedFiles.length > 0) setImages((prev) => [...prev, ...allowedFiles]);
   };
 
   return (
@@ -124,7 +132,7 @@ function DisclosureCreateOverlay({ roomId }: DisclosureCreateOverlayProps) {
           <textarea
             aria-label="내용"
             placeholder={
-              '오늘 있었던 일을 친구들과 공유해 주세요.\n작성한 소식을 바탕으로 내 종목의 AI 공시브리핑이 발행돼요.'
+              '오늘 있었던 일을 친구들과 공유해 주세요.\n작성한 소식을 바탕으로 AI 공시브리핑이 발행돼요.'
             }
             maxLength={DISCLOSURE_CONTENT_MAX_LENGTH}
             value={content}

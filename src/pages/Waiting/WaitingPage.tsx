@@ -34,22 +34,23 @@ type WaitingModal =
 
 const ROOM_DELETED_MESSAGE = '대기실을 삭제했어요.';
 
-// 만료 배너는 만료 2일 전부터 보여준다 (화면설계서 대기실 10)
+// 만료 배너는 만료 2일 전부터 보여준다 (화면설계서 대기실 9)
 const EXPIRY_BANNER_DAYS = 2;
 
+// 당일이거나 그보다 지난 경우(설계서: 당일 + 최대 1일 추가)는 "오늘"
 const formatExpiry = (days: number) => {
   if (days <= 0) return '오늘';
   if (days === 1) return '내일';
   return `${days}일 뒤`;
 };
 
-// 대기실 (화면설계서 대기실). 역할: 방장 / 참여자(상장 완료) / 대기자(아직 상장 전)
-// - 상단 메뉴: 방장만 (리그 이름 수정, 대기실 삭제)
-// - 내 종목 메뉴: 방장·참여자 (내 종목 수정하기, 대기실 나가기)
-// - 리그 시작 전 삭제·나가기 문구에는 '대기실'을 쓴다 (설계서 v.1.5)
-// - 대기자는 내 종목 영역 없이 대기 중인 친구에 내 이름이 나오고, 그 메뉴로 상장·나가기
-// - 친구 메뉴: 방장만, 상장한 친구·대기 중인 친구 모두 (내보내기)
+// 대기실 (화면설계서 대기실, v.1.7). 역할: 방장 / 참여자(상장 완료) / 대기자(아직 상장 전)
+// - 상단 메뉴(1): 모두에게 보인다. 방장은 리그 이름 수정·대기실 나가기·대기실 삭제(1-1), 참여자·대기자는 대기실 나가기(1-4)
+// - 내 종목 메뉴(4): 방장 본인 종목에만 (내 종목 수정하기). 참여자·대기자는 하단 버튼으로만 상장·수정한다
+// - 친구 메뉴(5): 방장만, 상장한 친구·대기 중인 친구 모두 (내보내기)
+// - 대기자는 내 종목 영역 없이 대기 중인 친구에 내 이름이 나온다 (메뉴 없음)
 // - 하단: 방장 리그 시작하기 (참여자 3명 이상일 때 활성화), 참여자 내 종목 수정하기, 대기자 내 종목 상장하기
+// - 리그 시작 전 삭제·나가기 문구에는 '대기실'을 쓴다 (설계서 v.1.5)
 function WaitingPage() {
   const roomId = useRoomId();
   const navigate = useNavigate();
@@ -66,7 +67,7 @@ function WaitingPage() {
     queryClient.invalidateQueries({ queryKey: roomKeys.mine() });
   };
 
-  // 대기실이 사라지거나 내가 나간 뒤에는 완료 토스트를 띄우고 메인으로 가며, 이 대기실 캐시를 지운다 (대기실 1-3-1, 4-2-1)
+  // 대기실이 사라지거나 내가 나간 뒤에는 완료 토스트를 띄우고 메인으로 가며, 이 대기실 캐시를 지운다 (대기실 1-3-1, 1-1-2)
   const exitToMain = (message: string) => {
     notify.success(message);
     navigate('/leagues', { replace: true });
@@ -74,7 +75,7 @@ function WaitingPage() {
     queryClient.invalidateQueries({ queryKey: roomKeys.mine() });
   };
 
-  // 대기자가 있으면 시작하지 않고 안내만 한다 (화면설계서 대기실 7-2)
+  // 대기자가 있으면 시작하지 않고 안내만 한다 (화면설계서 대기실 6-2)
   const notifyWaitingMembers = () => {
     closeModal();
     notify.error('아직 대기 중인 친구가 있어요.');
@@ -102,7 +103,7 @@ function WaitingPage() {
   });
   const startMutation = useMutation({
     mutationFn: () => startRoom(roomId),
-    // 시작 완료 토스트를 띄우고 리그 피드로 간다 (대기실 7-1-1)
+    // 시작 완료 토스트를 띄우고 리그 피드로 간다 (대기실 6-1-1)
     onSuccess: () => {
       closeModal();
       invalidateRoom();
@@ -144,33 +145,31 @@ function WaitingPage() {
   // 대기자인 나는 대기 중인 친구 맨 앞에 나온다
   const waitingMembers = me && !myStock ? [me, ...waitingFriends] : waitingFriends;
 
-  const openLeaveModal = () => setModal({ type: 'leave' });
-  const headerMenu = [
-    { label: '리그 이름 수정', onSelect: () => setModal({ type: 'rename' }) },
-    { label: '대기실 삭제', onSelect: () => setModal({ type: 'delete' }) },
-  ];
-  const myStockActions = [
-    { label: '내 종목 수정하기', onSelect: openListing },
-    { label: '대기실 나가기', onSelect: openLeaveModal },
-  ];
-  const myWaitingActions = [
-    { label: '내 종목 상장하기', onSelect: openListing },
-    { label: '대기실 나가기', onSelect: openLeaveModal },
-  ];
-  const getMemberActions = (member: WaitingMember) => {
-    if (member.isMe) return myWaitingActions;
-    return isHost
+  const leaveAction = { label: '대기실 나가기', onSelect: () => setModal({ type: 'leave' }) };
+  // 상단 메뉴: 방장 리그 드롭다운(1-1) / 참여자·대기자 일반 리그 드롭다운(1-4)
+  const headerMenu = isHost
+    ? [
+        { label: '리그 이름 수정', onSelect: () => setModal({ type: 'rename' }) },
+        leaveAction,
+        { label: '대기실 삭제', onSelect: () => setModal({ type: 'delete' }) },
+      ]
+    : [leaveAction];
+  // 내 종목 메뉴(4-1): 방장 본인 종목에만. 방장은 하단에 종목 수정 버튼이 없어서 여기서 수정한다
+  const myStockActions = isHost ? [{ label: '내 종목 수정하기', onSelect: openListing }] : [];
+  // 친구 메뉴(5-1): 방장만 내보내기. 내 줄(대기자인 나)에는 메뉴가 없다
+  const getMemberActions = (member: WaitingMember) =>
+    isHost && !member.isMe
       ? [{ label: '내보내기', onSelect: () => setModal({ type: 'kick', member }) }]
       : [];
-  };
 
-  // 방장이 나가는데 상장한 친구가 없으면 대기실이 사라진다 (대기실 4-3)
+  // 방장이 나가는데 상장한 친구가 없으면 대기실이 사라진다 (대기실 1-1-3)
   const isLeaveDeletingRoom = isHost && listedFriends.length === 0;
 
+  // 방장 퇴장(1-1-1 인계O, 1-1-3 인계X), 참여자·대기자 퇴장(1-4-1, 같은 문구)
   const getLeaveDescription = () => {
     if (isLeaveDeletingRoom) return '나가면 대기실이 사라져요.';
     if (isHost) return '가장 먼저 상장한 친구에게 방장 권한이 넘어가요.';
-    return myStock ? '이 리그의 참여가 취소돼요.' : '이 리그의 대기가 취소돼요.';
+    return '이 리그의 참여가 취소돼요.';
   };
 
   // 시작하기를 눌렀을 때 대기자가 있으면 시작하지 않는다. 서버도 한 번 더 확인한다 (WAITING_MEMBER_EXISTS)
@@ -187,8 +186,9 @@ function WaitingPage() {
       <LeagueHeader
         leagueName={room.name}
         badge="대기"
+        // 상단 메뉴는 대기실 멤버 모두에게 보인다 (방장·참여자·대기자, 대기실 1)
         menu={
-          isHost && (
+          me && (
             <Dropdown
               label="대기실 메뉴"
               icon={<MoreIcon className="size-5" />}
