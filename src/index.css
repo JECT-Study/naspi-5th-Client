@@ -1,5 +1,29 @@
 @import 'tailwindcss';
 
+/* 글꼴: Spoqa Han Sans Neo (디자인 시스템, SIL OFL - assets/fonts/LICENSE_OFL.txt)
+   공식 저장소의 서브셋(자주 쓰는 한글 2,350자 + 영문·숫자)을 쓴다. 서브셋에 없는 글자는 아래 --font-sans의 다음 글꼴로 보인다
+   글자가 늦게 받아져도 기본 글꼴로 먼저 보여준다 (font-display: swap) */
+@font-face {
+  font-family: 'Spoqa Han Sans Neo';
+  font-weight: 400;
+  font-display: swap;
+  src: url('./assets/fonts/SpoqaHanSansNeo-Regular.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Spoqa Han Sans Neo';
+  font-weight: 500;
+  font-display: swap;
+  src: url('./assets/fonts/SpoqaHanSansNeo-Medium.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Spoqa Han Sans Neo';
+  font-weight: 700;
+  font-display: swap;
+  src: url('./assets/fonts/SpoqaHanSansNeo-Bold.woff2') format('woff2');
+}
+
 /* 누를 수 있는 요소에 손가락 커서 (Tailwind v4는 button 기본 커서가 화살표라 여기서 한 번에 준다)
    링크(a)는 브라우저 기본이 손가락이라 따로 쓰지 않는다. 비활성 버튼은 기본 화살표 그대로 */
 @layer base {
@@ -12,13 +36,126 @@
   }
 }
 
+/* 디자인 시스템 (Figma 디자인_완성 > System). 이름은 Figma 이름을 그대로 옮겼다
+   - Figma 'Title1.5'처럼 점이 있는 이름은 '-'로 (title1-5), 괄호는 붙여서 (Title1.5(M) → title1-5m, Title4(t) → title4-t)
+   - 새 이름을 추가하면 utils/cn.ts의 tailwind-merge 설정에도 넣는다 (안 넣으면 글자색과 같은 종류로 보고 지운다)
+   - Tailwind 기본 색(gray 등)·글자 크기(text-sm 등)는 화면을 시안으로 옮기는 동안 남겨 두고, 다 옮긴 뒤 지운다 */
 @theme {
+  /* 반응형 구간 없음: 기본 360으로 그리고, 화면이 넓어지면 최대 599까지 늘린 뒤 가운데 정렬 (UI > 화면 사이즈 관련) */
   --breakpoint-*: initial;
-  --breakpoint-tablet: 48rem; /* 768px */
-  --breakpoint-desktop: 80rem; /* 1280px */
+  --container-app: 599px;
 
-  --container-app-tablet: 48rem; /* 768px */
-  --container-app-desktop: 80rem; /* 1280px */
+  --font-sans:
+    'Spoqa Han Sans Neo', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic',
+    sans-serif;
+
+  /* 색 */
+  --color-ns-blue: #2abbfb; /* 브랜드 메인 */
+  --color-ns-blue-light: #81d8ff;
+  --color-sub-blue-1: #def5ff;
+  --color-sub-blue-2: #f7fdff;
+  --color-ns-sell: #d74955; /* 매도 */
+  --color-sub-sell-1: #f7dcde; /* Figma 변수 이름은 SubSelll1 (오타) */
+  --color-sub-sell-2: #fdf6f6;
+  --color-ns-buy: #5478fa; /* 매수 */
+  --color-sub-buy-1: #dee5fe;
+  --color-sub-buy-2: #f6f8ff;
+  --color-grey-0: #f8f9fa;
+  --color-grey-1: #f1f3f5;
+  --color-grey-2: #e9edf0;
+  --color-grey-3: #ced4da;
+  --color-grey-4: #adb5bd;
+  --color-grey-5: #868e96;
+  --color-grey-6: #495057;
+  --color-grey-7: #343a40;
+  --color-grey-8: #212529;
+
+  /* 글자 스타일: text-heading1 하나로 크기·줄높이·굵기를 함께 준다. 값은 px ÷ 16 (rem), 자간은 모두 0 */
+  --text-heading1: 1.5rem; /* 24/36 */
+  --text-heading1--line-height: 2.25rem;
+  --text-heading1--font-weight: 700;
+  --text-heading2: 1.125rem; /* 18/26 */
+  --text-heading2--line-height: 1.625rem;
+  --text-heading2--font-weight: 700;
+  --text-heading2-5: 1.125rem; /* 18/26 */
+  --text-heading2-5--line-height: 1.625rem;
+  --text-heading2-5--font-weight: 500;
+  --text-heading3: 1.0625rem; /* 17/24 */
+  --text-heading3--line-height: 1.5rem;
+  --text-heading3--font-weight: 700;
+  --text-heading4: 1rem; /* 16/22 */
+  --text-heading4--line-height: 1.375rem;
+  --text-heading4--font-weight: 500;
+
+  --text-title1: 1rem; /* 16/25 */
+  --text-title1--line-height: 1.5625rem;
+  --text-title1--font-weight: 700;
+  --text-title1-5: 1rem; /* 16/20 */
+  --text-title1-5--line-height: 1.25rem;
+  --text-title1-5--font-weight: 700;
+  --text-title1-5m: 1rem; /* 16/20 */
+  --text-title1-5m--line-height: 1.25rem;
+  --text-title1-5m--font-weight: 500;
+  --text-title2: 0.9375rem; /* 15/22 */
+  --text-title2--line-height: 1.375rem;
+  --text-title2--font-weight: 700;
+  --text-title2-5: 0.9375rem; /* 15/22 */
+  --text-title2-5--line-height: 1.375rem;
+  --text-title2-5--font-weight: 500;
+  --text-title3: 0.875rem; /* 14/20 */
+  --text-title3--line-height: 1.25rem;
+  --text-title3--font-weight: 500;
+  --text-title4: 0.8125rem; /* 13/20 */
+  --text-title4--line-height: 1.25rem;
+  --text-title4--font-weight: 700;
+  --text-title4-t: 0.8125rem; /* 13/20, title4 + 위아래 여백 자르기 (아래 @utility) */
+  --text-title4-t--line-height: 1.25rem;
+  --text-title4-t--font-weight: 700;
+  --text-title4-5: 0.8125rem; /* 13/20 */
+  --text-title4-5--line-height: 1.25rem;
+  --text-title4-5--font-weight: 500;
+
+  --text-body1: 0.8125rem; /* 13/24 */
+  --text-body1--line-height: 1.5rem;
+  --text-body1--font-weight: 400;
+  --text-body1-5: 0.8125rem; /* 13/20 */
+  --text-body1-5--line-height: 1.25rem;
+  --text-body1-5--font-weight: 400;
+  --text-body2: 0.75rem; /* 12/20 */
+  --text-body2--line-height: 1.25rem;
+  --text-body2--font-weight: 500;
+  --text-body2-5: 0.75rem; /* 12/20 */
+  --text-body2-5--line-height: 1.25rem;
+  --text-body2-5--font-weight: 400;
+  --text-body3: 0.6875rem; /* 11/16 */
+  --text-body3--line-height: 1rem;
+  --text-body3--font-weight: 400;
+  --text-body3-t: 0.6875rem; /* 11/16, body3 + 위아래 여백 자르기 (아래 @utility) */
+  --text-body3-t--line-height: 1rem;
+  --text-body3-t--font-weight: 400;
+
+  --text-caption1: 0.625rem; /* 10/19 */
+  --text-caption1--line-height: 1.1875rem;
+  --text-caption1--font-weight: 500;
+
+  --text-button1: 1rem; /* 16/24 */
+  --text-button1--line-height: 1.5rem;
+  --text-button1--font-weight: 700;
+  --text-button2: 0.875rem; /* 14/20 */
+  --text-button2--line-height: 1.25rem;
+  --text-button2--font-weight: 700;
+  --text-button2-5: 0.875rem; /* 14/20 */
+  --text-button2-5--line-height: 1.25rem;
+  --text-button2-5--font-weight: 500;
+  --text-button3: 0.6875rem; /* 11/18 */
+  --text-button3--line-height: 1.125rem;
+  --text-button3--font-weight: 400;
+  --text-button3-5: 0.6875rem; /* 11/18 */
+  --text-button3-5--line-height: 1.125rem;
+  --text-button3-5--font-weight: 700;
+
+  /* 그림자: Figma ModalShadow */
+  --shadow-modal: 0 10px 32px -4px rgb(24 39 75 / 0.1), 0 6px 14px -6px rgb(24 39 75 / 0.12);
 
   /* 토스트 페이드 인 (사라질 때는 Toaster의 transition으로 페이드 아웃) */
   --animate-toast-in: toast-in 200ms ease-out;
@@ -43,4 +180,16 @@
       transform: translateY(0);
     }
   }
+}
+
+/* Figma 글자 스타일 중 (t)가 붙은 것: 글자 상자 위아래 여백을 잘라 상자 높이를 글자 높이(대문자 높이 ~ 기준선)에 맞춘다
+   (Figma Vertical trim = Cap height to baseline). 배지처럼 글자를 상자 정가운데에 두는 곳에 쓴다
+   크기·줄높이·굵기는 @theme의 --text-title4-t 등에서 오고, 여기서는 여백 자르기만 더한다
+   지원하지 않는 브라우저(Firefox 등)에서는 자르지 않은 보통 글자 상자로 보인다 */
+@utility text-title4-t {
+  text-box: trim-both cap alphabetic;
+}
+
+@utility text-body3-t {
+  text-box: trim-both cap alphabetic;
 }
