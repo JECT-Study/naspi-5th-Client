@@ -29,6 +29,20 @@ const TERMS_LINKS = [
 // (시안에 없는 움직임이라 바텀시트와 같은 시간으로 둔다. 모션 줄이기 설정이면 움직이지 않는다)
 const EXIT_MS = 250;
 
+// 시안 메뉴 줄 (나의 리그, 새 리그 만들기, 코드로 참여): 높이 48, 위아래 4, 왼쪽 16, Title2 (색은 줄마다)
+const MENU_ROW_CLASS = 'flex h-12 items-center justify-between py-1 pl-4 text-title2 text-grey-8';
+// 시안 아래쪽 줄 (약관, 로그아웃, 회원 탈퇴): 높이 32, 좌우 16, Body2 Grey/5
+const FOOTER_ROW_CLASS = 'flex h-8 items-center px-4 text-body2 text-grey-5';
+
+// 메뉴 줄 오른쪽 꺾쇠: 34 영역(여백 8) 안에 Right 18 Grey/8
+function MenuChevron() {
+  return (
+    <span className="flex size-8.5 shrink-0 items-center justify-center">
+      <ChevronRightIcon className="text-grey-8" />
+    </span>
+  );
+}
+
 function GnbDrawer() {
   const closeGnbDrawer = useGnbDrawerStore((state) => state.closeGnbDrawer);
   const openGnbModal = useGnbDrawerStore((state) => state.openGnbModal);
@@ -73,13 +87,13 @@ function GnbDrawer() {
         )}
         onClick={close}
       />
-      {/* 시안 GNB드로어: 폭 278, 흰색, 오른쪽에 붙음. 안쪽 내용(내 계정·나의 리그·메뉴) 간격은 화면 작업 때 맞춘다 */}
+      {/* 시안 GNB드로어: 폭 278, 흰색, 오른쪽에 붙음. 상단바와 본문 사이 8 */}
       <aside
         role="dialog"
         aria-modal="true"
         aria-label="메뉴"
         className={cn(
-          'absolute inset-y-0 right-0 flex w-69.5 animate-drawer-in flex-col overflow-y-auto bg-white pb-8 transition-transform duration-250 motion-reduce:animate-none motion-reduce:transition-none',
+          'absolute inset-y-0 right-0 flex w-69.5 animate-drawer-in flex-col gap-2 overflow-y-auto bg-white transition-transform duration-250 motion-reduce:animate-none motion-reduce:transition-none',
           isClosing && 'translate-x-full',
         )}
       >
@@ -97,53 +111,45 @@ function GnbDrawer() {
             <CloseIcon className="text-grey-8" />
           </button>
         </header>
-        <div className="flex flex-1 flex-col px-6">
-          {/* 조회 실패 (공통 1-1): 내 계정·나의 리그·리그 메뉴 대신 오류와 다시 시도만 보여준다 */}
+        {/* 시안 '드로어 본문 영역': 위(내 계정·나의 리그·리그 메뉴)와 아래(약관·계정 관리)를 양 끝에 붙인다 */}
+        <div className="flex flex-1 flex-col justify-between gap-2">
+          {/* 조회 실패 (공통 1-1): 내 계정·나의 리그·리그 메뉴 대신 오류와 다시 시도만 보여준다 (여백 20·24) */}
           {isError ? (
-            <LoadError onRetry={handleRetry} />
+            <LoadError onRetry={handleRetry} className="px-6 py-5" />
           ) : (
-            <>
-              <section className="border-b pb-4">
-                <p className="text-sm text-gray-500">내 계정</p>
-                {me.isPending ? (
-                  // 처음 불러오는 동안 스켈레톤 (공통 화면 정책: 로딩 표시)
-                  <div className="mt-1 h-7 w-24 animate-pulse rounded bg-gray-100" />
-                ) : (
-                  <MyNameField name={me.data?.name} />
-                )}
-              </section>
+            <div className="flex flex-col gap-2">
+              <MyNameField name={me.data?.name} />
 
-              <section className="border-b py-4">
-                <Link
-                  to="/leagues"
-                  className="flex items-center justify-between font-bold"
-                  onClick={close}
-                >
+              {/* 시안 '나의 리그 메뉴 목록': 좌우 6, 줄 높이 48 */}
+              <section className="flex flex-col px-1.5">
+                <Link to="/leagues" className={MENU_ROW_CLASS} onClick={close}>
                   나의 리그
-                  <ChevronRightIcon className="text-grey-8" />
+                  <MenuChevron />
                 </Link>
-                {myRooms.isPending && (
-                  <div className="mt-2 flex flex-col gap-2 pl-4">
-                    {[0, 1].map((key) => (
-                      <div key={key} className="h-5 w-32 animate-pulse rounded bg-gray-100" />
-                    ))}
-                  </div>
-                )}
+                {myRooms.isPending &&
+                  [0, 1].map((key) => (
+                    <div key={key} className="flex h-12 items-center pl-9">
+                      <div className="h-5.5 w-32 animate-pulse rounded-md bg-grey-0" />
+                    </div>
+                  ))}
                 {/* 진행 중·대기 중 리그만, 시작(대기실 생성)이 이른 순. 없으면 목록을 숨긴다 */}
                 {rooms.length > 0 && (
-                  <ul className="mt-2 flex flex-col">
+                  <ul className="flex flex-col">
                     {rooms.map((room) => (
                       <li key={room.roomId}>
+                        {/* 시안 List_League: 높이 48, 왼쪽 36, 리그명 Title2.5 Grey/6, 배지까지 8 */}
                         <Link
                           to={
                             room.status === 'WAITING'
                               ? `/leagues/${room.roomId}/waiting`
                               : `/leagues/${room.roomId}`
                           }
-                          className="flex items-center gap-2 py-1.5 pl-4"
+                          className="flex h-12 items-center gap-2 pl-9"
                           onClick={close}
                         >
-                          <span className="min-w-0 truncate">{room.name}</span>
+                          <span className="min-w-0 truncate text-title2-5 text-grey-6">
+                            {room.name}
+                          </span>
                           {/* 진행 중이면 D-day, 대기실이면 '대기' (공통 1) */}
                           {room.endAt ? (
                             <Badge>{formatDday(getDaysUntil(new Date(room.endAt)))}</Badge>
@@ -157,68 +163,71 @@ function GnbDrawer() {
                 )}
               </section>
 
-              <nav className="flex flex-col border-b py-2">
+              {/* 시안 '리그 생성 및 참여 메뉴': 새 리그 만들기만 NSBlue */}
+              <nav className="flex flex-col px-1.5">
                 {(
                   [
-                    ['leagueCreate', '새 리그 만들기'],
-                    ['leagueJoin', '코드로 참여'],
+                    ['leagueCreate', '새 리그 만들기', 'text-ns-blue'],
+                    ['leagueJoin', '코드로 참여', 'text-grey-8'],
                   ] as const
-                ).map(([type, label]) => (
+                ).map(([type, label, color]) => (
                   <button
                     key={type}
                     type="button"
-                    className="flex items-center justify-between py-2 text-left font-bold"
+                    className={cn(MENU_ROW_CLASS, 'text-left', color)}
                     onClick={() => {
                       close();
                       openLeagueEntry(type);
                     }}
                   >
                     {label}
-                    <ChevronRightIcon className="text-grey-8" />
+                    <MenuChevron />
                   </button>
                 ))}
               </nav>
-            </>
+            </div>
           )}
 
-          <div className="mt-auto flex flex-col gap-1 border-b pb-4 text-sm">
-            {TERMS_LINKS.map((link) => (
-              <a
-                key={link.label}
-                href={link.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-between py-1"
-                onClick={close}
+          {/* 시안 '약관 및 계정 관리 영역': 위아래 24, 묶음 사이 16, 묶음 왼쪽 6, 줄 높이 32, Body2 Grey/5 */}
+          <div className="flex flex-col gap-4 py-6">
+            <div className="flex flex-col pl-1.5">
+              {TERMS_LINKS.map((link) => (
+                <a
+                  key={link.label}
+                  href={link.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={FOOTER_ROW_CLASS}
+                  onClick={close}
+                >
+                  {link.label}
+                </a>
+              ))}
+            </div>
+            <div className="flex flex-col pl-1.5">
+              {/* 로그아웃만 아이콘(SignOut 24)이 있어 왼쪽 10, 아이콘과 글자 사이 2 */}
+              <button
+                type="button"
+                className={cn(FOOTER_ROW_CLASS, 'gap-0.5 px-2.5')}
+                onClick={() => {
+                  openGnbModal('logout');
+                  close();
+                }}
               >
-                {/* 시안: 약관 링크에는 꺾쇠가 없다 */}
-                {link.label}
-              </a>
-            ))}
-          </div>
-
-          <div className="flex flex-col items-start gap-3 pt-4">
-            <button
-              type="button"
-              className="flex items-center gap-2 font-bold"
-              onClick={() => {
-                openGnbModal('logout');
-                close();
-              }}
-            >
-              <LogoutIcon className="text-grey-5" />
-              로그아웃
-            </button>
-            <button
-              type="button"
-              className="text-sm text-gray-500"
-              onClick={() => {
-                openGnbModal('withdraw');
-                close();
-              }}
-            >
-              회원 탈퇴
-            </button>
+                <LogoutIcon />
+                로그아웃
+              </button>
+              <button
+                type="button"
+                className={FOOTER_ROW_CLASS}
+                onClick={() => {
+                  openGnbModal('withdraw');
+                  close();
+                }}
+              >
+                회원 탈퇴
+              </button>
+            </div>
           </div>
         </div>
       </aside>

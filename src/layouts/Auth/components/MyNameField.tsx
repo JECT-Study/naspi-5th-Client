@@ -10,9 +10,10 @@ import {
 import { PencilIcon } from '@/components/ui/icons';
 import TextField from '@/components/ui/TextField';
 import { getApiErrorCode } from '@/libs/apiError';
+import { cn } from '@/utils/cn';
 
 interface MyNameFieldProps {
-  /** 아직 불러오는 중이면 없다. 그동안 '수정'은 누를 수 없다 */
+  /** 아직 불러오는 중이면 없다. 그동안 이름 자리는 흐리게 깜빡이고 '수정'은 누를 수 없다 */
   name?: string;
 }
 
@@ -57,59 +58,68 @@ function MyNameField({ name }: MyNameFieldProps) {
     mutate({ name: draft.trim() });
   };
 
-  if (!isEditing) {
-    return (
-      // 시안: 이름 바로 옆(간격 8)에 Edit 18 아이콘 버튼
-      <div className="mt-1 flex items-center gap-2">
-        <span className="text-lg font-bold">{name}</span>
-        <button
-          type="button"
-          aria-label="이름 수정"
-          className="disabled:opacity-40"
-          disabled={!name}
-          onClick={startEditing}
-        >
-          <PencilIcon className="text-grey-8" />
-        </button>
-      </div>
-    );
-  }
-
-  // 시안 (공통 내 계정 정보): 오류 문구는 입력칸 위, 작은 입력칸(높이 22) + 간격 16 + "취소"·"저장"(Button3 Grey/5, 간격 6)
+  // 시안 '내 계정 영역': 여백 위 14·좌우 22, "내 계정" Body3 Grey/6 (높이 16)
+  // 보기: 아래 14, 문구와 이름 줄 사이 2 / 수정: 아래 12, 사이 4 (두 상태 모두 높이 68)
   return (
-    <form className="mt-1 flex items-end gap-4" onSubmit={handleSubmit}>
-      <TextField
-        aria-label="이름"
-        size="sm"
-        className="min-w-0 flex-1"
-        value={draft}
-        maxLength={NAME_MAX_LENGTH}
-        error={error}
-        autoFocus
-        onChange={(event) => {
-          setDraft(event.target.value);
-          setError(undefined);
-        }}
-      />
-      <div className="flex h-5.5 shrink-0 items-center gap-1.5">
-        <button
-          type="button"
-          className={TEXT_BUTTON_CLASS}
-          disabled={isPending}
-          onClick={() => setDraft(null)}
-        >
-          취소
-        </button>
-        <button
-          type="submit"
-          className={TEXT_BUTTON_CLASS}
-          disabled={draft.trim() === '' || isPending}
-          aria-busy={isPending || undefined}
-        >
-          저장
-        </button>
-      </div>
-    </form>
+    <section
+      className={cn('flex flex-col px-5.5 pt-3.5', isEditing ? 'gap-1 pb-3' : 'gap-0.5 pb-3.5')}
+    >
+      <h2 className="text-body3 text-grey-6">내 계정</h2>
+      {isEditing ? (
+        // 시안 (내 계정 이름 수정): 오류 문구는 입력칸 위, 작은 입력칸(높이 22) + 간격 16 + "취소"·"저장"(Button3 Grey/5, 간격 6)
+        <form className="flex items-end gap-4" onSubmit={handleSubmit}>
+          <TextField
+            aria-label="이름"
+            size="sm"
+            className="min-w-0 flex-1"
+            value={draft}
+            maxLength={NAME_MAX_LENGTH}
+            error={error}
+            autoFocus
+            onChange={(event) => {
+              setDraft(event.target.value);
+              setError(undefined);
+            }}
+          />
+          <div className="flex h-5.5 shrink-0 items-center gap-1.5">
+            <button
+              type="button"
+              className={TEXT_BUTTON_CLASS}
+              disabled={isPending}
+              onClick={() => setDraft(null)}
+            >
+              취소
+            </button>
+            <button
+              type="submit"
+              className={TEXT_BUTTON_CLASS}
+              disabled={draft.trim() === '' || isPending}
+              aria-busy={isPending || undefined}
+            >
+              저장
+            </button>
+          </div>
+        </form>
+      ) : (
+        // 이름 줄 (높이 22): 이름 Title2 NSBlue, 8 띄우고 Edit 18 아이콘 버튼. 불러오는 중이면 이름 자리만 흐리게
+        <div className="flex h-5.5 items-center gap-2">
+          {name === undefined ? (
+            <div className="h-5.5 w-14 animate-pulse rounded-md bg-grey-0" />
+          ) : (
+            <span className="truncate text-title2 text-ns-blue">{name}</span>
+          )}
+          <button
+            type="button"
+            aria-label="이름 수정"
+            className="shrink-0 disabled:opacity-40"
+            disabled={!name}
+            onClick={startEditing}
+          >
+            <PencilIcon className="text-grey-8" />
+          </button>
+        </div>
+      )}
+    </section>
   );
 }
 
