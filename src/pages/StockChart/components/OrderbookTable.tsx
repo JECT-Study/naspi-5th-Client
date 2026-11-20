@@ -77,6 +77,9 @@ function OrderbookTable({ orderbook }: OrderbookTableProps) {
   const levels = isExpanded ? EXPANDED_LEVELS : COLLAPSED_LEVELS;
   const asks = orderbook.asks.slice(0, levels).reverse();
   const bids = orderbook.bids.slice(0, levels);
+  // 잔량 막대 길이: 지금 보이는 호가(기본 1줄씩, 자세히 보기 5줄씩) 중 잔량이 가장 많은 줄을 꽉 찬 막대로,
+  // 나머지 줄은 그 대비 길이. 매도·매수를 한 기준으로 비교한다
+  // (설계서·시안 모두 기준이 없어 이렇게 정함. 기획 공유 없이 이대로 가기로 함)
   const maxQuantity = Math.max(0, ...asks.map((l) => l.quantity), ...bids.map((l) => l.quantity));
   const isEmpty = asks.length === 0 && bids.length === 0;
 
