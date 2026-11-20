@@ -1,9 +1,22 @@
+import type { ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { stockQueries } from '@/apis/domains/stock/stock.queries';
 import { splitAndSortStocks } from '@/apis/domains/stock/stock.utils';
 import LoadError from '@/components/status/LoadError';
 import { useRoomId } from '@/hooks/useRoomId';
 import StockRow from './components/StockRow';
+
+// 시안 묶음: 제목 Title3 Grey/8, 8 띄우고 흰색 + Grey/3 테두리 상자(모서리 6, 여백 12·8)에 종목 카드를 8씩
+function StockSection({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <section className="flex flex-col gap-2">
+      <h2 className="text-title3 text-grey-8">{title}</h2>
+      <div className="flex flex-col gap-2 rounded-md border border-grey-3 bg-white px-2 py-3">
+        {children}
+      </div>
+    </section>
+  );
+}
 
 // 시장: 내 종목 + 친구 종목. 가격은 RoomLayout이 구독하는 리그 시세로 계속 바뀐다
 function MarketPage() {
@@ -14,11 +27,11 @@ function MarketPage() {
 
   const renderContent = () => {
     if (isPending) {
+      // 임시 자리 표시 (스켈레톤 시안 작업 중, 나오면 교체): 내 종목 상자(80)·친구 종목 상자 자리
       return (
-        <div className="flex flex-col gap-3">
-          {[0, 1, 2].map((key) => (
-            <div key={key} className="h-14 animate-pulse rounded-lg bg-gray-100" />
-          ))}
+        <div className="flex flex-col px-6 pt-14">
+          <div className="h-20 animate-pulse rounded-md bg-grey-0" />
+          <div className="mt-15 h-48 animate-pulse rounded-md bg-grey-0" />
         </div>
       );
     }
@@ -26,32 +39,26 @@ function MarketPage() {
 
     const { myStock, otherStocks: friendStocks } = splitAndSortStocks(stocks);
 
+    // 시안 '시장 종목 섹션': 여백 20·24·16, 내 종목과 친구 종목 사이 32
     return (
-      <>
+      <div className="flex flex-col gap-8 px-6 pt-5 pb-4">
         {myStock && (
-          <section>
-            <h2 className="text-sm text-gray-500">내 종목</h2>
+          <StockSection title="내 종목">
             <StockRow stock={myStock} to={getStockPath(myStock.stockId)} />
-          </section>
+          </StockSection>
         )}
-        <section className="mt-6">
-          <h2 className="text-sm text-gray-500">친구 종목</h2>
-          <ul>
-            {friendStocks.map((stock) => (
-              <li key={stock.stockId}>
-                <StockRow stock={stock} to={getStockPath(stock.stockId)} />
-              </li>
-            ))}
-          </ul>
-        </section>
-      </>
+        <StockSection title="친구 종목">
+          {friendStocks.map((stock) => (
+            <StockRow key={stock.stockId} stock={stock} to={getStockPath(stock.stockId)} />
+          ))}
+        </StockSection>
+      </div>
     );
   };
 
+  // 시안 'Market Content': 위아래 8
   return (
-    <main className="flex min-h-0 flex-1 flex-col overflow-y-auto px-9 py-6">
-      {renderContent()}
-    </main>
+    <main className="flex min-h-0 flex-1 flex-col overflow-y-auto py-2">{renderContent()}</main>
   );
 }
 
