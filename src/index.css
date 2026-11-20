@@ -69,6 +69,17 @@
   --color-grey-6: #495057;
   --color-grey-7: #343a40;
   --color-grey-8: #212529;
+  /* 종목 색 10가지 (시안 리그-시장 "종목컬러 예시", 번호 순). 종목 프로필 원 바탕 */
+  --color-stock-1: #ff738f;
+  --color-stock-2: #219e73;
+  --color-stock-3: #edaa2e;
+  --color-stock-4: #ed2e44;
+  --color-stock-5: #2ea7ed;
+  --color-stock-6: #2622a1;
+  --color-stock-7: #7e2eed;
+  --color-stock-8: #2e5bed;
+  --color-stock-9: #f87d50;
+  --color-stock-10: #72a84e;
 
   /* 글자 스타일: text-heading1 하나로 크기·줄높이·굵기를 함께 준다. 값은 px ÷ 16 (rem), 자간은 모두 0 */
   --text-heading1: 1.5rem; /* 24/36 */
