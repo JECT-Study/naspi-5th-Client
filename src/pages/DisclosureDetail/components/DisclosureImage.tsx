@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { RetryIcon } from '@/components/icons';
+import RetryButton from '@/components/RetryButton';
 
 interface DisclosureImageProps {
   src: string;
@@ -17,17 +17,12 @@ function DisclosureImage({ src, label, onOpen }: DisclosureImageProps) {
     return (
       <div className="flex size-28 flex-col items-center justify-center gap-1 rounded-lg bg-gray-100 text-[10px] text-gray-500">
         <p>이미지를 불러오지 못했어요.</p>
-        <button
-          type="button"
-          className="flex items-center gap-0.5 underline"
+        <RetryButton
           onClick={() => {
             setHasError(false);
             setAttempt((prev) => prev + 1);
           }}
-        >
-          <RetryIcon className="size-3" />
-          다시 시도
-        </button>
+        />
       </div>
     );
   }

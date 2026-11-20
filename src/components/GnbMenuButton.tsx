@@ -7,7 +7,7 @@ function GnbMenuButton() {
 
   return (
     <button type="button" aria-label="메뉴 열기" onClick={openGnbDrawer}>
-      <MenuIcon />
+      <MenuIcon className="text-grey-7" />
     </button>
   );
 }

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type PointerEvent } from 'react';
 import { createPortal } from 'react-dom';
-import { CloseIcon, RetryIcon } from '@/components/icons';
+import { CloseBoldIcon } from '@/components/icons';
+import RetryButton from '@/components/RetryButton';
 import { cn } from '@/utils/cn';
 
 interface ImageViewerProps {
@@ -24,17 +25,12 @@ function Slide({ src }: { src: string }) {
       {hasError ? (
         <div className="flex flex-col items-center gap-3 text-sm text-white">
           <p>이미지를 불러오지 못했어요.</p>
-          <button
-            type="button"
-            className="flex items-center gap-1 text-xs underline"
+          <RetryButton
             onClick={() => {
               setHasError(false);
               setAttempt((prev) => prev + 1);
             }}
-          >
-            <RetryIcon className="size-3.5" />
-            다시 시도
-          </button>
+          />
         </div>
       ) : (
         <img
@@ -110,7 +106,7 @@ function ImageViewer({ images, initialIndex, onClose }: ImageViewerProps) {
           className="absolute top-1/2 left-6 -translate-y-1/2"
           onClick={onClose}
         >
-          <CloseIcon />
+          <CloseBoldIcon className="text-white" />
         </button>
         {/* 사진 전환 시 현재 번호 갱신 */}
         <span aria-live="polite">

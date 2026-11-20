@@ -30,6 +30,7 @@ import { stockQueries } from '@/apis/domains/stock/stock.queries';
 import type { StockDetail, StockId } from '@/apis/domains/stock/stock.types';
 import Button from '@/components/Button';
 import FloatingFooter from '@/components/FloatingFooter';
+import { MinusIcon, PlusIcon } from '@/components/icons';
 import LoadError from '@/components/LoadError';
 import TaskHeader from '@/components/TaskHeader';
 import { useCloseOverlay } from '@/hooks/useOverlay';
@@ -320,24 +321,23 @@ function OrderForm({ roomId, side, stock, assets }: OrderFormProps) {
             onChange={changeLimitPrice}
             addon={
               // 100원씩 내리고 올린다. 100원 단위가 아니면 그 방향의 가장 가까운 100원 단위로 (주문 5)
+              // 시안 수량조절: Minus 24 + 간격 8 + Plus 24 (Grey/8)
               <div className="flex gap-2">
                 <button
                   type="button"
                   aria-label="100원 내리기"
-                  className="size-7 rounded-full border"
                   onClick={() =>
                     changeLimitPrice(Math.max(PRICE_TICK, ceilToTick(limitPrice) - PRICE_TICK))
                   }
                 >
-                  −
+                  <MinusIcon className="text-grey-8" />
                 </button>
                 <button
                   type="button"
                   aria-label="100원 올리기"
-                  className="size-7 rounded-full border"
                   onClick={() => changeLimitPrice(floorToTick(limitPrice) + PRICE_TICK)}
                 >
-                  +
+                  <PlusIcon className="text-grey-8" />
                 </button>
               </div>
             }

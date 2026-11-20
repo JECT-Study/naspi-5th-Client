@@ -4,6 +4,7 @@ import { Link } from 'react-router';
 import { getActiveRooms } from '@/apis/domains/room/room.utils';
 import { userQueries } from '@/apis/domains/user/user.queries';
 import { ChevronRightIcon, CloseIcon, LogoutIcon } from '@/components/icons';
+import LoadError from '@/components/LoadError';
 import { useMyRooms } from '@/hooks/useMyRooms';
 import { useOpenLeagueEntry } from '@/hooks/useOpenLeagueEntry';
 import { useGnbDrawerStore } from '@/stores/gnbDrawerStore';
@@ -62,18 +63,13 @@ function GnbDrawer() {
         <header className="flex items-center justify-between py-5">
           <span className="font-bold">로고</span>
           <button type="button" aria-label="메뉴 닫기" onClick={closeGnbDrawer}>
-            <CloseIcon />
+            <CloseIcon className="text-grey-8" />
           </button>
         </header>
 
         {/* 조회 실패 (공통 1-1): 내 계정·나의 리그·리그 메뉴 대신 오류와 다시 시도만 보여준다 */}
         {isError ? (
-          <div className="flex flex-1 flex-col items-center justify-center gap-2 text-sm">
-            <span>정보를 불러오지 못했어요.</span>
-            <button type="button" className="text-xs underline" onClick={handleRetry}>
-              다시 시도
-            </button>
-          </div>
+          <LoadError onRetry={handleRetry} />
         ) : (
           <>
             <section className="border-b pb-4">
@@ -93,7 +89,7 @@ function GnbDrawer() {
                 onClick={closeGnbDrawer}
               >
                 나의 리그
-                <ChevronRightIcon />
+                <ChevronRightIcon className="text-grey-8" />
               </Link>
               {myRooms.isPending && (
                 <div className="mt-2 flex flex-col gap-2 pl-4">
@@ -145,7 +141,7 @@ function GnbDrawer() {
                   }}
                 >
                   {label}
-                  <ChevronRightIcon />
+                  <ChevronRightIcon className="text-grey-8" />
                 </button>
               ))}
             </nav>
@@ -162,8 +158,8 @@ function GnbDrawer() {
               className="flex items-center justify-between py-1"
               onClick={closeGnbDrawer}
             >
+              {/* 시안: 약관 링크에는 꺾쇠가 없다 */}
               {link.label}
-              <ChevronRightIcon />
             </a>
           ))}
         </div>
@@ -174,7 +170,7 @@ function GnbDrawer() {
             className="flex items-center gap-2 font-bold"
             onClick={() => openGnbModal('logout')}
           >
-            <LogoutIcon />
+            <LogoutIcon className="text-grey-5" />
             로그아웃
           </button>
           <button

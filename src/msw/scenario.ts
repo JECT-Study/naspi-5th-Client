@@ -1,5 +1,6 @@
-// MSW 시나리오: 주소에 ?msw=이름 을 붙여 고른다. 같은 탭에서는 페이지를 옮겨도 유지된다 (sessionStorage)
-// ?msw=off 로 끈다. 시나리오가 없으면 MSW를 켜지 않고 실제 서버로 요청한다
+// MSW 시나리오: 주소에 ?msw=이름 을 붙여 열었을 때만 켠다. 기본은 꺼짐(실제 서버로 요청)
+// 앱 안에서 화면을 옮기는 동안은 켜진 채로 있고, 새로고침하거나 주소로 다시 열면 그때 주소에 ?msw가 없으면 꺼진다
+// (예전에는 탭마다 시나리오를 기억해서, 새로고침해도 테스트 시나리오가 남아 헷갈렸다)
 //
 //   logged-out    로그인 안 함 (내 이름 조회 401)
 //   logged-in     로그인됨 (내 이름 조회 200, 이름 김진영)
@@ -37,20 +38,11 @@ export const MSW_SCENARIOS = [
 
 export type MswScenario = (typeof MSW_SCENARIOS)[number];
 
-const STORAGE_KEY = 'naspi:msw';
-
 const isScenario = (value: string | null): value is MswScenario =>
   MSW_SCENARIOS.includes(value as MswScenario);
 
-/** 주소의 ?msw= 를 읽어 저장하고, 지금 시나리오를 돌려준다. 없으면 null (MSW를 켜지 않는다) */
+/** 주소의 ?msw= 시나리오. 없거나 모르는 이름이면 null (MSW를 켜지 않는다) */
 export const resolveScenario = (): MswScenario | null => {
-  try {
-    const fromUrl = new URLSearchParams(window.location.search).get('msw');
-    if (fromUrl === 'off') sessionStorage.removeItem(STORAGE_KEY);
-    else if (isScenario(fromUrl)) sessionStorage.setItem(STORAGE_KEY, fromUrl);
-    const saved = sessionStorage.getItem(STORAGE_KEY);
-    return isScenario(saved) ? saved : null;
-  } catch {
-    return null;
-  }
+  const fromUrl = new URLSearchParams(window.location.search).get('msw');
+  return isScenario(fromUrl) ? fromUrl : null;
 };

@@ -4,6 +4,7 @@ import { commentKeys } from '@/apis/domains/comment/comment.queries';
 import { createComment } from '@/apis/domains/comment/comment.service';
 import type { CommentTargetType } from '@/apis/domains/comment/comment.types';
 import type { RoomId } from '@/apis/domains/room/room.types';
+import { cn } from '@/utils/cn';
 import { maxLengthHandlers } from '@/utils/maxLength';
 import CharCounter from './CharCounter';
 import { SendIcon } from './icons';
@@ -63,13 +64,17 @@ function CommentInput({ roomId, targetType, targetId, onChanged }: CommentInputP
           className="text-[10px]"
         />
       </div>
+      {/* 시안: 폭 52 보내기 칸에 흰 Send 24. 입력이 없으면 Grey/4, 있으면 NSBlue 바탕 */}
       <button
         type="submit"
         aria-label="댓글 보내기"
-        className="mb-1 disabled:text-gray-300"
+        className={cn(
+          'flex w-13 shrink-0 items-end justify-center self-stretch rounded-lg px-3.5 py-3.75 text-white',
+          content.trim() ? 'bg-ns-blue' : 'bg-grey-4',
+        )}
         disabled={!content.trim() || isPending}
       >
-        <SendIcon className="size-5" />
+        <SendIcon />
       </button>
     </form>
   );

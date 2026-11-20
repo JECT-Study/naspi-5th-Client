@@ -58,7 +58,7 @@ function NewsDetailPage() {
             <h2 className="font-bold">{item.title}</h2>
             <p className="text-sm whitespace-pre-line text-gray-700">{item.content}</p>
             <span className="flex items-center gap-1 text-xs text-gray-500">
-              <ChatIcon className="size-3.5" />
+              <ChatIcon className="text-grey-4" />
               {item.commentCount}
             </span>
           </div>
@@ -75,10 +75,12 @@ function NewsDetailPage() {
                 <span className="min-w-0 flex-1 truncate text-sm font-bold">
                   {item.sourceDisclosure.title}
                 </span>
-                <ChevronRightIcon className="size-4" />
+                <ChevronRightIcon className="text-grey-6" />
               </Link>
             ) : (
-              <FieldMessage className="mt-1">원문 공시가 삭제되었어요.</FieldMessage>
+              <FieldMessage tone="info" className="mt-1">
+                원문 공시가 삭제되었어요.
+              </FieldMessage>
             )}
           </section>
         )}

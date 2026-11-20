@@ -7,7 +7,7 @@ import type { OpenOrder } from '@/apis/domains/order/order.types';
 import { splitAndSortStocks } from '@/apis/domains/stock/stock.utils';
 import { userQueries } from '@/apis/domains/user/user.queries';
 import HoldingRow from '@/components/HoldingRow';
-import { ChevronRightIcon } from '@/components/icons';
+import { CaretDownIcon, CaretUpIcon, ChevronRightIcon } from '@/components/icons';
 import LoadError from '@/components/LoadError';
 import { useRoomId } from '@/hooks/useRoomId';
 import AssetSummary from './components/AssetSummary';
@@ -23,11 +23,12 @@ function AssetsPage() {
   // 자산 조회가 실패해도 "{이름}님의 자산"은 보여 준다 (드로어 등에서 이미 받아 둔 내 정보)
   const me = useQuery(userQueries.me());
   const [cancelTarget, setCancelTarget] = useState<OpenOrder | null>(null);
+  const [isOpenOrdersExpanded, setIsOpenOrdersExpanded] = useState(false);
 
   const orderHistoryLink = (
     <Link to={`/leagues/${roomId}/orders`} className="flex items-center justify-between font-bold">
       주문 내역
-      <ChevronRightIcon />
+      <ChevronRightIcon className="text-grey-8" />
     </Link>
   );
 
@@ -60,16 +61,35 @@ function AssetsPage() {
             <LoadError className="py-6" onRetry={() => openOrders.refetch()} />
           </section>
         )}
+        {/* 대기 중인 주문만 접고 펼친다 (디자이너 코멘트). 시안 기본 화면은 접힌 상태(CaretDown) */}
         {openOrders.data && openOrders.data.length > 0 && (
           <section>
-            <h2 className="font-bold">대기 중인 주문</h2>
-            <ul className="mt-2">
-              {openOrders.data.map((order) => (
-                <li key={order.orderId}>
-                  <OpenOrderRow order={order} onCancel={setCancelTarget} />
-                </li>
-              ))}
-            </ul>
+            <h2>
+              <button
+                type="button"
+                aria-expanded={isOpenOrdersExpanded}
+                className="flex w-full items-center justify-between font-bold"
+                onClick={() => setIsOpenOrdersExpanded((prev) => !prev)}
+              >
+                대기 중인 주문
+                <span className="px-1">
+                  {isOpenOrdersExpanded ? (
+                    <CaretUpIcon className="text-grey-8" />
+                  ) : (
+                    <CaretDownIcon className="text-grey-8" />
+                  )}
+                </span>
+              </button>
+            </h2>
+            {isOpenOrdersExpanded && (
+              <ul className="mt-2">
+                {openOrders.data.map((order) => (
+                  <li key={order.orderId}>
+                    <OpenOrderRow order={order} onCancel={setCancelTarget} />
+                  </li>
+                ))}
+              </ul>
+            )}
           </section>
         )}
 

@@ -108,7 +108,7 @@ function DisclosureDetailPage() {
                 // 공시 미트볼 → 드롭다운 '삭제하기' → 확인 모달 (공시 상세 2, 2-1, 2-1-1)
                 <Dropdown
                   label="공시 메뉴"
-                  icon={<MoreIcon className="size-4 text-gray-400" />}
+                  icon={<MoreIcon className="text-grey-6" />}
                   items={[{ label: '삭제하기', onSelect: () => setIsDeleteModalOpen(true) }]}
                 />
               )}
@@ -137,7 +137,7 @@ function DisclosureDetailPage() {
                 bearishCount={item.bearishCount}
               />
               <span className="flex items-center gap-1">
-                <ChatIcon className="size-3.5" />
+                <ChatIcon className="text-grey-4" />
                 {item.commentCount}
               </span>
             </div>

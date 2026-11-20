@@ -31,7 +31,7 @@ function MemberRow({ member, actions = [] }: MemberRowProps) {
       {actions.length > 0 && (
         <Dropdown
           label={`${member.name} 메뉴`}
-          icon={<MoreIcon className="size-5" />}
+          icon={<MoreIcon size={18} className="text-grey-6" />}
           items={actions}
         />
       )}

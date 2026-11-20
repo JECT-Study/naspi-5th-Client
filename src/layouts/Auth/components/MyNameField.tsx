@@ -7,6 +7,7 @@ import {
   NAME_MAX_LENGTH,
   validateNameForm,
 } from '@/apis/domains/user/user.validation';
+import { PencilIcon } from '@/components/icons';
 import TextField from '@/components/TextField';
 import { getApiErrorCode } from '@/libs/apiError';
 
@@ -57,10 +58,17 @@ function MyNameField({ name }: MyNameFieldProps) {
 
   if (!isEditing) {
     return (
-      <div className="mt-1 flex items-center justify-between">
+      // 시안: 이름 바로 옆(간격 8)에 Edit 18 아이콘 버튼
+      <div className="mt-1 flex items-center gap-2">
         <span className="text-lg font-bold">{name}</span>
-        <button type="button" className={smallButton} disabled={!name} onClick={startEditing}>
-          수정
+        <button
+          type="button"
+          aria-label="이름 수정"
+          className="disabled:opacity-40"
+          disabled={!name}
+          onClick={startEditing}
+        >
+          <PencilIcon className="text-grey-8" />
         </button>
       </div>
     );

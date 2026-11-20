@@ -12,6 +12,7 @@ import {
 import Button from '@/components/Button';
 import ConfirmModal from '@/components/ConfirmModal';
 import Dropdown from '@/components/Dropdown';
+import FieldMessage from '@/components/FieldMessage';
 import FloatingFooter from '@/components/FloatingFooter';
 import { MoreIcon } from '@/components/icons';
 import LeagueHeader from '@/components/LeagueHeader';
@@ -190,7 +191,7 @@ function WaitingPage() {
           me && (
             <Dropdown
               label="대기실 메뉴"
-              icon={<MoreIcon className="size-5" />}
+              icon={<MoreIcon className="text-grey-6" />}
               items={headerMenu}
             />
           )
@@ -198,9 +199,12 @@ function WaitingPage() {
       />
       <main className="flex min-h-0 flex-1 flex-col gap-8 overflow-y-auto px-9 pt-4">
         {daysUntilExpiry <= EXPIRY_BANNER_DAYS && (
-          <p className="rounded-lg bg-gray-100 px-4 py-2 text-center text-sm">
-            대기실이 {formatExpiry(daysUntilExpiry)} 사라져요. 그 전에 리그를 시작해 주세요.
-          </p>
+          // 시안 대기실 만료 안내 배너: SubBuy2 바탕, 안에 오류 문구(Notice 18 + 빨간 글자)
+          <div className="bg-sub-buy-2 px-4 py-3">
+            <FieldMessage>
+              대기실이 {formatExpiry(daysUntilExpiry)} 사라져요. 그 전에 리그를 시작해 주세요.
+            </FieldMessage>
+          </div>
         )}
 
         <InviteCodeSection inviteCode={room.inviteCode} />

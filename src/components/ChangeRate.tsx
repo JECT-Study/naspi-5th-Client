@@ -14,8 +14,9 @@ interface ChangeRateProps {
 function ChangeRate({ change, changeRate, className }: ChangeRateProps) {
   return (
     <span className={cn('flex items-center gap-0.5', getPriceColorClass(change), className)}>
-      {change > 0 && <TriangleUpIcon className="size-2.5" />}
-      {change < 0 && <TriangleDownIcon className="size-2.5" />}
+      {/* 시안 Up18/Down18: 18 칸 안에 삼각형이 10 정도로 그려져 있어 시안 크기 그대로 쓴다 */}
+      {change > 0 && <TriangleUpIcon />}
+      {change < 0 && <TriangleDownIcon />}
       {formatRate(changeRate)}
     </span>
   );

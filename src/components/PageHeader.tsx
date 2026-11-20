@@ -25,7 +25,7 @@ function PageHeader({ title, fallbackTo, center, showCenter = false }: PageHeade
   return (
     <header className="relative flex h-20 shrink-0 items-center gap-2 px-7">
       <button type="button" aria-label="뒤로 가기" onClick={goBack}>
-        <ChevronLeftIcon />
+        <ChevronLeftIcon className="text-grey-6" />
       </button>
       {/* 제목과 가운데 내용은 둘 다 그려 두고, 0.2초 동안 겹치며 바뀐다 (스크롤 중에 툭툭 끊기지 않게) */}
       <h1
