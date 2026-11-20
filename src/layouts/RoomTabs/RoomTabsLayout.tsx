@@ -5,6 +5,7 @@ import LeagueHeader from '@/components/header/LeagueHeader';
 import TabIndicator from '@/components/ui/TabIndicator';
 import { getTabClassName, TAB_LIST_CLASS } from '@/components/ui/tabStyles';
 import { useRoomId } from '@/hooks/useRoomId';
+import { cn } from '@/utils/cn';
 
 const TABS = [
   { to: '', label: '피드', end: true },
@@ -23,8 +24,8 @@ function RoomTabsLayout() {
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <LeagueHeader leagueName={room?.name ?? ''} />
-      {/* 시안 Tab: 화면 폭 4칸 */}
-      <nav className={TAB_LIST_CLASS}>
+      {/* 시안 Tab: 화면 폭 4칸, 상단바와 사이 8 (시안 '리그 피드 화면 콘텐츠' 위 여백) */}
+      <nav className={cn(TAB_LIST_CLASS, 'mt-2')}>
         {TABS.map((tab) => (
           <NavLink
             key={tab.label}

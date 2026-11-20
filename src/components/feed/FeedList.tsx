@@ -17,11 +17,12 @@ interface FeedListProps {
   variant: FeedCardVariant;
 }
 
+// 임시 자리 표시 (스켈레톤 시안 작업 중, 나오면 교체): 카드 자리를 Grey/0으로 깜빡인다
 function FeedSkeleton({ count }: { count: number }) {
   return (
-    <div className="flex flex-col gap-4 py-4">
+    <div className="flex flex-col gap-2">
       {Array.from({ length: count }, (_, i) => (
-        <div key={i} className="h-28 animate-pulse rounded-lg bg-gray-100" />
+        <div key={i} className="h-40 animate-pulse bg-grey-0" />
       ))}
     </div>
   );
@@ -47,24 +48,26 @@ function FeedList({ roomId, query, empty, end, variant }: FeedListProps) {
   const items = data.pages.flatMap((page) => page.items);
   if (items.length === 0) return <>{empty}</>;
 
+  // 시안 '공시': Grey/0 바탕 위에 흰 카드(여백 12)를 8씩 띄워 쌓는다. 화면 좌우 여백 없음
+  // 추가 조회 중·실패·피드 끝 안내도 같은 틀 안에 카드처럼 이어 붙인다
   return (
-    <>
-      <ul className="flex flex-col divide-y">
+    <div className="flex flex-col gap-2 bg-grey-0">
+      <ul className="flex flex-col gap-2">
         {items.map((item) => (
-          <li key={getItemKey(item)} className="py-4">
+          <li key={getItemKey(item)} className="bg-white p-3">
             <FeedCard roomId={roomId} item={item} to={getItemPath(item)} variant={variant} />
           </li>
         ))}
       </ul>
       {isFetchingNextPage && <FeedSkeleton count={1} />}
       {query.isFetchNextPageError && (
-        <LoadError size="inline" className="py-6" onRetry={() => fetchNextPage()} />
+        <LoadError size="inline" className="bg-white py-6" onRetry={() => fetchNextPage()} />
       )}
       {hasNextPage && !isFetchingNextPage && !query.isFetchNextPageError && (
         <LoadMoreTrigger onVisible={() => fetchNextPage()} />
       )}
       {!hasNextPage && end}
-    </>
+    </div>
   );
 }
 

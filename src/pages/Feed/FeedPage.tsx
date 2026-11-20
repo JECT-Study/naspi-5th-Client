@@ -14,7 +14,7 @@ function FeedPage() {
 
   return (
     <>
-      <main className="flex min-h-0 flex-1 flex-col overflow-y-auto px-9 pt-2">
+      <main className="flex min-h-0 flex-1 flex-col overflow-y-auto">
         <FeedList
           variant="feed"
           roomId={roomId}
@@ -29,16 +29,14 @@ function FeedPage() {
               </p>
             </div>
           }
-          // 가장 오래된 콘텐츠 아래 (리그 피드 4)
+          // 가장 오래된 콘텐츠 아래 (리그 피드 4). 시안 '피드끝': 흰 카드(여백 12)에 Caption1 Grey/8 한 줄
           end={
-            <p className="py-8 text-center text-sm text-gray-500">
-              모든 소식을 확인했어요.
-              <br />
-              친구들에게 새 소식을 전해보세요.
+            <p className="bg-white p-3 text-caption1 text-grey-8">
+              모든 소식을 확인했어요. 친구들에게 새 소식을 전해보세요.
             </p>
           }
         />
-        <FloatingFooter>
+        <FloatingFooter className="px-4.5">
           <Button
             className="w-full"
             onClick={() => openOverlay({ type: 'disclosureCreate', roomId })}
