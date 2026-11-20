@@ -5,12 +5,12 @@ import { assetQueries } from '@/apis/domains/asset/asset.queries';
 import { orderQueries } from '@/apis/domains/order/order.queries';
 import type { OpenOrder } from '@/apis/domains/order/order.types';
 import { splitAndSortStocks } from '@/apis/domains/stock/stock.utils';
-import { userQueries } from '@/apis/domains/user/user.queries';
 import HoldingRow from '@/components/stock/HoldingRow';
 import { CaretDownIcon, CaretUpIcon, ChevronRightIcon } from '@/components/ui/icons';
 import LoadError from '@/components/status/LoadError';
 import ListBox from '@/components/ui/ListBox';
 import { useRoomId } from '@/hooks/useRoomId';
+import { cn } from '@/utils/cn';
 import AssetSummary from '@/components/stock/AssetSummary';
 import OpenOrderRow from './components/OpenOrderRow';
 import OrderCancelModal from './components/OrderCancelModal';
@@ -21,8 +21,6 @@ function AssetsPage() {
   const roomId = useRoomId();
   const assets = useQuery(assetQueries.mine(roomId));
   const openOrders = useQuery(orderQueries.open(roomId));
-  // 자산 조회가 실패해도 "{이름}님의 자산"은 보여 준다 (드로어 등에서 이미 받아 둔 내 정보)
-  const me = useQuery(userQueries.me());
   const [cancelTarget, setCancelTarget] = useState<OpenOrder | null>(null);
   const [isOpenOrdersExpanded, setIsOpenOrdersExpanded] = useState(false);
 
@@ -47,17 +45,9 @@ function AssetsPage() {
         </>
       );
     }
-    // 조회 실패 (내 자산 4): "{이름}님의 자산"(설계서 문구)과 주문 내역 메뉴는 남기고 그 사이 남은 영역 가운데에 다시 시도
-    // 시안 조회 실패 화면은 마스코트·문구·다시 시도만 있다
-    if (assets.isError) {
-      return (
-        <>
-          <h2 className="text-title3 text-grey-8">{me.data?.name}님의 자산</h2>
-          <LoadError onRetry={() => assets.refetch()} />
-          {orderHistoryLink}
-        </>
-      );
-    }
+    // 조회 실패 (내 자산 4): 시안 '내 자산(조회실패)'대로 남은 영역 가운데에 마스코트·문구·다시 시도만
+    // (설계서 문구에는 "{이름}님의 자산"이 있으나 시안을 따르기로 함)
+    if (assets.isError) return <LoadError onRetry={() => assets.refetch()} />;
 
     const { myStock, otherStocks } = splitAndSortStocks(assets.data.holdings);
     const holdings = myStock ? [myStock, ...otherStocks] : otherStocks;
@@ -130,8 +120,10 @@ function AssetsPage() {
     <>
       {/* 시안 '내 자산 콘텐츠': 위아래 8 안에 '자산 및 주문 섹션'(여백 20·24·16, 영역 사이 32) */}
       <main className="flex min-h-0 flex-1 flex-col overflow-y-auto py-2">
-        {/* flex-1: 조회 실패 안내가 남은 영역 가운데에 오도록 */}
-        <div className="flex flex-1 flex-col gap-8 px-6 pt-5 pb-4">{renderContent()}</div>
+        {/* flex-1: 조회 실패 안내가 남은 영역 가운데에 오도록. 실패일 때는 섹션 여백(위 20·아래 16)을 빼서 다른 탭과 같은 자리 */}
+        <div className={cn('flex flex-1 flex-col gap-8', !assets.isError && 'px-6 pt-5 pb-4')}>
+          {renderContent()}
+        </div>
       </main>
       {cancelTarget && (
         <OrderCancelModal
