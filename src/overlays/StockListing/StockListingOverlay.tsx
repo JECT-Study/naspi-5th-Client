@@ -10,6 +10,7 @@ import {
   type StockFormErrors,
 } from '@/apis/domains/stock/stock.validation';
 import LoadError from '@/components/status/LoadError';
+import FormSection from '@/components/ui/FormSection';
 import StockListingFields from '@/components/stock/StockListingFields';
 import TaskHeader from '@/components/header/TaskHeader';
 import { useCloseOverlay } from '@/hooks/useOverlay';
@@ -75,19 +76,21 @@ function StockListingForm({ roomId, listedStock }: StockListingFormProps) {
           onClick: handleSubmit,
         }}
       />
-      <main className="flex min-h-0 flex-1 flex-col overflow-y-auto px-9 py-4">
-        <h2 className="text-lg font-bold">나의 종목을 상장해 주세요.</h2>
-        <p className="mt-1 mb-6 text-sm text-gray-500">
-          리그 기간 동안 친구들이 사고팔 나의 주식이에요.
-        </p>
-        <StockListingFields
-          value={stock}
-          errors={errors}
-          onChange={(next) => {
-            setStock(next);
-            setErrors({});
-          }}
-        />
+      {/* 시안 '종목 상장 콘텐츠': 위아래 8 안에 새 리그와 같은 '내 종목 상장 섹션' */}
+      <main className="flex min-h-0 flex-1 flex-col overflow-y-auto py-2">
+        <FormSection
+          title="나의 종목을 상장해 주세요."
+          description="리그 기간 동안 친구들이 사고팔 나의 주식이에요."
+        >
+          <StockListingFields
+            value={stock}
+            errors={errors}
+            onChange={(next) => {
+              setStock(next);
+              setErrors({});
+            }}
+          />
+        </FormSection>
       </main>
     </>
   );
@@ -102,7 +105,10 @@ function StockListingOverlay({ roomId }: StockListingOverlayProps) {
       <>
         <TaskHeader title="종목 상장" />
         {isPending ? (
-          <div className="mx-9 mt-4 h-40 animate-pulse rounded-lg bg-gray-100" />
+          // 임시 자리 표시 (스켈레톤 시안 작업 중, 나오면 교체): 실제 미리보기 상자 자리(위에서 88, 높이 80)
+          <div className="px-6 pt-22">
+            <div className="h-20 animate-pulse rounded-md bg-grey-0" />
+          </div>
         ) : (
           <LoadError onRetry={() => refetch()} />
         )}
