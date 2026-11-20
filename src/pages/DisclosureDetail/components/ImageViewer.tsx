@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type PointerEvent } from 'react';
 import { createPortal } from 'react-dom';
+import { getOverlayRoot } from '@/components/appFrame';
 import { CloseBoldIcon } from '@/components/icons';
 import RetryButton from '@/components/RetryButton';
 import { cn } from '@/utils/cn';
@@ -97,7 +98,8 @@ function ImageViewer({ images, initialIndex, onClose }: ImageViewerProps) {
       role="dialog"
       aria-modal="true"
       aria-label="이미지 확대 보기"
-      className="fixed inset-0 z-50 flex flex-col bg-black"
+      // 다른 덮개처럼 앱 틀 안을 꽉 채운다 (components/appFrame)
+      className="absolute inset-0 z-50 flex flex-col bg-black"
     >
       <header className="relative flex h-16 shrink-0 items-center justify-center text-sm text-white">
         <button
@@ -130,7 +132,7 @@ function ImageViewer({ images, initialIndex, onClose }: ImageViewerProps) {
         </div>
       </div>
     </div>,
-    document.body,
+    getOverlayRoot(),
   );
 }
 

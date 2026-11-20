@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import Modal from './Modal';
+import ServiceLogo from './ServiceLogo';
 
 interface NoticeModalProps {
   title: string;
@@ -22,7 +23,8 @@ function NoticeModal({ title, onDone }: NoticeModalProps) {
     return () => clearTimeout(timer);
   }, []);
 
-  return <Modal title={title} />;
+  // 시안 SignOut done / Review done: 로고 + 제목, 모서리 12
+  return <Modal variant="notice" top={<ServiceLogo />} title={title} />;
 }
 
 export default NoticeModal;

@@ -41,7 +41,8 @@ function NameFormModal({ title, isPending, serverError, onChange, onSubmit }: Na
       confirmDisabled={name.trim() === ''}
       isPending={isPending}
     >
-      <form id={formId} onSubmit={handleSubmit}>
+      {/* 시안: 제목과 입력칸 사이 16 (모달 기본 간격 8 + 8) */}
+      <form id={formId} className="mt-2 w-full" onSubmit={handleSubmit}>
         <TextField
           aria-label="이름"
           placeholder="이름을 입력해 주세요."

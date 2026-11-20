@@ -10,6 +10,7 @@ import {
 import { createPortal } from 'react-dom';
 import { useContainTouchScroll } from '@/hooks/useContainTouchScroll';
 import { cn } from '@/utils/cn';
+import { getOverlayRoot } from './appFrame';
 import { CloseIcon } from './icons';
 
 interface BottomSheetProps {
@@ -37,7 +38,7 @@ interface SheetDrag {
 }
 
 // 바텀시트 (화면설계서 공통): 위로 슬라이드 인 / 아래로 슬라이드 아웃, 딤 화면 최하단, 올려 확장·내려 축소, X·바깥 클릭·아래로 끌어 닫기
-// 앱 틀 너비 안에 붙이고, 부모 transform 영향을 받지 않도록 body에 그린다
+// 부모 transform 영향을 받지 않도록 앱 틀에 바로 그린다. 어두운 배경은 앱 틀만 덮는다 (components/appFrame)
 function BottomSheet({ title, children, onClose }: BottomSheetProps) {
   const titleId = useId();
   const [isExpanded, setIsExpanded] = useState(false);
@@ -95,7 +96,7 @@ function BottomSheet({ title, children, onClose }: BottomSheetProps) {
     else setSheetHeight(`${collapsedHeight}px`);
   };
 
-  // 시트 윗부분(핸들·제목 줄)을 끄는 동안 높이가 따라온다. 내용 영역은 스크롤에 쓴다. X 버튼은 끌기에서 뺀다
+  // 시트 윗부분(핸들·X 줄)을 끄는 동안 높이가 따라온다. 내용 영역은 스크롤에 쓴다. X 버튼은 끌기에서 뺀다
   const handlePointerDown = (event: PointerEvent) => {
     const target = event.target as HTMLElement;
     if (target.closest('[data-sheet-close]')) return;
@@ -153,7 +154,7 @@ function BottomSheet({ title, children, onClose }: BottomSheetProps) {
   };
 
   return createPortal(
-    <div ref={rootRef} className="fixed inset-0 z-50 flex justify-center">
+    <div ref={rootRef} className="absolute inset-0 z-50 flex justify-center">
       <div
         aria-hidden="true"
         className={cn(
@@ -175,8 +176,9 @@ function BottomSheet({ title, children, onClose }: BottomSheetProps) {
             translate: dragOffset > 0 ? `0 ${dragOffset}px` : undefined,
           }}
           onTransitionEnd={handleTransitionEnd}
+          // 시안 (리그 결과 참여자 최종 자산): 위쪽 모서리 16, 흰색, ModalShadow
           className={cn(
-            'pointer-events-auto flex flex-col rounded-t-2xl bg-white outline-none',
+            'pointer-events-auto flex flex-col rounded-t-2xl bg-white shadow-modal outline-none',
             // 끄는 동안 전환이 걸리면 시트가 손가락보다 늦게 따라온다. duration만 남아도 모든 속성에 전환이 걸린다
             !isDragging && 'transition-[height,translate] duration-250',
             sheetHeight === null ? 'max-h-[60dvh]' : 'max-h-[90dvh]',
@@ -191,33 +193,36 @@ function BottomSheet({ title, children, onClose }: BottomSheetProps) {
             onPointerUp={handlePointerUp}
             onPointerCancel={handlePointerCancel}
           >
+            {/* 손잡이 막대는 시안에 없지만 끌어서 늘리고 줄이는 동작을 알려 주려고 둔다 (사용자 결정) */}
             <button
               type="button"
               data-sheet-handle
               aria-label={isExpanded ? '시트 줄이기' : '시트 늘리기'}
               className="flex justify-center py-3"
             >
-              <span className="h-1 w-10 rounded-full bg-gray-300" />
+              <span className="h-1 w-10 rounded-full bg-grey-3" />
             </button>
-            <div className="flex items-center justify-between px-7 pb-3">
-              <h2 id={titleId} className="font-bold">
-                {title}
-              </h2>
+            {/* 시안: 맨 위 오른쪽 닫기 X 24 (시트 좌우 여백 16) */}
+            <div className="flex justify-end px-4">
               <button type="button" data-sheet-close aria-label="닫기" onClick={close}>
                 <CloseIcon className="text-grey-8" />
               </button>
             </div>
           </div>
+          {/* 시안: X 줄 아래 12, 내용은 시트 여백 16 + 8 들여 쓰고 맨 아래 50 비움. 제목(Title3 Grey/8)이 내용 첫 줄 */}
           <div
             ref={contentRef}
-            className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-7 pb-8"
+            className="mt-3 flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto overscroll-contain px-6 pb-12.5"
           >
+            <h2 id={titleId} className="text-title3 text-grey-8">
+              {title}
+            </h2>
             {children}
           </div>
         </div>
       </div>
     </div>,
-    document.body,
+    getOverlayRoot(),
   );
 }
 

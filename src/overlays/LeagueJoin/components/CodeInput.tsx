@@ -35,17 +35,19 @@ function CodeInput({ value, onChange, disabled = false, hasError = false }: Code
         onBlur={() => setIsFocused(false)}
         onChange={(event) => onChange(normalizeInviteCode(event.target.value))}
       />
-      <div className="flex gap-1.5" aria-hidden="true">
+      {/* 시안 Invitation Code Input: 36×48 칸 7개를 양 끝에 맞춰 놓는다 (312 폭에서 간격 10)
+          칸은 모서리 6, 흰색 + Grey/3 테두리, 글자 Heading2 Grey/8
+          입력 중에는 마지막으로 입력한 칸(아무것도 없으면 첫 칸)이 NSBlue, 오류면 모든 칸이 NSBuy */}
+      <div className="flex justify-between" aria-hidden="true">
         {Array.from({ length: INVITE_CODE_LENGTH }, (_, index) => (
           <div
             key={index}
             className={cn(
-              'flex h-12 flex-1 items-center justify-center rounded-lg border border-gray-300 text-lg font-bold',
-              isFocused &&
-                index === Math.min(value.length, INVITE_CODE_LENGTH - 1) &&
-                'border-gray-900',
-              hasError && 'border-red-500',
-              disabled && 'bg-gray-50 text-gray-400',
+              'flex h-12 w-9 items-center justify-center rounded-md border border-grey-3 bg-white text-heading2 text-grey-8',
+              isFocused && index === Math.max(value.length - 1, 0) && 'border-ns-blue',
+              hasError && 'border-ns-buy',
+              // 확인 중 모양은 시안에 없어 임시 (Grey/0 바탕, Grey/4 글자)
+              disabled && 'bg-grey-0 text-grey-4',
             )}
           >
             {value[index] ?? ''}

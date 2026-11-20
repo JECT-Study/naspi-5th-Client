@@ -16,7 +16,8 @@ interface MyNameFieldProps {
   name?: string;
 }
 
-const smallButton = 'shrink-0 rounded border px-2 py-0.5 text-xs disabled:opacity-40';
+// 누를 수 없을 때(공란, 저장 중)는 시안에 없어 Grey/4 (모달 버튼 비활성 색과 같게)
+const TEXT_BUTTON_CLASS = 'text-button3 text-grey-5 disabled:text-grey-4';
 
 // 드로어 '내 계정'의 이름 (화면설계서 공통 1-2: 드로어 안에서 바로 수정, POST /api/members/me/name)
 // '수정'을 누르면 이름이 입력칸으로, 버튼이 '취소'·'저장'으로 바뀐다. 최대 5자 한글, 공란이면 저장 비활성화
@@ -74,10 +75,12 @@ function MyNameField({ name }: MyNameFieldProps) {
     );
   }
 
+  // 시안 (공통 내 계정 정보): 오류 문구는 입력칸 위, 작은 입력칸(높이 22) + 간격 16 + "취소"·"저장"(Button3 Grey/5, 간격 6)
   return (
-    <form className="mt-1 flex items-end gap-2" onSubmit={handleSubmit}>
+    <form className="mt-1 flex items-end gap-4" onSubmit={handleSubmit}>
       <TextField
         aria-label="이름"
+        size="sm"
         className="min-w-0 flex-1"
         value={draft}
         maxLength={NAME_MAX_LENGTH}
@@ -88,17 +91,22 @@ function MyNameField({ name }: MyNameFieldProps) {
           setError(undefined);
         }}
       />
-      <div className="flex h-12 items-center gap-1">
+      <div className="flex h-5.5 shrink-0 items-center gap-1.5">
         <button
           type="button"
-          className={smallButton}
+          className={TEXT_BUTTON_CLASS}
           disabled={isPending}
           onClick={() => setDraft(null)}
         >
           취소
         </button>
-        <button type="submit" className={smallButton} disabled={draft.trim() === '' || isPending}>
-          {isPending ? '저장 중' : '저장'}
+        <button
+          type="submit"
+          className={TEXT_BUTTON_CLASS}
+          disabled={draft.trim() === '' || isPending}
+          aria-busy={isPending || undefined}
+        >
+          저장
         </button>
       </div>
     </form>

@@ -38,7 +38,7 @@ function CommentSection({ roomId, targetType, targetId, onChanged }: CommentSect
 
   if (comments.isPending) return <div className="h-16 animate-pulse rounded-lg bg-gray-100" />;
   if (comments.isError) {
-    return <LoadError className="py-6" onRetry={() => comments.refetch()} />;
+    return <LoadError size="inline" className="py-6" onRetry={() => comments.refetch()} />;
   }
 
   return (

@@ -1,5 +1,6 @@
 import { Link } from 'react-router';
 import type { DisclosureDetail } from '@/apis/domains/disclosure/disclosure.types';
+import Chip from '@/components/Chip';
 import FieldMessage from '@/components/FieldMessage';
 import { ChevronRightIcon } from '@/components/icons';
 import RetryButton from '@/components/RetryButton';
@@ -11,8 +12,6 @@ interface RelatedNewsProps {
   onRetry: () => void;
   isRetrying: boolean;
 }
-
-const SENTIMENT_LABEL = { BULLISH: '호재', BEARISH: '악재' } as const;
 
 // 관련 뉴스 (화면설계서 공시 상세 5)
 // 발행됨 → 모두에게 표시, 누르면 뉴스로 이동 / 생성 중 → 모두에게 영역 전체 숨김
@@ -29,9 +28,7 @@ function RelatedNews({ disclosure, newsPath, onRetry, isRetrying }: RelatedNewsP
       {newsStatus === 'PUBLISHED' && relatedNews && (
         <Link to={newsPath(relatedNews.newsId)} className="mt-1 flex items-center gap-2">
           <span className="min-w-0 flex-1 truncate text-sm font-bold">{relatedNews.title}</span>
-          <span className="shrink-0 rounded border px-1 text-[10px]">
-            {SENTIMENT_LABEL[relatedNews.sentiment]}
-          </span>
+          <Chip kind={relatedNews.sentiment} />
           <ChevronRightIcon className="text-grey-6" />
         </Link>
       )}

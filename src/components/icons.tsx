@@ -35,19 +35,22 @@ function Icon({
   );
 }
 
-// 앱 로고 자리. 로고 파일이 나오면 바꾼다 (시안도 "로고 자리" 글자)
-export function LogoIcon({ className }: IconProps) {
+// 카카오 말풍선 (카카오 로그인 버튼 공식 컴포넌트의 심볼, 18×17). 카카오 가이드상 검정
+export function KakaoIcon({ className }: IconProps) {
   return (
-    <Icon className={className}>
-      <rect x="3" y="3" width="18" height="18" rx="5" stroke="currentColor" strokeWidth="2" />
+    <svg
+      viewBox="0 0 18 17"
+      className={cn('h-4.25 w-4.5 shrink-0', className)}
+      fill="none"
+      aria-hidden="true"
+    >
       <path
-        d="M8 15l3-3 2 2 3-4"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
+        fillRule="evenodd"
+        clipRule="evenodd"
+        d="M9.00002 0C4.02917 0 0 3.11296 0 6.95228C0 9.34002 1.5584 11.445 3.93152 12.697L2.93303 16.3445C2.84481 16.6668 3.21341 16.9237 3.49646 16.7369L7.87334 13.8482C8.2427 13.8838 8.61808 13.9046 9.00002 13.9046C13.9705 13.9046 17.9999 10.7918 17.9999 6.95228C17.9999 3.11296 13.9705 0 9.00002 0Z"
+        fill="currentColor"
       />
-    </Icon>
+    </svg>
   );
 }
 

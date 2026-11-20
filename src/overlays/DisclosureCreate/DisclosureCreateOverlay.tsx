@@ -22,9 +22,11 @@ import ConfirmModal from '@/components/ConfirmModal';
 import { CameraIcon, ImageIcon } from '@/components/icons';
 import StockAvatar from '@/components/StockAvatar';
 import TaskHeader from '@/components/TaskHeader';
+import { useAutoHeight } from '@/hooks/useAutoHeight';
+import { useMaxLengthInput } from '@/hooks/useMaxLengthInput';
 import { isForcedNavigation } from '@/hooks/useOverlay';
 import { notify } from '@/libs/notify';
-import { maxLengthHandlers } from '@/utils/maxLength';
+import { cn } from '@/utils/cn';
 import ImageAttachments from './components/ImageAttachments';
 
 interface DisclosureCreateOverlayProps {
@@ -41,6 +43,24 @@ function DisclosureCreateOverlay({ roomId }: DisclosureCreateOverlayProps) {
 
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const {
+    ref: titleRef,
+    isOverLimit: isTitleOverLimit,
+    handlers: titleHandlers,
+  } = useMaxLengthInput<HTMLTextAreaElement>({
+    maxLength: DISCLOSURE_TITLE_MAX_LENGTH,
+    // 붙여넣은 줄바꿈도 빼서 제목을 한 줄 글로 둔다
+    onChange: (event) => setTitle(event.target.value.replace(/\n/g, ' ')),
+  });
+  const {
+    ref: contentRef,
+    isOverLimit: isContentOverLimit,
+    handlers: contentHandlers,
+  } = useMaxLengthInput<HTMLTextAreaElement>({
+    maxLength: DISCLOSURE_CONTENT_MAX_LENGTH,
+    onChange: (event) => setContent(event.target.value),
+  });
+  useAutoHeight(titleRef, title);
   const [images, setImages] = useState<File[]>([]);
   const galleryInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
@@ -95,55 +115,65 @@ function DisclosureCreateOverlay({ roomId }: DisclosureCreateOverlayProps) {
     <>
       <TaskHeader
         title="새 공시"
-        action={
-          <button
-            type="button"
-            className="font-bold disabled:text-gray-300"
-            disabled={!isDisclosureFilled(title, content) || isPending}
-            aria-busy={isPending || undefined}
-            onClick={() => mutate()}
-          >
-            게시
-          </button>
-        }
+        action={{
+          label: '게시',
+          disabled: !isDisclosureFilled(title, content),
+          isPending,
+          onClick: () => mutate(),
+        }}
       />
       <main className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-9 py-2">
         <div className="flex items-center gap-2">
           <StockAvatar name={myStock?.name ?? ' '} className="size-7 text-xs" />
           <span className="text-sm font-bold">{myStock?.name}</span>
         </div>
-        <div className="flex flex-col gap-1">
-          <input
+        {/* 시안 TitleInput: Heading3 Grey/8 (안내 문구도 Grey/8). 길면 줄바꿈되고, 글자 수가 보이면 아래 32를 비운다 */}
+        <div className="relative">
+          <textarea
+            ref={titleRef}
             aria-label="제목"
             placeholder="제목을 입력해 주세요."
+            rows={1}
             maxLength={DISCLOSURE_TITLE_MAX_LENGTH}
             value={title}
-            className="text-lg font-bold outline-none"
-            {...maxLengthHandlers<HTMLInputElement>((event) => setTitle(event.target.value))}
+            className={cn(
+              'block w-full resize-none text-heading3 text-grey-8 outline-none placeholder:text-grey-8',
+              title.length >= DISCLOSURE_TITLE_COUNTER_FROM && 'pb-8',
+            )}
+            // 제목은 한 줄 글이라 Enter로 줄을 바꾸지 않는다 (화면에서만 길면 줄바꿈)
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') event.preventDefault();
+            }}
+            {...titleHandlers}
           />
           <CharCounter
             length={title.length}
             max={DISCLOSURE_TITLE_MAX_LENGTH}
             showFrom={DISCLOSURE_TITLE_COUNTER_FROM}
-            className="text-[10px]"
+            isOverLimit={isTitleOverLimit}
           />
         </div>
-        <div className="flex flex-1 flex-col gap-1">
+        {/* 시안 BodyInput: Body1.5 (안내 문구 Grey/6, 입력값 Grey/8). 남은 높이를 채워 어디를 눌러도 입력된다 */}
+        <div className="relative flex flex-1 flex-col">
           <textarea
+            ref={contentRef}
             aria-label="내용"
             placeholder={
               '오늘 있었던 일을 친구들과 공유해 주세요.\n작성한 소식을 바탕으로 AI 공시브리핑이 발행돼요.'
             }
             maxLength={DISCLOSURE_CONTENT_MAX_LENGTH}
             value={content}
-            className="min-h-40 flex-1 resize-none text-sm outline-none"
-            {...maxLengthHandlers<HTMLTextAreaElement>((event) => setContent(event.target.value))}
+            className={cn(
+              'min-h-40 flex-1 resize-none text-body1-5 text-grey-8 outline-none placeholder:text-grey-6',
+              content.length >= DISCLOSURE_CONTENT_COUNTER_FROM && 'pb-8',
+            )}
+            {...contentHandlers}
           />
           <CharCounter
             length={content.length}
             max={DISCLOSURE_CONTENT_MAX_LENGTH}
             showFrom={DISCLOSURE_CONTENT_COUNTER_FROM}
-            className="text-[10px]"
+            isOverLimit={isContentOverLimit}
           />
         </div>
         <ImageAttachments

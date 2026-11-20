@@ -1,2 +1,13 @@
-// mock 응답에 네트워크 지연을 흉내 낸다 (로딩 화면 확인용)
-export const delay = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+import { createMockApiError } from './mockError';
+
+// 개발용 실패 스위치: 주소에 ?mock=error 를 붙여 열면 mock 응답이 모두 서버 오류(500)로 실패한다
+// 조회 실패 화면(마스코트 + 다시 시도)을 확인할 때 쓴다. MSW처럼 새로고침하면 그때 주소를 다시 읽는다
+// 배포 빌드에서는 켜지지 않는다
+const shouldFailAll =
+  import.meta.env.DEV && new URLSearchParams(window.location.search).get('mock') === 'error';
+
+// mock 응답에 네트워크 지연을 흉내 낸다 (로딩 화면 확인용). 실패 스위치가 켜져 있으면 지연 뒤 서버 오류를 던진다
+export const delay = async (ms: number) => {
+  await new Promise<void>((resolve) => setTimeout(resolve, ms));
+  if (shouldFailAll) throw createMockApiError('999', '서버 내부 오류가 발생했습니다.', 500);
+};

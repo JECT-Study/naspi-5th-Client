@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router';
 import { assetQueries } from '@/apis/domains/asset/asset.queries';
@@ -58,7 +58,7 @@ function AssetsPage() {
         {openOrders.isError && (
           <section>
             <h2 className="font-bold">대기 중인 주문</h2>
-            <LoadError className="py-6" onRetry={() => openOrders.refetch()} />
+            <LoadError size="inline" className="py-6" onRetry={() => openOrders.refetch()} />
           </section>
         )}
         {/* 대기 중인 주문만 접고 펼친다 (디자이너 코멘트). 시안 기본 화면은 접힌 상태(CaretDown) */}

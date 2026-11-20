@@ -4,7 +4,7 @@ type GnbModal = 'logout' | 'withdraw';
 
 interface GnbDrawerState {
   isOpen: boolean;
-  /** 드로어에서 연 모달. 드로어는 닫히고 모달만 남는다 */
+  /** 드로어에서 연 모달. 드로어는 스스로 닫힘 애니메이션을 한 뒤 닫힌다 (GnbDrawer) */
   modal: GnbModal | null;
   openGnbDrawer: () => void;
   closeGnbDrawer: () => void;
@@ -21,7 +21,8 @@ export const useGnbDrawerStore = create<GnbDrawerState>((set) => ({
   ...initialState,
   openGnbDrawer: () => set({ isOpen: true }),
   closeGnbDrawer: () => set({ isOpen: false }),
-  openGnbModal: (modal) => set({ isOpen: false, modal }),
+  // 모달만 연다. 드로어는 밀려 나가는 애니메이션이 끝난 뒤 closeGnbDrawer로 닫힌다
+  openGnbModal: (modal) => set({ modal }),
   closeGnbModal: () => set({ modal: null }),
   clearGnbDrawer: () => set(initialState),
 }));
