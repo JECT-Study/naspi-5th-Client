@@ -45,7 +45,7 @@ function StockIntroduction({ stock }: StockIntroductionProps) {
             aria-label="종목 소개 수정"
             onClick={() => setDraft(stock.description)}
           >
-            <PencilIcon className="size-4" />
+            <PencilIcon className="text-grey-8" />
           </button>
         )}
       </div>

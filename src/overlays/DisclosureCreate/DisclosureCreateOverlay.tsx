@@ -157,14 +157,14 @@ function DisclosureCreateOverlay({ roomId }: DisclosureCreateOverlayProps) {
           aria-label="사진 찍기"
           onClick={() => cameraInputRef.current?.click()}
         >
-          <CameraIcon className="size-5" />
+          <CameraIcon className="text-grey-8" />
         </button>
         <button
           type="button"
           aria-label="사진 고르기"
           onClick={() => galleryInputRef.current?.click()}
         >
-          <ImageIcon className="size-5" />
+          <ImageIcon className="text-grey-8" />
         </button>
         <span className="ml-auto text-xs">
           {images.length}/{DISCLOSURE_MAX_IMAGES}

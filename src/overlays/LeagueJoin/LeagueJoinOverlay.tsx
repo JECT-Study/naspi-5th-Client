@@ -10,6 +10,7 @@ import Button from '@/components/Button';
 import FieldMessage from '@/components/FieldMessage';
 import FloatingFooter from '@/components/FloatingFooter';
 import { SpinnerIcon } from '@/components/icons';
+import RetryButton from '@/components/RetryButton';
 import TaskHeader from '@/components/TaskHeader';
 import { useOpenOverlay } from '@/hooks/useOverlay';
 import { getApiErrorCode } from '@/libs/apiError';
@@ -95,13 +96,7 @@ function LeagueJoinOverlay() {
         </div>
         {isChecking && <SpinnerIcon className="mx-auto mt-10 size-12 text-gray-400" />}
         {hasCheckError && !isInvalidCode && (
-          <button
-            type="button"
-            className="mx-auto mt-6 block text-xs text-gray-500 underline"
-            onClick={() => preview.refetch()}
-          >
-            다시 시도
-          </button>
+          <RetryButton className="mx-auto mt-6" onClick={() => preview.refetch()} />
         )}
       </>
     );

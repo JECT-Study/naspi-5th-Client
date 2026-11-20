@@ -3,7 +3,8 @@ import { createStore } from 'zustand/vanilla';
 // 토스트 알림. 표시할 목록은 이 파일이 갖고, 화면에 그리는 일은 components/Toaster가 맡는다
 // apis/client.ts처럼 React 밖에서도 부를 수 있도록 훅이 아닌 함수로 연다
 
-export type ToastType = 'success' | 'error';
+/** 종류마다 앞의 아이콘이 다르다 (시안: 성공 체크박스, 오류 느낌표, 알림 확성기) */
+export type ToastType = 'success' | 'error' | 'announce';
 
 export interface ToastLink {
   label: string;
@@ -67,6 +68,8 @@ const show = (type: ToastType, message: string, options: ToastOptions = {}) => {
 export const notify = {
   error: (message: string, options?: ToastOptions) => show('error', message, options),
   success: (message: string, options?: ToastOptions) => show('success', message, options),
+  /** 성공·실패가 아닌 알림 (새 거래일 시작) */
+  announce: (message: string, options?: ToastOptions) => show('announce', message, options),
   /** 요청 처리 실패 (화면설계서 공통 5-1). action은 '저장', '전송', '탈퇴' 등 */
   requestFailed: (action: string) =>
     show('error', `${action} 중 문제가 발생했어요. 잠시 후 다시 시도해 주세요.`),

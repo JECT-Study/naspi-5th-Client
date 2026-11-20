@@ -46,7 +46,7 @@ function CommentSection({ roomId, targetType, targetId, onChanged }: CommentSect
       <ul className="flex flex-col gap-4">
         {comments.data.map((comment) => (
           <li key={comment.commentId} className="flex gap-2">
-            <ReplyIcon className="size-4 text-gray-400" />
+            <ReplyIcon className="text-grey-4" />
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2 text-xs">
                 <span className="font-bold">{comment.authorName}</span>
@@ -57,7 +57,7 @@ function CommentSection({ roomId, targetType, targetId, onChanged }: CommentSect
                   // 댓글 미트볼 → 드롭다운 '삭제하기' → 확인 모달 (공시 상세 6, 뉴스 상세 3)
                   <Dropdown
                     label="댓글 메뉴"
-                    icon={<MoreIcon className="size-3.5 text-gray-400" />}
+                    icon={<MoreIcon size={18} className="text-grey-6" />}
                     items={[{ label: '삭제하기', onSelect: () => setDeleteTarget(comment) }]}
                   />
                 )}

@@ -3,6 +3,7 @@ import { useMutation } from '@tanstack/react-query';
 import { withdraw } from '@/apis/domains/user/user.service';
 import ConfirmModal from '@/components/ConfirmModal';
 import FieldMessage from '@/components/FieldMessage';
+import { CheckBoxIcon } from '@/components/icons';
 import NoticeModal from '@/components/NoticeModal';
 import { useEndSession } from '@/hooks/useEndSession';
 
@@ -45,12 +46,17 @@ function WithdrawModal({ onClose }: WithdrawModalProps) {
       }}
       onCancel={onClose}
     >
-      <label className="flex items-start gap-2 text-xs">
+      {/* 시안 체크박스(CheckBox 18 + 간격 2 + Caption1 Grey/6). 실제 체크박스는 숨기고 아이콘으로 보여준다 */}
+      <label className="flex items-center justify-center gap-0.5 text-caption1 text-grey-6">
         <input
           type="checkbox"
-          className="mt-0.5"
+          className="peer sr-only"
           checked={isAgreed}
           onChange={(event) => setIsAgreed(event.target.checked)}
+        />
+        <CheckBoxIcon
+          checked={isAgreed}
+          className="rounded-sm peer-focus-visible:outline-2 peer-focus-visible:outline-ns-blue"
         />
         안내를 확인했고, 탈퇴를 되돌릴 수 없다는 점을 이해했어요.
       </label>

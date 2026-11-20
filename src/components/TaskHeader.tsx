@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { useCloseOverlay } from '@/hooks/useOverlay';
-import { CloseIcon } from './icons';
+import { CloseBoldIcon } from './icons';
 
 interface TaskHeaderProps {
   title: string;
@@ -16,7 +16,7 @@ function TaskHeader({ title, action }: TaskHeaderProps) {
   return (
     <header className="flex h-20 shrink-0 items-center gap-2 px-7">
       <button type="button" aria-label="닫기" onClick={closeOverlay}>
-        <CloseIcon />
+        <CloseBoldIcon className="text-grey-7" />
       </button>
       <h1 className="truncate text-lg font-bold">{title}</h1>
       {action && <div className="ml-auto flex">{action}</div>}

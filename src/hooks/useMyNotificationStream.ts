@@ -57,7 +57,7 @@ export const useMyNotificationStream = (roomId: RoomId) => {
           // 공통 5-2. 새 기준가·상한가·하한가와 "어제보다" 문구를 다시 받는다
           queryClient.invalidateQueries({ queryKey: roomKeys.room(roomId) });
           queryClient.invalidateQueries({ queryKey: stockKeys.room(roomId) });
-          notify.success('새 거래일이 시작돼 기준가가 바뀌었어요.');
+          notify.announce('새 거래일이 시작돼 기준가가 바뀌었어요.');
           break;
         // 리그 시작·종료는 무엇을 하던 중이든 바로 옮긴다 (작성 중 확인도 건너뛰고, 열린 오버레이는 닫힌다)
         case 'LEAGUE_STARTED':

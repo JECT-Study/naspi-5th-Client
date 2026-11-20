@@ -204,7 +204,7 @@ function BottomSheet({ title, children, onClose }: BottomSheetProps) {
                 {title}
               </h2>
               <button type="button" data-sheet-close aria-label="닫기" onClick={close}>
-                <CloseIcon />
+                <CloseIcon className="text-grey-8" />
               </button>
             </div>
           </div>

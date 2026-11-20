@@ -1,7 +1,8 @@
 import { Link } from 'react-router';
 import type { DisclosureDetail } from '@/apis/domains/disclosure/disclosure.types';
 import FieldMessage from '@/components/FieldMessage';
-import { ChevronRightIcon, RetryIcon } from '@/components/icons';
+import { ChevronRightIcon } from '@/components/icons';
+import RetryButton from '@/components/RetryButton';
 
 interface RelatedNewsProps {
   disclosure: DisclosureDetail;
@@ -31,21 +32,13 @@ function RelatedNews({ disclosure, newsPath, onRetry, isRetrying }: RelatedNewsP
           <span className="shrink-0 rounded border px-1 text-[10px]">
             {SENTIMENT_LABEL[relatedNews.sentiment]}
           </span>
-          <ChevronRightIcon className="size-4" />
+          <ChevronRightIcon className="text-grey-6" />
         </Link>
       )}
       {newsStatus === 'FAILED' && (
         <div className="mt-1 flex items-center justify-between gap-2">
           <FieldMessage>뉴스 생성 중 오류가 발생했어요.</FieldMessage>
-          <button
-            type="button"
-            className="flex shrink-0 items-center gap-1 text-xs underline disabled:opacity-40"
-            disabled={isRetrying}
-            onClick={onRetry}
-          >
-            <RetryIcon className="size-3.5" />
-            다시 시도
-          </button>
+          <RetryButton className="shrink-0" disabled={isRetrying} onClick={onRetry} />
         </div>
       )}
     </section>

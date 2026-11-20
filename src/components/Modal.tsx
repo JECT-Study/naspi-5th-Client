@@ -57,7 +57,7 @@ function Modal({ title, description, children, footer, onClose }: ModalProps) {
             className="absolute top-3 right-3"
             onClick={onClose}
           >
-            <CloseIcon className="size-5" />
+            <CloseIcon className="size-4.5 text-grey-8" />
           </button>
         )}
         <h2 id={titleId} className="text-center font-bold">

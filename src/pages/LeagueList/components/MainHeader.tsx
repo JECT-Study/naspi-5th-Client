@@ -16,7 +16,7 @@ function MainHeader({ onEntrySelect }: MainHeaderProps) {
       <div className="absolute right-7 flex gap-5">
         <Dropdown
           label="새 리그 만들기 또는 코드로 참여"
-          icon={<PlusCircleIcon />}
+          icon={<PlusCircleIcon className="text-grey-8" />}
           items={[
             { label: '새 리그 만들기', onSelect: () => onEntrySelect('create') },
             { label: '코드로 참여', onSelect: () => onEntrySelect('join') },
