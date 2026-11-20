@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type MouseEvent } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { assetKeys, assetQueries } from '@/apis/domains/asset/asset.queries';
 import type { MyAssets } from '@/apis/domains/asset/asset.types';
@@ -29,7 +29,6 @@ import {
 import { stockQueries } from '@/apis/domains/stock/stock.queries';
 import type { StockDetail, StockId } from '@/apis/domains/stock/stock.types';
 import Button from '@/components/ui/Button';
-import FloatingFooter from '@/components/ui/FloatingFooter';
 import { MinusIcon, PlusIcon } from '@/components/ui/icons';
 import LoadError from '@/components/status/LoadError';
 import TaskHeader from '@/components/header/TaskHeader';
@@ -37,7 +36,8 @@ import { useCloseOverlay } from '@/hooks/useOverlay';
 import { getApiErrorCode } from '@/libs/apiError';
 import { notify } from '@/libs/notify';
 import { cn } from '@/utils/cn';
-import { formatNumber } from '@/utils/format';
+import { formatNumber, formatRate } from '@/utils/format';
+import { getPriceColorClass } from '@/components/stock/priceColor';
 import NumberField from './components/NumberField';
 import NumericKeypad from './components/NumericKeypad';
 import SellableBreakdown from './components/SellableBreakdown';
@@ -71,8 +71,9 @@ interface OrderFormProps {
 }
 
 // 주문 입력 규칙 (화면설계서 주문)
-// - 숫자 키패드는 가격·수량 칸을 눌렀을 때만 올라오고, 칸 밖(빈 곳)을 누르면 내려간다
-// - 칸을 "벗어날 때" 검사한다: 다른 칸을 누를 때, 칸 밖을 눌러 키패드가 내려갈 때, 주문 버튼을 누를 때
+// - 숫자 키패드는 화면 아래에 늘 떠 있다 (시안 주문 화면 6개 모두, 디자이너 코멘트 "키패드가 아래 고정")
+//   키패드가 고치는 칸은 처음에 수량. 가격 칸을 누르면 가격, 수량 칸을 누르면 수량 (시장가는 수량만)
+// - 칸을 "벗어날 때" 검사한다: 다른 칸을 누를 때, 주문 버튼을 누를 때 (빈 곳을 눌러도 키패드·칸은 그대로)
 // - 지정가 가격: 100원 단위로 올림. 상한가·하한가를 벗어나면 오류를 1초 보여 준 뒤 현재가로 되돌린다 (5, 5-1, 5-2)
 // - 수량: 비었거나 0이면 "수량을 입력해 주세요." (3-1, 6). 현금·주식이 모자라면 오류를 1초 보여 준 뒤 최대 수량으로 바꾼다 (7, 8)
 // - 지정가 구매는 가격 칸을 벗어날 때도 현금을 검사한다 (7). 오류는 값을 다시 고치면 바로 사라진다
@@ -92,8 +93,8 @@ function OrderForm({ roomId, side, stock, assets }: OrderFormProps) {
   // 1초 보여 준 뒤 값을 고치는 오류
   const [flashError, setFlashError] = useState<{ field: OrderField; message: string } | null>(null);
   const correctionTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
-  // 숫자 키패드가 고치는 칸. null이면 키패드를 내린다 (처음에는 내려 둔다)
-  const [activeField, setActiveField] = useState<OrderField | null>(null);
+  // 숫자 키패드가 고치는 칸. 처음에는 수량 (시장가는 고칠 칸이 수량뿐, 지정가 가격은 현재가로 채워져 있다)
+  const [activeField, setActiveField] = useState<OrderField>('quantity');
 
   // 1초 뒤 되돌릴 "현재가"는 그때의 실시간 현재가
   const latestPriceRef = useRef(stock.price);
@@ -104,8 +105,8 @@ function OrderForm({ roomId, side, stock, assets }: OrderFormProps) {
 
   const holding = assets.holdings.find((item) => item.stockId === stock.stockId);
   const isLimit = orderType === 'LIMIT';
-  // 시장가는 가격 칸이 없다
-  const keypadTarget: OrderField | null = !isLimit && activeField === 'price' ? null : activeField;
+  // 시장가는 가격 칸이 없어 늘 수량
+  const keypadTarget: OrderField = isLimit ? activeField : 'quantity';
   const getError = (field: OrderField) =>
     flashError?.field === field ? flashError.message : fieldErrors[field];
 
@@ -192,9 +193,8 @@ function OrderForm({ roomId, side, stock, assets }: OrderFormProps) {
     return null;
   };
 
-  // 칸을 벗어날 때 검사 (다른 칸을 누르거나 칸 밖을 눌렀을 때)
-  const leaveField = (field: OrderField | null) => {
-    if (field === null) return;
+  // 칸을 벗어날 때 검사 (다른 칸을 누를 때)
+  const leaveField = (field: OrderField) => {
     if (field === 'price') {
       const price = checkLimitPrice();
       if (price !== null && side === 'BUY' && quantity > 0) {
@@ -211,19 +211,11 @@ function OrderForm({ roomId, side, stock, assets }: OrderFormProps) {
     setActiveField(field);
   };
 
-  // 칸 밖(빈 곳)을 누르면 키패드를 내린다. 칸·버튼·탭을 누른 건 각자 처리한다
-  const handleMainClick = (event: MouseEvent<HTMLElement>) => {
-    if (keypadTarget === null) return;
-    if ((event.target as HTMLElement).closest('[data-keypad-field], button, [role="tab"]')) return;
-    leaveField(keypadTarget);
-    setActiveField(null);
-  };
-
-  // 시장가/지정가를 바꾸면 이전 유형의 오류는 지우고 키패드를 내린다
+  // 시장가/지정가를 바꾸면 이전 유형의 오류는 지우고 키패드는 수량 칸으로 돌린다
   const changeOrderType = (type: OrderType) => {
     cancelCorrection();
     setFieldErrors({});
-    setActiveField(null);
+    setActiveField('quantity');
     setOrderType(type);
   };
 
@@ -251,9 +243,10 @@ function OrderForm({ roomId, side, stock, assets }: OrderFormProps) {
     });
   };
 
+  // 시안 주문 실행 버튼: 매수 NSBuy, 매도 NSSell, 흰 글자, ModalShadow (못 누를 때는 기본 버튼과 같은 Grey/2)
   const orderButton = (
     <Button
-      className="w-full"
+      className={cn('w-full', side === 'BUY' ? 'bg-ns-buy' : 'bg-ns-sell')}
       disabled={!isOrderFilled(isLimit, limitPrice, quantity)}
       isPending={isPending}
       onClick={handleSubmit}
@@ -265,117 +258,122 @@ function OrderForm({ roomId, side, stock, assets }: OrderFormProps) {
   return (
     <>
       <TaskHeader title={getOrderTitle(stock.name, side)} />
-      <main
-        className={cn(
-          'flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto px-9 pt-2',
-          keypadTarget && 'pb-4',
-        )}
-        onClick={handleMainClick}
-      >
-        <p className="text-xs text-gray-500">
-          현재가 <span className="font-bold text-gray-900">{formatNumber(stock.price)}원</span>
-        </p>
+      {/* 시안 '주문 정보 콘텐츠': 위 8 → 현재가 → 시장가/지정가·안내 → 입력 폼(좌우 24, 사이 8) */}
+      <main className="flex min-h-0 flex-1 flex-col overflow-y-auto pt-2 pb-4">
+        {/* 시안 '종목 시세 영역': 위아래 2·좌우 24. "현재가" Caption1 Grey/8 / 현재가 Heading2 Grey/8 + 4 + 등락률 Body3 */}
+        <section className="flex flex-col px-6 py-0.5">
+          <p className="text-caption1 text-grey-8">현재가</p>
+          <p className="flex items-center gap-1">
+            <span className="text-heading2 text-grey-8">{formatNumber(stock.price)}원</span>
+            <span className={cn('text-body3', getPriceColorClass(stock.change))}>
+              {stock.change > 0 ? '+' : stock.change < 0 ? '-' : ''}
+              {formatRate(stock.changeRate)}
+            </span>
+          </p>
+        </section>
 
-        <div role="tablist" className="flex border-b">
-          {ORDER_TYPES.map((item) => (
-            <button
-              key={item.type}
-              type="button"
-              role="tab"
-              aria-selected={orderType === item.type}
-              className={cn(
-                'flex-1 py-2',
-                orderType === item.type && 'border-b-2 border-current font-bold',
-              )}
-              onClick={() => changeOrderType(item.type)}
-            >
-              {item.label}
-            </button>
-          ))}
-        </div>
-
-        <div className="flex flex-col gap-2">
-          <p className="text-sm font-bold">
+        {/* 시안 '주문 가격 유형 선택 영역': 여백 8·24·16, 사이 8
+            두 칸 버튼(높이 48, 바깥 모서리 6, Button2): 선택 NSBlue 바탕 흰 글자 / 미선택 흰색 + Grey/4 테두리·글자
+            아래 안내 Title4 Grey/8 */}
+        <div className="flex flex-col gap-2 px-6 pt-2 pb-4">
+          <div role="tablist" className="flex h-12">
+            {ORDER_TYPES.map((item, index) => (
+              <button
+                key={item.type}
+                type="button"
+                role="tab"
+                aria-selected={orderType === item.type}
+                className={cn(
+                  'flex-1 text-button2',
+                  index === 0 ? 'rounded-l-md' : 'rounded-r-md',
+                  orderType === item.type
+                    ? 'bg-ns-blue text-white'
+                    : 'bg-white text-grey-4 shadow-[inset_0_0_0_1px_var(--color-grey-4)]',
+                )}
+                onClick={() => changeOrderType(item.type)}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+          <p className="text-title4 text-grey-8">
             {isLimit ? '원하는 가격에' : '가장 빠른 가격에'} {sideVerb}할 수 있어요.
           </p>
+        </div>
+
+        <div className="flex flex-col gap-2 px-6">
+          {/* 사용 가능한 현금: Body3, 이름 Grey/5 + 8 + 금액 Grey/8 */}
           {side === 'BUY' ? (
-            <p className="text-xs text-gray-500">
-              사용 가능한 현금{' '}
-              <span className="font-bold text-gray-900">
-                {formatNumber(assets.availableCash)}원
-              </span>
+            <p className="flex gap-2 text-body3">
+              <span className="text-grey-5">사용 가능한 현금</span>
+              <span className="text-grey-8">{formatNumber(assets.availableCash)}원</span>
             </p>
           ) : (
             <SellableBreakdown holding={holding} minimumOwnHolding={MIN_OWN_HOLDING} />
           )}
-        </div>
 
-        {isLimit ? (
+          {isLimit ? (
+            <NumberField
+              label="1주 희망 가격"
+              unit="원"
+              value={limitPrice}
+              error={getError('price')}
+              isActive={keypadTarget === 'price'}
+              onActivate={() => selectField('price')}
+              onChange={changeLimitPrice}
+              addon={
+                // 100원씩 내리고 올린다. 100원 단위가 아니면 그 방향의 가장 가까운 100원 단위로 (주문 5)
+                // 시안 수량조절: Minus 24 + 간격 8 + Plus 24 (Grey/8)
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    aria-label="100원 내리기"
+                    onClick={() =>
+                      changeLimitPrice(Math.max(PRICE_TICK, ceilToTick(limitPrice) - PRICE_TICK))
+                    }
+                  >
+                    <MinusIcon className="text-grey-8" />
+                  </button>
+                  <button
+                    type="button"
+                    aria-label="100원 올리기"
+                    onClick={() => changeLimitPrice(floorToTick(limitPrice) + PRICE_TICK)}
+                  >
+                    <PlusIcon className="text-grey-8" />
+                  </button>
+                </div>
+              }
+            />
+          ) : (
+            // 시장가는 고칠 수 없는 가격 칸 (입력칸과 같은 상자, 숫자 대신 "최대한 빠른 가격")
+            <div className="flex flex-col gap-1 rounded-md bg-grey-1 p-2">
+              <span className="px-1 text-caption1 text-grey-5">1주 희망 가격</span>
+              <p className="px-1 text-heading2 text-grey-8">최대한 빠른 가격</p>
+            </div>
+          )}
+
           <NumberField
-            label="1주 희망 가격"
-            unit="원"
-            value={limitPrice}
-            error={getError('price')}
-            isActive={keypadTarget === 'price'}
-            onActivate={() => selectField('price')}
-            onChange={changeLimitPrice}
-            addon={
-              // 100원씩 내리고 올린다. 100원 단위가 아니면 그 방향의 가장 가까운 100원 단위로 (주문 5)
-              // 시안 수량조절: Minus 24 + 간격 8 + Plus 24 (Grey/8)
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  aria-label="100원 내리기"
-                  onClick={() =>
-                    changeLimitPrice(Math.max(PRICE_TICK, ceilToTick(limitPrice) - PRICE_TICK))
-                  }
-                >
-                  <MinusIcon className="text-grey-8" />
-                </button>
-                <button
-                  type="button"
-                  aria-label="100원 올리기"
-                  onClick={() => changeLimitPrice(floorToTick(limitPrice) + PRICE_TICK)}
-                >
-                  <PlusIcon className="text-grey-8" />
-                </button>
-              </div>
+            label="수량"
+            unit="주"
+            value={quantity}
+            error={getError('quantity')}
+            isActive={keypadTarget === 'quantity'}
+            onActivate={() => selectField('quantity')}
+            onChange={changeQuantity}
+            hint={
+              isLimit
+                ? `총 ${formatNumber(limitPrice * quantity)}원`
+                : // 시장가 예상 금액은 실시간 호가로 다시 계산된다 (주문 0, 3)
+                  `예상 ${formatNumber(estimateMarketAmount(stock, side, quantity))}원`
             }
           />
-        ) : (
-          <div className="flex flex-col gap-1.5">
-            <span className="text-xs text-gray-500">1주 희망 가격</span>
-            <p className="rounded-lg bg-gray-50 px-3 py-3 text-xl font-bold text-gray-500">
-              최대한 빠른 가격
-            </p>
-          </div>
-        )}
-
-        <NumberField
-          label="수량"
-          unit="주"
-          value={quantity}
-          error={getError('quantity')}
-          isActive={keypadTarget === 'quantity'}
-          onActivate={() => selectField('quantity')}
-          onChange={changeQuantity}
-          hint={
-            isLimit
-              ? `총 ${formatNumber(limitPrice * quantity)}원`
-              : // 시장가 예상 금액은 실시간 호가로 다시 계산된다 (주문 0, 3)
-                `예상 ${formatNumber(estimateMarketAmount(stock, side, quantity))}원`
-          }
-        />
-        {/* 키패드가 내려가 있으면 버튼만 화면 아래에 띄운다 */}
-        {!keypadTarget && <FloatingFooter>{orderButton}</FloatingFooter>}
+        </div>
       </main>
-      {/* 키패드가 올라와 있으면 키패드와 버튼을 아래에 붙인다 */}
-      {keypadTarget && (
-        <footer className="flex shrink-0 flex-col gap-2 px-9 pt-2 pb-6">
-          <NumericKeypad onPress={handleKeypadPress} />
-          {orderButton}
-        </footer>
-      )}
+      {/* 키패드와 주문 버튼은 화면 아래에 늘 붙어 있다 (시안: 키패드 아래 30 띄우고 버튼, 버튼은 아래 27·좌우 18) */}
+      <footer className="flex shrink-0 flex-col bg-white">
+        <NumericKeypad onPress={handleKeypadPress} />
+        <div className="px-4.5 pt-7.5 pb-6.75">{orderButton}</div>
+      </footer>
     </>
   );
 }
@@ -401,7 +399,8 @@ function OrderOverlay({ roomId, stockId, side }: OrderOverlayProps) {
           }}
         />
       ) : (
-        <div className="mx-9 mt-4 h-60 animate-pulse rounded-lg bg-gray-100" />
+        // 임시 자리 표시 (스켈레톤 시안 작업 중, 나오면 교체)
+        <div className="mx-6 mt-4 h-60 animate-pulse rounded-md bg-grey-0" />
       )}
     </>
   );
