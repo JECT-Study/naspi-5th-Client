@@ -4,8 +4,10 @@ import type { RoomId } from '@/apis/domains/room/room.types';
 import { cn } from '@/utils/cn';
 import { formatRelativeTime } from '@/utils/date';
 import Chip from '@/components/ui/Chip';
+import AttachedImages, { ATTACHED_IMAGE_CLASS } from './AttachedImages';
 import DisclosureReactions from './DisclosureReactions';
-import { ChatIcon, ReplyIcon } from '@/components/ui/icons';
+import CommentRow from '@/components/comment/CommentRow';
+import { ChatIcon } from '@/components/ui/icons';
 import StockAvatar from '@/components/stock/StockAvatar';
 
 /**
@@ -23,59 +25,39 @@ interface FeedCardProps {
   variant: FeedCardVariant;
 }
 
-// 시안 Comment Preview: 카드 바로 아래(사이 0) 흰 줄, 여백 12·15, 화살표와 내용 사이 10
-// - 화살표: CommentArrow 18 Grey/4, 위 18·아래 10 여백 안 (본문 줄 옆에 오도록)
-// - 내용: 이름 | 시간 (Body3 Grey/6, 사이 4, 가운데 세로선 10) → 4 → 본문 Body1 Grey/8
+// 시안 Comment Preview: 카드 바로 아래(사이 0)에 댓글 한 줄, 본문은 2줄까지
 function FirstComment({ comment }: { comment: CommentPreview }) {
   return (
-    <div className="flex items-center gap-2.5 px-3.75 py-3">
-      <div className="flex shrink-0 pt-4.5 pb-2.5">
-        <ReplyIcon className="text-grey-4" />
-      </div>
-      <div className="flex min-w-0 flex-1 flex-col gap-1">
-        <div className="flex items-center gap-1 text-body3 text-grey-6">
-          <span className="truncate">{comment.authorName}</span>
-          <span aria-hidden="true" className="h-2.5 w-px shrink-0 bg-grey-6" />
-          <span className="shrink-0">{formatRelativeTime(new Date(comment.createdAt))}</span>
-        </div>
-        <p className="line-clamp-2 text-body1 text-grey-8">{comment.content}</p>
-      </div>
-    </div>
+    <CommentRow
+      authorName={comment.authorName}
+      createdAt={comment.createdAt}
+      content={comment.content}
+      isClamped
+    />
   );
 }
 
-// 카드 위로 올려 상세 링크보다 먼저 눌리게 하는 요소 (종목 링크, 호재/악재 버튼, 넘기는 이미지 줄)
+// 카드 위로 올려 상세 링크보다 먼저 눌리게 하는 요소 (종목 링크, 호재/악재 버튼)
 const ABOVE_CARD_LINK = 'relative z-10';
 
-const IMAGE_CLASS = 'h-50 rounded-md bg-grey-1 object-cover';
-
-// 공시 첨부 이미지 (설계서 v.1.8: 순서대로 모두 표시, 시안 이미지=1·2·3-4)
-// - 1장: 폭 전체 × 200 / 2장: 반씩 나란히(사이 8) × 200 / 3~4장: 150×200 고정, 사이 8, 가로로 넘김
+// 피드 카드의 첨부 이미지: 1~2장은 카드 전체 링크로 상세에 간다
 // 3~4장은 넘기려면 줄이 카드 링크 위에 있어야 해서, 이미지마다 상세 링크를 따로 건다 (눌러도 상세로)
-// 넘기는 줄은 카드 좌우 여백(12)까지 넓혀 화면 끝까지 넘어가게 한다. 넘기는 동작은 프로토타입 때 다듬는다
-function AttachedImages({ imageUrls, to }: { imageUrls: string[]; to: string }) {
-  if (imageUrls.length <= 2) {
-    return (
-      <div className="flex gap-2">
-        {imageUrls.map((url) => (
-          <img key={url} src={url} alt="" className={cn(IMAGE_CLASS, 'min-w-0 flex-1')} />
-        ))}
-      </div>
-    );
-  }
+function FeedImages({ imageUrls, to }: { imageUrls: string[]; to: string }) {
+  const isScroll = imageUrls.length > 2;
   return (
-    <div
-      className={cn(
-        ABOVE_CARD_LINK,
-        '-mx-3 flex snap-x scroll-px-3 [scrollbar-width:none] gap-2 overflow-x-auto px-3',
-      )}
-    >
-      {imageUrls.map((url) => (
-        <Link key={url} to={to} tabIndex={-1} aria-hidden="true" className="shrink-0 snap-start">
-          <img src={url} alt="" className={cn(IMAGE_CLASS, 'w-37.5')} />
-        </Link>
-      ))}
-    </div>
+    <AttachedImages
+      imageUrls={imageUrls}
+      raised={isScroll}
+      renderImage={(url, _index, layoutClass) =>
+        isScroll ? (
+          <Link key={url} to={to} tabIndex={-1} aria-hidden="true" className={layoutClass}>
+            <img src={url} alt="" className={ATTACHED_IMAGE_CLASS} />
+          </Link>
+        ) : (
+          <img key={url} src={url} alt="" className={cn(ATTACHED_IMAGE_CLASS, layoutClass)} />
+        )
+      }
+    />
   );
 }
 
@@ -154,7 +136,7 @@ function FeedCard({ roomId, item, to, variant }: FeedCardProps) {
         <p className="line-clamp-2 text-body1 text-grey-8">{item.content}</p>
 
         {item.type === 'DISCLOSURE' && item.imageUrls.length > 0 && (
-          <AttachedImages imageUrls={item.imageUrls} to={to} />
+          <FeedImages imageUrls={item.imageUrls} to={to} />
         )}
 
         {/* 아래 줄: 왼쪽 댓글 수(Comment 24 Grey/4 + Body2 Grey/4), 오른쪽 호재/악재(공시만) */}

@@ -11,6 +11,7 @@ import { feedKeys } from '@/apis/domains/feed/feed.queries';
 import CommentInput from '@/components/comment/CommentInput';
 import CommentSection from '@/components/comment/CommentSection';
 import ConfirmModal from '@/components/overlay/ConfirmModal';
+import AttachedImages from '@/components/feed/AttachedImages';
 import DisclosureReactions from '@/components/feed/DisclosureReactions';
 import Dropdown from '@/components/ui/Dropdown';
 import { ChatIcon, MoreIcon } from '@/components/ui/icons';
@@ -69,12 +70,19 @@ function DisclosureDetailPage() {
   });
 
   const renderContent = () => {
-    if (disclosure.isPending) return <div className="h-60 animate-pulse rounded-lg bg-gray-100" />;
+    if (disclosure.isPending) {
+      // 임시 자리 표시 (스켈레톤 시안 작업 중, 나오면 교체): 공시 카드 자리
+      return (
+        <div className="p-3">
+          <div className="h-60 animate-pulse rounded-md bg-grey-0" />
+        </div>
+      );
+    }
     if (disclosure.isError) {
-      // 삭제된 공시: 설계서 화면에 있는 문구를 쓴다 (기획 확인 목록)
+      // 삭제된 공시: 설계서 화면에 있는 문구를 쓴다 (기획 확인 목록). 시안이 없어 조회 실패 문구와 같은 모양
       return (getApiErrorCode(disclosure.error) as DisclosureErrorCode | undefined) ===
         'CONTENT_DELETED' ? (
-        <p className="flex flex-1 items-center justify-center text-sm text-gray-500">
+        <p className="flex flex-1 items-center justify-center text-body1 text-grey-7">
           공시가 삭제되었어요.
         </p>
       ) : (
@@ -83,52 +91,62 @@ function DisclosureDetailPage() {
     }
 
     const item = disclosure.data;
+    const stockPath = `/leagues/${roomId}/stocks/${item.stockId}`;
 
     return (
       <>
-        <article className="flex gap-3">
-          {/* 종목 프로필을 누르면 그 종목 차트로 (공시 상세 1) */}
-          <Link
-            to={`/leagues/${roomId}/stocks/${item.stockId}`}
-            aria-label={`${item.stockName} 차트 보기`}
-            className="self-start"
-          >
-            <StockAvatar name={item.stockName} />
-          </Link>
-          <div className="flex min-w-0 flex-1 flex-col gap-2">
-            <div className="flex items-center gap-2 text-xs">
-              {/* 종목명도 프로필처럼 그 종목 차트로 */}
-              <Link to={`/leagues/${roomId}/stocks/${item.stockId}`} className="font-bold">
-                {item.stockName}
-              </Link>
-              <span className="ml-auto text-gray-400">
-                {formatRelativeTime(new Date(item.createdAt))}
-              </span>
-              {item.isMine && (
-                // 공시 미트볼 → 드롭다운 '삭제하기' → 확인 모달 (공시 상세 2, 2-1, 2-1-1)
-                <Dropdown
-                  label="공시 메뉴"
-                  icon={<MoreIcon className="text-grey-6" />}
-                  items={[{ label: '삭제하기', onSelect: () => setIsDeleteModalOpen(true) }]}
+        {/* 시안 공시(상세) 카드: 흰색, 여백 12, 줄 사이 8
+            - 프로필 줄(높이 38): 종목 프로필 32 + 10 + [종목명 | 시간 (Body3 Grey/6, 사이 4, 세로선 10) / 제목 Title4 Grey/8]
+              내 공시면 오른쪽 끝에 미트볼(ThreadDots 24 Grey/6)
+            - 본문 Body1 Grey/8 (전부 보임) → 첨부 이미지(피드와 같은 장수별 배치) → 댓글 수(왼쪽)·호재/악재(오른쪽) */}
+        <article className="flex flex-col gap-2 p-3">
+          <div className="flex items-center gap-2.5">
+            {/* 종목 프로필을 누르면 그 종목 차트로 (공시 상세 1) */}
+            <Link to={stockPath} aria-label={`${item.stockName} 차트 보기`}>
+              <StockAvatar name={item.stockName} className="size-8 text-title4" />
+            </Link>
+            <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+              <div className="flex items-center gap-1 text-body3 text-grey-6">
+                {/* 종목명도 프로필처럼 그 종목 차트로 */}
+                <Link to={stockPath} className="truncate">
+                  {item.stockName}
+                </Link>
+                <span aria-hidden="true" className="h-2.5 w-px shrink-0 bg-grey-6" />
+                <span className="shrink-0">{formatRelativeTime(new Date(item.createdAt))}</span>
+              </div>
+              <h2 className="text-title4 text-grey-8">{item.title}</h2>
+            </div>
+            {item.isMine && (
+              // 공시 미트볼 → 드롭다운 '삭제하기' → 확인 모달 (공시 상세 2, 2-1, 2-1-1)
+              <Dropdown
+                label="공시 메뉴"
+                icon={<MoreIcon className="text-grey-6" />}
+                buttonClassName="flex"
+                items={[{ label: '삭제하기', onSelect: () => setIsDeleteModalOpen(true) }]}
+              />
+            )}
+          </div>
+          <p className="text-body1 whitespace-pre-line text-grey-8">{item.content}</p>
+          {item.imageUrls.length > 0 && (
+            <AttachedImages
+              imageUrls={item.imageUrls}
+              renderImage={(url, index, layoutClass) => (
+                <DisclosureImage
+                  key={url}
+                  src={url}
+                  label={`이미지 ${index + 1} 크게 보기`}
+                  className={layoutClass}
+                  onOpen={() => setViewerIndex(index)}
                 />
               )}
-            </div>
-            <h2 className="font-bold">{item.title}</h2>
-            <p className="text-sm whitespace-pre-line text-gray-700">{item.content}</p>
-            {item.imageUrls.length > 0 && (
-              <ul className="-mr-9 flex gap-2 overflow-x-auto pr-9">
-                {item.imageUrls.map((url, index) => (
-                  <li key={url} className="shrink-0">
-                    <DisclosureImage
-                      src={url}
-                      label={`이미지 ${index + 1} 크게 보기`}
-                      onOpen={() => setViewerIndex(index)}
-                    />
-                  </li>
-                ))}
-              </ul>
-            )}
-            <div className="flex items-center gap-3 text-xs text-gray-500">
+            />
+          )}
+          <div className="flex items-center justify-between gap-3">
+            <span className="flex items-center gap-1 py-0.5 pr-1 text-body2 text-grey-4">
+              <ChatIcon />
+              {item.commentCount}
+            </span>
+            <div className="flex gap-2">
               <DisclosureReactions
                 roomId={roomId}
                 disclosureId={disclosureId}
@@ -136,10 +154,6 @@ function DisclosureDetailPage() {
                 bullishCount={item.bullishCount}
                 bearishCount={item.bearishCount}
               />
-              <span className="flex items-center gap-1">
-                <ChatIcon className="text-grey-4" />
-                {item.commentCount}
-              </span>
             </div>
           </div>
         </article>
@@ -164,9 +178,8 @@ function DisclosureDetailPage() {
   return (
     <>
       <PageHeader title="공시" fallbackTo={feedPath} />
-      <main className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto px-9 py-4">
-        {renderContent()}
-      </main>
+      {/* 시안 '공시 상세 콘텐츠 영역': 위아래 8, 공시 카드 → 관련 뉴스 카드 → 댓글이 사이 없이 이어진다 */}
+      <main className="flex min-h-0 flex-1 flex-col overflow-y-auto py-2">{renderContent()}</main>
       {disclosure.isSuccess && (
         <CommentInput
           roomId={roomId}
