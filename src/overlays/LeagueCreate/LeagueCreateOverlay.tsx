@@ -21,6 +21,19 @@ import { useOpenOverlay } from '@/hooks/useOverlay';
 import { getApiErrorCode } from '@/libs/apiError';
 import { notify } from '@/libs/notify';
 
+// 시안 섹션 (리그 이름 입력 섹션, 내 종목 상장 섹션): 여백 위 20·좌우 24·아래 16, 안내와 입력 사이 16
+const SECTION_CLASS = 'flex flex-col gap-4 px-6 pt-5 pb-4';
+
+// 섹션 안내: 제목 Title3 Grey/8, 4 띄우고 설명 Body2.5 Grey/6
+function SectionIntro({ title, description }: { title: string; description: string }) {
+  return (
+    <div className="flex flex-col gap-1">
+      <h2 className="text-title3 text-grey-8">{title}</h2>
+      <p className="text-body2-5 text-grey-6">{description}</p>
+    </div>
+  );
+}
+
 // 새 리그 (오버레이): 리그 이름 → (입력을 마치면) 방장 종목 상장 → 대기실 생성
 // 서비스 정책 2.1: 방장이 상장해야 생성 완료
 function LeagueCreateOverlay() {
@@ -77,14 +90,14 @@ function LeagueCreateOverlay() {
   return (
     <>
       <TaskHeader title="새 리그" />
-      <main className="flex min-h-0 flex-1 flex-col gap-10 overflow-y-auto px-9 pt-4">
-        <section>
-          <h2 className="text-lg font-bold">리그 이름을 입력해 주세요.</h2>
-          <p className="mt-1 text-sm text-gray-500">
-            방장은 리그 시작 전 대기실에서 리그 이름을 변경할 수 있어요.
-          </p>
+      {/* 시안 '새 리그 생성 콘텐츠': 위 8. 섹션은 여백 20·24·16, 안내와 입력 사이 16 */}
+      <main className="flex min-h-0 flex-1 flex-col overflow-y-auto pt-2">
+        <section className={SECTION_CLASS}>
+          <SectionIntro
+            title="리그 이름을 입력해 주세요."
+            description="방장은 리그 시작 전 대기실에서 리그 이름을 변경할 수 있어요."
+          />
           <TextField
-            className="mt-4"
             aria-label="리그 이름"
             placeholder="리그 이름을 입력해 주세요."
             value={leagueName}
@@ -97,11 +110,11 @@ function LeagueCreateOverlay() {
         </section>
 
         {isListingVisible && (
-          <section>
-            <h2 className="text-lg font-bold">나의 종목을 상장해 주세요.</h2>
-            <p className="mt-1 mb-4 text-sm text-gray-500">
-              리그 기간 동안 친구들이 사고팔 나의 주식이에요.
-            </p>
+          <section className={SECTION_CLASS}>
+            <SectionIntro
+              title="나의 종목을 상장해 주세요."
+              description="리그 기간 동안 친구들이 사고팔 나의 주식이에요."
+            />
             <StockListingFields
               value={stock}
               errors={stockErrors}
@@ -112,29 +125,32 @@ function LeagueCreateOverlay() {
             />
           </section>
         )}
-        <FloatingFooter>
-          <div className="flex flex-col items-center gap-3">
-            {isListingVisible && (
-              <Button
-                className="w-full"
-                disabled={!canSubmit}
-                isPending={isPending}
-                pendingLabel="생성 중..."
-                onClick={handleSubmit}
-              >
-                대기실 생성하기
-              </Button>
-            )}
-            {/* 작업형 화면끼리 전환: 오버레이 내용만 바꾼다 (기록은 그대로) */}
+
+        {/* 시안: 떠 있지 않고 마지막 섹션 바로 아래 (좌우 18, 폭 324)
+            작업형 화면끼리 전환: 오버레이 내용만 바꾼다 (기록은 그대로) */}
+        <div className="px-4.5">
+          <Button
+            variant="link"
+            className="w-full"
+            onClick={() => openOverlay({ type: 'leagueJoin' })}
+          >
+            또는 코드로 참여하기
+          </Button>
+        </div>
+
+        {isListingVisible && (
+          <FloatingFooter className="px-4.5">
             <Button
-              variant="link"
               className="w-full"
-              onClick={() => openOverlay({ type: 'leagueJoin' })}
+              disabled={!canSubmit}
+              isPending={isPending}
+              pendingLabel="생성 중..."
+              onClick={handleSubmit}
             >
-              또는 코드로 참여하기
+              대기실 생성하기
             </Button>
-          </div>
-        </FloatingFooter>
+          </FloatingFooter>
+        )}
       </main>
     </>
   );
