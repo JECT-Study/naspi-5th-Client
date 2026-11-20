@@ -3,6 +3,7 @@ import type { CommentPreview, FeedItem } from '@/apis/domains/feed/feed.types';
 import type { RoomId } from '@/apis/domains/room/room.types';
 import { cn } from '@/utils/cn';
 import { formatRelativeTime } from '@/utils/date';
+import Chip from './Chip';
 import DisclosureReactions from './DisclosureReactions';
 import { ChatIcon, ReplyIcon } from './icons';
 import StockAvatar from './StockAvatar';
@@ -20,8 +21,6 @@ interface FeedCardProps {
   to: string;
   variant: FeedCardVariant;
 }
-
-const SENTIMENT_LABEL = { BULLISH: '호재', BEARISH: '악재' } as const;
 
 function FirstComment({ comment }: { comment: CommentPreview }) {
   return (
@@ -75,17 +74,11 @@ function FeedCard({ roomId, item, to, variant }: FeedCardProps) {
               <span className="font-bold">{item.stockName}</span>
             )}
             <span className="text-gray-500">&gt; {item.type === 'NEWS' ? '뉴스' : '공시'}</span>
-            {item.type === 'NEWS' && item.isAiBriefing && (
-              <span className="rounded bg-gray-100 px-1">AI 공시브리핑</span>
-            )}
+            {item.type === 'NEWS' && item.isAiBriefing && <Chip kind="AI" />}
             <span className="ml-auto shrink-0 text-gray-400">
               {formatRelativeTime(new Date(item.createdAt))}
             </span>
-            {item.type === 'NEWS' && (
-              <span className="shrink-0 rounded border px-1">
-                {SENTIMENT_LABEL[item.sentiment]}
-              </span>
-            )}
+            {item.type === 'NEWS' && <Chip kind={item.sentiment} />}
           </div>
           {/* after:inset-0: 이 링크의 누르는 영역을 카드(article) 전체로 늘린다 */}
           <Link to={to} className="flex flex-col gap-1 after:absolute after:inset-0">

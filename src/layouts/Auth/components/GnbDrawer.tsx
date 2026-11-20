@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router';
 import { getActiveRooms } from '@/apis/domains/room/room.utils';
 import { userQueries } from '@/apis/domains/user/user.queries';
+import Badge from '@/components/Badge';
 import { ChevronRightIcon, CloseIcon, LogoutIcon } from '@/components/icons';
 import LoadError from '@/components/LoadError';
 import { useMyRooms } from '@/hooks/useMyRooms';
@@ -114,9 +115,11 @@ function GnbDrawer() {
                       >
                         <span className="min-w-0 truncate">{room.name}</span>
                         {/* 진행 중이면 D-day, 대기실이면 '대기' (공통 1) */}
-                        <span className="shrink-0 rounded bg-gray-100 px-1.5 text-xs">
-                          {room.endAt ? formatDday(getDaysUntil(new Date(room.endAt))) : '대기'}
-                        </span>
+                        {room.endAt ? (
+                          <Badge>{formatDday(getDaysUntil(new Date(room.endAt)))}</Badge>
+                        ) : (
+                          <Badge tone="waiting">대기</Badge>
+                        )}
                       </Link>
                     </li>
                   ))}

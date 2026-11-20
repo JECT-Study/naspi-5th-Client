@@ -173,7 +173,8 @@
 /* Figma 글자 스타일 중 (t)가 붙은 것: 글자 상자 위아래 여백을 잘라 상자 높이를 글자 높이(대문자 높이 ~ 기준선)에 맞춘다
    (Figma Vertical trim = Cap height to baseline). 배지처럼 글자를 상자 정가운데에 두는 곳에 쓴다
    크기·줄높이·굵기는 @theme의 --text-title4-t 등에서 오고, 여기서는 여백 자르기만 더한다
-   지원하지 않는 브라우저(Firefox 등)에서는 자르지 않은 보통 글자 상자로 보인다 */
+   지원하지 않는 브라우저(Firefox 등)에서는 자르지 않은 보통 글자 상자로 보인다
+   주의: flex·grid 상자(inline-flex 등)에 붙이면 안의 글자에 적용되지 않는다. block·inline-block 상자에 붙인다 */
 @utility text-title4-t {
   text-box: trim-both cap alphabetic;
 }

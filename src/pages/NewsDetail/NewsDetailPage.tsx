@@ -2,6 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, useParams } from 'react-router';
 import { feedKeys } from '@/apis/domains/feed/feed.queries';
 import { newsKeys, newsQueries } from '@/apis/domains/news/news.queries';
+import Chip from '@/components/Chip';
 import CommentInput from '@/components/CommentInput';
 import CommentSection from '@/components/CommentSection';
 import FieldMessage from '@/components/FieldMessage';
@@ -11,8 +12,6 @@ import PageHeader from '@/components/PageHeader';
 import StockAvatar from '@/components/StockAvatar';
 import { useRoomId } from '@/hooks/useRoomId';
 import { formatRelativeTime } from '@/utils/date';
-
-const SENTIMENT_LABEL = { BULLISH: '호재', BEARISH: '악재' } as const;
 
 // 뉴스 상세 (Depth 3): AI 공시브리핑·호재/악재, 내용, 관련 공시(원문 삭제 안내), 댓글
 function NewsDetailPage() {
@@ -49,11 +48,11 @@ function NewsDetailPage() {
               <Link to={`/leagues/${roomId}/stocks/${item.stockId}`} className="font-bold">
                 {item.stockName}
               </Link>
-              {item.isAiBriefing && <span className="rounded bg-gray-100 px-1">AI 공시브리핑</span>}
+              {item.isAiBriefing && <Chip kind="AI" />}
               <span className="ml-auto text-gray-400">
                 {formatRelativeTime(new Date(item.createdAt))}
               </span>
-              <span className="rounded border px-1">{SENTIMENT_LABEL[item.sentiment]}</span>
+              <Chip kind={item.sentiment} />
             </div>
             <h2 className="font-bold">{item.title}</h2>
             <p className="text-sm whitespace-pre-line text-gray-700">{item.content}</p>
