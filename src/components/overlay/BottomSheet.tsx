@@ -209,10 +209,11 @@ function BottomSheet({ title, children, onClose }: BottomSheetProps) {
               </button>
             </div>
           </div>
-          {/* 시안: X 줄 아래 12, 내용은 시트 여백 16 + 8 들여 쓰고 맨 아래 50 비움. 제목(Title3 Grey/8)이 내용 첫 줄 */}
+          {/* 시안: X 줄 아래 12, 내용은 시트 여백 16 + 8 들여 쓰고 맨 아래 50 비움. 제목(Title3 Grey/8)이 내용 첫 줄
+              제목과 내용 사이 간격은 내용마다 달라서 내용 쪽에서 준다 */}
           <div
             ref={contentRef}
-            className="mt-3 flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto overscroll-contain px-6 pb-12.5"
+            className="mt-3 flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain px-6 pb-12.5"
           >
             <h2 id={titleId} className="text-title3 text-grey-8">
               {title}

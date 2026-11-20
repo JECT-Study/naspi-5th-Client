@@ -11,6 +11,9 @@ const shouldFailAll = mockSwitch === 'error';
 // 빈 화면 스위치: ?mock=empty 로 열면 내가 속한 리그·대기실이 하나도 없는 상태로 시작한다 (메인 빈 화면 확인용)
 export const startsWithNoRooms = mockSwitch === 'empty';
 
+// 빈 피드 스위치: ?mock=no-feed 로 열면 리그 피드·종목 정보의 공시/뉴스 목록이 빈 상태로 나온다 (리그는 그대로)
+export const startsWithNoFeed = mockSwitch === 'no-feed';
+
 // mock 응답에 네트워크 지연을 흉내 낸다 (로딩 화면 확인용). 실패 스위치가 켜져 있으면 지연 뒤 서버 오류를 던진다
 export const delay = async (ms: number) => {
   await new Promise<void>((resolve) => setTimeout(resolve, ms));

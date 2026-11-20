@@ -2,8 +2,10 @@ import type { FeedItem } from '@/apis/domains/feed/feed.types';
 
 const minutesAgo = (minutes: number) => new Date(Date.now() - minutes * 60 * 1000).toISOString();
 
-const THUMBNAIL =
-  "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='112' height='112'><rect width='100%' height='100%' fill='%23e5e7eb'/></svg>";
+// 첨부 이미지 자리 (색만 다른 사각형). 장수별 모양 확인용으로 1장·2장·4장 공시를 섞어 둔다
+const image = (color: string) =>
+  `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='600' height='600'><rect width='100%' height='100%' fill='%23${color}'/></svg>`;
+export const SAMPLE_IMAGES = [image('e5e7eb'), image('d1d5db'), image('9ca3af'), image('6b7280')];
 
 const LONG_CONTENT =
   '오늘 아침에 일찍 일어나서 운동을 다녀왔습니다. 앞으로 매일 아침 운동을 하면서 체력을 키워 나갈 예정이니 많은 관심 부탁드립니다.';
@@ -16,7 +18,7 @@ const FEED_TEMPLATES: FeedItem[] = [
     stockName: '예림제약',
     title: '아침 운동 시작',
     content: LONG_CONTENT,
-    thumbnailUrl: THUMBNAIL,
+    imageUrls: SAMPLE_IMAGES.slice(0, 1),
     bullishCount: 3,
     bearishCount: 1,
     myReaction: null,
@@ -36,7 +38,7 @@ const FEED_TEMPLATES: FeedItem[] = [
     stockName: '세영바이오',
     title: '신제품 개발 착수',
     content: LONG_CONTENT,
-    thumbnailUrl: null,
+    imageUrls: [],
     bullishCount: 3,
     bearishCount: 0,
     myReaction: null,
@@ -69,7 +71,7 @@ const FEED_TEMPLATES: FeedItem[] = [
     stockName: '세영바이오',
     title: '주말 계획 공유',
     content: LONG_CONTENT,
-    thumbnailUrl: null,
+    imageUrls: [],
     bullishCount: 0,
     bearishCount: 0,
     myReaction: null,
@@ -85,7 +87,7 @@ const FEED_TEMPLATES: FeedItem[] = [
     stockName: '진영케미칼',
     title: '오늘의 실험 기록',
     content: LONG_CONTENT,
-    thumbnailUrl: THUMBNAIL,
+    imageUrls: SAMPLE_IMAGES.slice(0, 4),
     bullishCount: 1,
     bearishCount: 2,
     myReaction: null,
@@ -105,7 +107,7 @@ const FEED_TEMPLATES: FeedItem[] = [
     stockName: '수빈전자',
     title: '야근 탈출 선언',
     content: LONG_CONTENT,
-    thumbnailUrl: null,
+    imageUrls: SAMPLE_IMAGES.slice(0, 2),
     bullishCount: 4,
     bearishCount: 1,
     myReaction: null,

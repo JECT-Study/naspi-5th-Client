@@ -1,11 +1,13 @@
 import type { RoomId } from '@/apis/domains/room/room.types';
 import type { StockId } from '@/apis/domains/stock/stock.types';
-import { delay } from '@/mocks/delay';
+import { delay, startsWithNoFeed } from '@/mocks/delay';
 import { feedMock } from '@/mocks/feed.mock';
 import type { FeedContentType, FeedItem, FeedParams, FeedResponse } from './feed.types';
 
 // mock은 커서를 목록 위치로 쓴다. 실제 커서 형식은 BE가 정한다
-const paginate = (items: FeedItem[], { cursor, size }: FeedParams): FeedResponse => {
+// 빈 피드 스위치(?mock=no-feed)가 켜져 있으면 늘 빈 목록
+const paginate = (allItems: FeedItem[], { cursor, size }: FeedParams): FeedResponse => {
+  const items = startsWithNoFeed ? [] : allItems;
   const start = cursor ? Number(cursor) : 0;
   const end = start + size;
   return {

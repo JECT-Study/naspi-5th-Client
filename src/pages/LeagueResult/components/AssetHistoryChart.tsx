@@ -104,9 +104,11 @@ function AssetHistoryChart({ history }: AssetHistoryChartProps) {
     return () => chart.remove();
   }, [history]);
 
+  // 시안 차트 영역: 화면 폭 전체 × 240 (자리만 있고 차트 모양은 아직 시안에 없음)
+  // 차트는 좌우 끝까지, 범례·출처 표기는 다른 글과 같은 좌우 24 안쪽에 둔다
   return (
     <div className="flex flex-col gap-2">
-      <ul className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
+      <ul className="flex flex-wrap gap-x-3 gap-y-1 px-6 text-caption1 text-grey-6">
         {SERIES.map(({ key, label, color }) => (
           <li key={key} className="flex items-center gap-1">
             <span className="size-2 rounded-full" style={{ backgroundColor: color }} />
@@ -114,8 +116,10 @@ function AssetHistoryChart({ history }: AssetHistoryChartProps) {
           </li>
         ))}
       </ul>
-      <div ref={containerRef} className="h-56 w-full" />
-      <TradingViewAttribution />
+      <div ref={containerRef} className="h-60 w-full" />
+      <div className="px-6">
+        <TradingViewAttribution />
+      </div>
     </div>
   );
 }
