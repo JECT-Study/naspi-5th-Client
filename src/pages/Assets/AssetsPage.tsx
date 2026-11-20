@@ -11,7 +11,7 @@ import { CaretDownIcon, CaretUpIcon, ChevronRightIcon } from '@/components/ui/ic
 import LoadError from '@/components/status/LoadError';
 import ListBox from '@/components/ui/ListBox';
 import { useRoomId } from '@/hooks/useRoomId';
-import AssetSummary from './components/AssetSummary';
+import AssetSummary from '@/components/stock/AssetSummary';
 import OpenOrderRow from './components/OpenOrderRow';
 import OrderCancelModal from './components/OrderCancelModal';
 
@@ -64,7 +64,14 @@ function AssetsPage() {
 
     return (
       <>
-        <AssetSummary assets={assets.data} />
+        <AssetSummary
+          name={assets.data.userName}
+          totalAsset={assets.data.totalAsset}
+          profit={assets.data.profit}
+          profitRate={assets.data.profitRate}
+          cash={assets.data.cash}
+          stockValue={assets.data.stockValue}
+        />
 
         {/* 대기 주문이 없으면 영역을 숨긴다 (내 자산 1). 조회에 실패하면 그 자리에서 다시 시도 */}
         {openOrders.isError && (
