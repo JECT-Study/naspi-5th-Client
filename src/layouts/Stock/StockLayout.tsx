@@ -63,13 +63,14 @@ function StockLayout() {
         center={stock && <StockHeaderSummary stock={stock} />}
         showCenter={isSummaryHidden}
       />
-      {/* 시안 '종목 차트 스크롤 콘텐츠': 위 8 */}
-      <div ref={scrollRef} className="flex min-h-0 flex-1 flex-col overflow-y-auto pt-2">
+      {/* 시안 '종목 차트 스크롤 콘텐츠' 위 여백 8은 시세 요약 위 여백에 합쳤다
+          (스크롤 영역에 여백을 주면 위에 붙는 탭이 그만큼 내려와 붙어서, 상단바와 탭 사이로 뒤 내용이 비친다) */}
+      <div ref={scrollRef} className="flex min-h-0 flex-1 flex-col overflow-y-auto">
         {stock ? (
           <StockSummary stock={stock} day={room?.day} changeRef={changeRef} />
         ) : (
           // 임시 자리 표시 (스켈레톤 시안 작업 중, 나오면 교체): 시세 요약 자리
-          <div className="mx-6 my-5 h-21 shrink-0 animate-pulse rounded-md bg-grey-0" />
+          <div className="mx-6 mt-7 mb-5 h-21 shrink-0 animate-pulse rounded-md bg-grey-0" />
         )}
         {/* 시안 StockTab: 좌우 여백 24 안에 3칸 (360 화면에서 312). 스크롤해도 위에 붙어 있다 */}
         <nav className={cn(TAB_LIST_CLASS, 'sticky top-0 z-20 px-6')}>

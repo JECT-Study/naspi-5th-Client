@@ -9,8 +9,9 @@ import { ChatIcon, ReplyIcon } from '@/components/ui/icons';
 import StockAvatar from '@/components/stock/StockAvatar';
 
 /**
- * 카드가 놓이는 화면. 피드와 종목 정보는 디자인이 조금 다를 예정이라 이 값으로 분기한다
- * TODO(디자인): 아직은 두 화면이 같다. 디자인이 나오면 variant에 따라 클래스·표시 요소를 나눈다
+ * 카드가 놓이는 화면
+ * - feed: 리그 피드. 맨 위에 '공시'·'뉴스' 라벨, 종목 프로필·종목명 → 종목 차트
+ * - stock: 종목 정보. 공시/뉴스 필터로 이미 나뉘어 있어 라벨 없음 (시안 종목정보/공시·뉴스), 종목 링크 없음(이미 그 종목)
  */
 export type FeedCardVariant = 'feed' | 'stock';
 
@@ -90,6 +91,7 @@ function AttachedImages({ imageUrls, to }: { imageUrls: string[]; to: string }) 
 // - 뉴스: "뉴스" 라벨 + AI 칩 · 오른쪽 호재/악재 칩 → 제목·시간 → 본문 → 댓글 수 (프로필 없음)
 function FeedCard({ roomId, item, to, variant }: FeedCardProps) {
   const stockPath = variant === 'feed' ? `/leagues/${roomId}/stocks/${item.stockId}` : undefined;
+  const showTypeLabel = variant === 'feed';
   const time = formatRelativeTime(new Date(item.createdAt));
   // 제목 링크의 ::after를 카드(article) 전체로 늘려, 카드 어디를 눌러도 상세로 간다
   const titleLink = (
@@ -105,7 +107,7 @@ function FeedCard({ roomId, item, to, variant }: FeedCardProps) {
           <>
             <div className="flex items-start justify-between gap-2">
               <div className="flex items-center gap-2">
-                <span className="text-button3-5 text-grey-6">뉴스</span>
+                {showTypeLabel && <span className="text-button3-5 text-grey-6">뉴스</span>}
                 {item.isAiBriefing && <Chip kind="AI" />}
               </div>
               <Chip kind={item.sentiment} />
@@ -118,7 +120,7 @@ function FeedCard({ roomId, item, to, variant }: FeedCardProps) {
           </>
         ) : (
           <>
-            <span className="text-button3-5 text-grey-6">공시</span>
+            {showTypeLabel && <span className="text-button3-5 text-grey-6">공시</span>}
             {/* 프로필 줄 (높이 38): 종목명·시간 Body3 Grey/6 (양 끝), 2 띄우고 제목 Title4 Grey/8 */}
             <div className="flex items-center gap-2.5">
               {stockPath ? (
