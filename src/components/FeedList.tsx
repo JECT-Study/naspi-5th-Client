@@ -57,7 +57,9 @@ function FeedList({ roomId, query, empty, end, variant }: FeedListProps) {
         ))}
       </ul>
       {isFetchingNextPage && <FeedSkeleton count={1} />}
-      {query.isFetchNextPageError && <LoadError className="py-6" onRetry={() => fetchNextPage()} />}
+      {query.isFetchNextPageError && (
+        <LoadError size="inline" className="py-6" onRetry={() => fetchNextPage()} />
+      )}
       {hasNextPage && !isFetchingNextPage && !query.isFetchNextPageError && (
         <LoadMoreTrigger onVisible={() => fetchNextPage()} />
       )}
