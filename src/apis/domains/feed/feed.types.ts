@@ -29,8 +29,11 @@ interface FeedItemBase {
 export interface DisclosureFeedItem extends FeedItemBase {
   type: 'DISCLOSURE';
   disclosureId: number;
-  /** 첫 번째 첨부 이미지. 없으면 null */
-  thumbnailUrl: string | null;
+  /**
+   * 첨부 이미지 전체 (첨부 순서, 없으면 빈 배열). 설계서 v.1.8: 피드에서도 모두 보여 준다
+   * TODO(백엔드 요청): 지금 백엔드 공시 목록은 첫 장(thumbnail)과 장수(imageCount)만 준다. 목록에도 전체 이미지가 필요하다
+   */
+  imageUrls: string[];
   /** 호재 반응 수 */
   bullishCount: number;
   /** 악재 반응 수 */

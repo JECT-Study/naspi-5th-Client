@@ -43,8 +43,40 @@ function FirstComment({ comment }: { comment: CommentPreview }) {
   );
 }
 
-// 카드 위로 올려 상세 링크보다 먼저 눌리게 하는 요소 (종목 링크, 호재/악재 버튼)
+// 카드 위로 올려 상세 링크보다 먼저 눌리게 하는 요소 (종목 링크, 호재/악재 버튼, 넘기는 이미지 줄)
 const ABOVE_CARD_LINK = 'relative z-10';
+
+const IMAGE_CLASS = 'h-50 rounded-md bg-grey-1 object-cover';
+
+// 공시 첨부 이미지 (설계서 v.1.8: 순서대로 모두 표시, 시안 이미지=1·2·3-4)
+// - 1장: 폭 전체 × 200 / 2장: 반씩 나란히(사이 8) × 200 / 3~4장: 150×200 고정, 사이 8, 가로로 넘김
+// 3~4장은 넘기려면 줄이 카드 링크 위에 있어야 해서, 이미지마다 상세 링크를 따로 건다 (눌러도 상세로)
+// 넘기는 줄은 카드 좌우 여백(12)까지 넓혀 화면 끝까지 넘어가게 한다. 넘기는 동작은 프로토타입 때 다듬는다
+function AttachedImages({ imageUrls, to }: { imageUrls: string[]; to: string }) {
+  if (imageUrls.length <= 2) {
+    return (
+      <div className="flex gap-2">
+        {imageUrls.map((url) => (
+          <img key={url} src={url} alt="" className={cn(IMAGE_CLASS, 'min-w-0 flex-1')} />
+        ))}
+      </div>
+    );
+  }
+  return (
+    <div
+      className={cn(
+        ABOVE_CARD_LINK,
+        '-mx-3 flex snap-x scroll-px-3 [scrollbar-width:none] gap-2 overflow-x-auto px-3',
+      )}
+    >
+      {imageUrls.map((url) => (
+        <Link key={url} to={to} tabIndex={-1} aria-hidden="true" className="shrink-0 snap-start">
+          <img src={url} alt="" className={cn(IMAGE_CLASS, 'w-37.5')} />
+        </Link>
+      ))}
+    </div>
+  );
+}
 
 // 피드의 공시·뉴스 카드 + 가장 먼저 달린 댓글 1건 (화면설계서 피드 1, 2)
 // 누르는 곳에 따라 (기획 공유: 프로필 클릭 → 종목 차트)
@@ -119,13 +151,8 @@ function FeedCard({ roomId, item, to, variant }: FeedCardProps) {
 
         <p className="line-clamp-2 text-body1 text-grey-8">{item.content}</p>
 
-        {/* 첨부 이미지는 다음 작업에서 장수별 시안 적용. 지금은 대표 이미지 1장을 1장일 때 모양(폭 전체, 높이 200)으로 */}
-        {item.type === 'DISCLOSURE' && item.thumbnailUrl && (
-          <img
-            src={item.thumbnailUrl}
-            alt=""
-            className="h-50 w-full rounded-md bg-grey-1 object-cover"
-          />
+        {item.type === 'DISCLOSURE' && item.imageUrls.length > 0 && (
+          <AttachedImages imageUrls={item.imageUrls} to={to} />
         )}
 
         {/* 아래 줄: 왼쪽 댓글 수(Comment 24 Grey/4 + Body2 Grey/4), 오른쪽 호재/악재(공시만) */}

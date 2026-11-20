@@ -7,7 +7,7 @@ import type {
 } from '@/apis/domains/disclosure/disclosure.types';
 import type { DisclosureFeedItem, FeedItem, NewsFeedItem } from '@/apis/domains/feed/feed.types';
 import type { NewsDetail } from '@/apis/domains/news/news.types';
-import { feedMock } from './feed.mock';
+import { feedMock, SAMPLE_IMAGES } from './feed.mock';
 import { marketMock } from './market.mock';
 import { createMockApiError } from './mockError';
 import { meMock } from './user.mock';
@@ -17,10 +17,6 @@ import { meMock } from './user.mock';
 
 const NEWS_GENERATE_DELAY_MS = 4_000;
 const WITHDRAWN_USER_NAME = '탈퇴한 사용자';
-
-const image = (color: string) =>
-  `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='600' height='600'><rect width='100%' height='100%' fill='%23${color}'/></svg>`;
-const SAMPLE_IMAGES = [image('e5e7eb'), image('d1d5db'), image('9ca3af')];
 
 // 내 반응(myReaction)은 피드 항목에 있다 (피드 카드에서도 반응을 바꾼다)
 interface MockDisclosureExtra {
@@ -64,7 +60,7 @@ feedMock.forEach((item, index) => {
     const relatedNews = next && isNews(next) && next.stockId === item.stockId ? next : null;
     if (relatedNews) newsSources.set(relatedNews.newsId, item.disclosureId);
     disclosureExtras.set(item.disclosureId, {
-      imageUrls: item.thumbnailUrl ? SAMPLE_IMAGES : [],
+      imageUrls: item.imageUrls,
       // 내 공시는 "뉴스 생성 실패 → 다시 시도" 확인용
       newsStatus: relatedNews ? 'PUBLISHED' : item.stockId === myStockId ? 'FAILED' : 'NONE',
       relatedNewsId: relatedNews?.newsId ?? null,
@@ -196,7 +192,7 @@ export const mockContentServer = {
       stockName: stock.name,
       title,
       content,
-      thumbnailUrl: imageCount > 0 ? SAMPLE_IMAGES[0] : null,
+      imageUrls: SAMPLE_IMAGES.slice(0, imageCount),
       bullishCount: 0,
       bearishCount: 0,
       myReaction: null,
