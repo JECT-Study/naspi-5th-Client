@@ -1,5 +1,6 @@
 import TabIndicator from '@/components/ui/TabIndicator';
 import { getTabClassName, TAB_LIST_CLASS } from '@/components/ui/tabStyles';
+import { cn } from '@/utils/cn';
 
 export type LeagueTab = 'ongoing' | 'ended';
 
@@ -13,10 +14,10 @@ interface LeagueTabsProps {
   onChange: (tab: LeagueTab) => void;
 }
 
-// 메인 리그 탭 (시안 LeagueTab: 화면 폭 2칸)
+// 메인 리그 탭 (시안 LeagueTab: 화면 폭 2칸). 시안 Market Screen 위 여백 8만큼 상단바와 띄운다
 function LeagueTabs({ tab, onChange }: LeagueTabsProps) {
   return (
-    <div role="tablist" className={TAB_LIST_CLASS}>
+    <div role="tablist" className={cn(TAB_LIST_CLASS, 'mt-2')}>
       {TABS.map(({ value, label }) => (
         <button
           key={value}

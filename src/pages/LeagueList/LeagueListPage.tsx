@@ -25,10 +25,11 @@ function LeagueListPage() {
 
   const renderContent = () => {
     if (isPending) {
+      // 카드 자리만 흐리게 (시안 없음, 카드 크기·여백만 맞춤)
       return (
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2 px-3 pt-4">
           {[0, 1, 2].map((key) => (
-            <div key={key} className="h-20 animate-pulse rounded-lg bg-gray-100" />
+            <div key={key} className="h-22 animate-pulse rounded-md bg-grey-0" />
           ))}
         </div>
       );
@@ -42,9 +43,8 @@ function LeagueListPage() {
     <>
       <MainHeader onEntrySelect={handleEntrySelect} />
       <LeagueTabs tab={tab} onChange={handleTabChange} />
-      <main className="flex min-h-0 flex-1 flex-col overflow-y-auto px-9 py-6">
-        {renderContent()}
-      </main>
+      {/* 시안 Market Screen: 아래 여백 8. 좌우 여백은 묶음마다 다르게 안쪽에서 준다 */}
+      <main className="flex min-h-0 flex-1 flex-col overflow-y-auto pb-2">{renderContent()}</main>
     </>
   );
 }
