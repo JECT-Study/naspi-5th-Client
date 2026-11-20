@@ -127,7 +127,12 @@ function WaitingPage() {
       <>
         <LeagueHeader leagueName="" />
         {isPending ? (
-          <div className="mx-9 mt-4 h-40 animate-pulse rounded-lg bg-gray-100" />
+          // 시안 없음: 초대 코드 상자(66, 모서리 12)와 참여자 상자(모서리 10) 자리를 Grey/0으로 깜빡인다
+          // 실제 화면과 같은 자리: 초대 코드 상자는 위에서 64, 참여자 상자는 그 아래 96
+          <div className="flex flex-col px-6 pt-16">
+            <div className="h-16.5 animate-pulse rounded-xl bg-grey-0" />
+            <div className="mt-24 h-48 animate-pulse rounded-[10px] bg-grey-0" />
+          </div>
         ) : (
           <LoadError onRetry={() => refetch()} />
         )}
