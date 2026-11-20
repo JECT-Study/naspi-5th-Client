@@ -1,7 +1,7 @@
 import type { WaitingMember } from '@/apis/domains/room/room.types';
-import Dropdown, { type DropdownItem } from '@/components/Dropdown';
-import { MoreIcon } from '@/components/icons';
-import StockAvatar from '@/components/StockAvatar';
+import Dropdown, { type DropdownItem } from '@/components/ui/Dropdown';
+import { MoreIcon } from '@/components/ui/icons';
+import StockAvatar from '@/components/stock/StockAvatar';
 
 interface MemberRowProps {
   member: WaitingMember;

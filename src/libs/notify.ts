@@ -1,7 +1,7 @@
 import type { ReactElement } from 'react';
 import { toast } from 'sonner';
 
-// 토스트 알림 (sonner). 무엇을 띄울지는 이 파일이, 어떻게 그릴지는 components/Toaster가 정한다
+// 토스트 알림 (sonner). 무엇을 띄울지는 이 파일이, 어떻게 그릴지는 layouts/App/components/Toaster가 정한다
 // apis/client.ts·libs/queryClient처럼 React 밖에서도 부를 수 있도록 훅이 아닌 함수로 연다
 // libs는 화면 컴포넌트를 불러올 수 없어서(의존 규칙), 그리는 함수를 Toaster에게서 넘겨받는다 (setToastRenderer)
 
@@ -29,7 +29,7 @@ export type ToastRenderer = (content: ToastContent, close: () => void) => ReactE
 
 let renderToast: ToastRenderer | null = null;
 
-/** 토스트 모양을 등록한다. components/Toaster가 불러올 때 한 번 등록한다 */
+/** 토스트 모양을 등록한다. layouts/App/components/Toaster가 불러올 때 한 번 등록한다 */
 export const setToastRenderer = (renderer: ToastRenderer) => {
   renderToast = renderer;
 };

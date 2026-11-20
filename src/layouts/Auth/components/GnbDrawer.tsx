@@ -3,10 +3,10 @@ import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router';
 import { getActiveRooms } from '@/apis/domains/room/room.utils';
 import { userQueries } from '@/apis/domains/user/user.queries';
-import Badge from '@/components/Badge';
-import { HEADER_CLASS, HEADER_ICON_BUTTON_CLASS } from '@/components/headerStyles';
-import { ChevronRightIcon, CloseIcon, LogoutIcon } from '@/components/icons';
-import LoadError from '@/components/LoadError';
+import Badge from '@/components/ui/Badge';
+import { HEADER_CLASS, HEADER_ICON_BUTTON_CLASS } from '@/components/header/headerStyles';
+import { ChevronRightIcon, CloseIcon, LogoutIcon } from '@/components/ui/icons';
+import LoadError from '@/components/status/LoadError';
 import { useMyRooms } from '@/hooks/useMyRooms';
 import { useOpenLeagueEntry } from '@/hooks/useOpenLeagueEntry';
 import { useGnbDrawerStore } from '@/stores/gnbDrawerStore';
@@ -79,13 +79,13 @@ function GnbDrawer() {
         aria-modal="true"
         aria-label="메뉴"
         className={cn(
-          'absolute inset-y-0 right-0 flex w-[278px] animate-drawer-in flex-col overflow-y-auto bg-white pb-8 transition-transform duration-250 motion-reduce:animate-none motion-reduce:transition-none',
+          'absolute inset-y-0 right-0 flex w-69.5 animate-drawer-in flex-col overflow-y-auto bg-white pb-8 transition-transform duration-250 motion-reduce:animate-none motion-reduce:transition-none',
           isClosing && 'translate-x-full',
         )}
       >
         {/* 시안 드로어 상단바: 높이 50, 여백 3·7. 로고 영역 95(글자는 안쪽 12) + 닫기(44 영역, 얇은 X 24) */}
-        <header className={cn(HEADER_CLASS, 'justify-between px-[7px]')}>
-          <div className="flex h-11 w-[95px] items-center pl-3">
+        <header className={cn(HEADER_CLASS, 'justify-between px-1.75')}>
+          <div className="flex h-11 w-23.75 items-center pl-3">
             <span className="font-bold text-grey-8">로고</span>
           </div>
           <button

@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import Modal from './Modal';
-import ServiceLogo from './ServiceLogo';
+import ServiceLogo from '@/components/ui/ServiceLogo';
 
 interface NoticeModalProps {
   title: string;

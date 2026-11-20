@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { startKakaoLogin } from '@/apis/domains/auth/auth.service';
 import { saveLoginReturnPath } from '@/libs/loginReturnPath';
-import FieldMessage from './FieldMessage';
-import { KakaoIcon } from './icons';
-import Modal from './Modal';
-import ServiceLogo from './ServiceLogo';
+import FieldMessage from '@/components/ui/FieldMessage';
+import { KakaoIcon } from '@/components/ui/icons';
+import Modal from '@/components/overlay/Modal';
+import ServiceLogo from '@/components/ui/ServiceLogo';
 
 interface LoginModalProps {
   /** login: 랜딩의 로그인 (공통 2), expired: 세션 만료 후 재로그인 안내 (공통 2-2) */
@@ -63,7 +63,7 @@ function LoginModal({ variant, returnPath, hasError = false, onClose }: LoginMod
           - 가로로 늘릴 때 심볼은 레이블과 함께 가운데 */}
       <button
         type="button"
-        className="mt-4 flex h-11.25 w-full items-center justify-center gap-2 rounded-md bg-[#FEE500] px-3.5 font-[system-ui,-apple-system,sans-serif] text-[15px] leading-[1.5] font-semibold text-black/85 disabled:opacity-60"
+        className="mt-4 flex h-11.25 w-full items-center justify-center gap-2 rounded-md bg-[#FEE500] px-3.5 font-[system-ui,-apple-system,sans-serif] text-[15px] leading-normal font-semibold text-black/85 disabled:opacity-60"
         disabled={isMoving}
         aria-busy={isMoving || undefined}
         onClick={handleLogin}

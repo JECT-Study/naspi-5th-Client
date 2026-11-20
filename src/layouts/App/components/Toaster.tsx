@@ -2,7 +2,7 @@ import type { CSSProperties } from 'react';
 import { Link } from 'react-router';
 import { Toaster as SonnerToaster } from 'sonner';
 import { setToastRenderer, type ToastContent, type ToastType } from '@/libs/notify';
-import { AlertCircleIcon, CheckBoxFilledIcon, SpeakerIcon } from './icons';
+import { AlertCircleIcon, CheckBoxFilledIcon, SpeakerIcon } from '@/components/ui/icons';
 
 /** 화면설계서 공통: 2초 표시 후 자동으로 닫힘 */
 const TOAST_DURATION_MS = 2000;

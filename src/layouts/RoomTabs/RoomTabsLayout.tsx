@@ -1,9 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { NavLink, Outlet } from 'react-router';
 import { roomQueries } from '@/apis/domains/room/room.queries';
-import LeagueHeader from '@/components/LeagueHeader';
-import TabIndicator from '@/components/TabIndicator';
-import { getTabClassName, TAB_LIST_CLASS } from '@/components/tabStyles';
+import LeagueHeader from '@/components/header/LeagueHeader';
+import TabIndicator from '@/components/ui/TabIndicator';
+import { getTabClassName, TAB_LIST_CLASS } from '@/components/ui/tabStyles';
 import { useRoomId } from '@/hooks/useRoomId';
 
 const TABS = [

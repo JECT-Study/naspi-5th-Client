@@ -12,11 +12,11 @@ import {
   validateStockForm,
   type StockFormErrors,
 } from '@/apis/domains/stock/stock.validation';
-import Button from '@/components/Button';
-import FloatingFooter from '@/components/FloatingFooter';
-import StockListingFields from '@/components/StockListingFields';
-import TaskHeader from '@/components/TaskHeader';
-import TextField from '@/components/TextField';
+import Button from '@/components/ui/Button';
+import FloatingFooter from '@/components/ui/FloatingFooter';
+import StockListingFields from '@/components/stock/StockListingFields';
+import TaskHeader from '@/components/header/TaskHeader';
+import TextField from '@/components/ui/TextField';
 import { useOpenOverlay } from '@/hooks/useOverlay';
 import { getApiErrorCode } from '@/libs/apiError';
 import { notify } from '@/libs/notify';

@@ -17,11 +17,11 @@ import {
 import { feedKeys } from '@/apis/domains/feed/feed.queries';
 import type { RoomId } from '@/apis/domains/room/room.types';
 import { stockQueries } from '@/apis/domains/stock/stock.queries';
-import CharCounter from '@/components/CharCounter';
-import ConfirmModal from '@/components/ConfirmModal';
-import { CameraIcon, ImageIcon } from '@/components/icons';
-import StockAvatar from '@/components/StockAvatar';
-import TaskHeader from '@/components/TaskHeader';
+import CharCounter from '@/components/ui/CharCounter';
+import ConfirmModal from '@/components/overlay/ConfirmModal';
+import { CameraIcon, ImageIcon } from '@/components/ui/icons';
+import StockAvatar from '@/components/stock/StockAvatar';
+import TaskHeader from '@/components/header/TaskHeader';
 import { useAutoHeight } from '@/hooks/useAutoHeight';
 import { useMaxLengthInput } from '@/hooks/useMaxLengthInput';
 import { isForcedNavigation } from '@/hooks/useOverlay';

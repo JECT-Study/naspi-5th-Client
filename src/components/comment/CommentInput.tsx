@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useState, type SubmitEvent } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { commentKeys } from '@/apis/domains/comment/comment.queries';
 import { createComment } from '@/apis/domains/comment/comment.service';
@@ -7,8 +7,8 @@ import type { RoomId } from '@/apis/domains/room/room.types';
 import { useAutoHeight } from '@/hooks/useAutoHeight';
 import { useMaxLengthInput } from '@/hooks/useMaxLengthInput';
 import { cn } from '@/utils/cn';
-import CharCounter from './CharCounter';
-import { SendIcon } from './icons';
+import CharCounter from '@/components/ui/CharCounter';
+import { SendIcon } from '@/components/ui/icons';
 
 interface CommentInputProps {
   roomId: RoomId;
@@ -47,7 +47,7 @@ function CommentInput({ roomId, targetType, targetId, onChanged }: CommentInputP
   });
   useAutoHeight(ref, content);
 
-  const handleSubmit = (event: FormEvent) => {
+  const handleSubmit = (event: SubmitEvent) => {
     event.preventDefault();
     if (content.trim() && !isPending) mutate(content.trim());
   };
@@ -74,7 +74,7 @@ function CommentInput({ roomId, targetType, targetId, onChanged }: CommentInputP
           className={cn(
             'block w-full resize-none bg-transparent px-4 pt-3.5 text-title4-5 text-grey-8 outline-none placeholder:text-grey-4',
             // 5줄(100) + 위 14 + 아래 (글자 수 있으면 32, 없으면 14)
-            showsCounter ? 'max-h-[146px] pb-8' : 'max-h-32 pb-3.5',
+            showsCounter ? 'max-h-36.5 pb-8' : 'max-h-32 pb-3.5',
           )}
           {...handlers}
         />

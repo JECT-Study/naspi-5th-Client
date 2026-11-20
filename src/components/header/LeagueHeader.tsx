@@ -2,10 +2,10 @@ import { Link } from 'react-router';
 import leagueImage2x from '@/assets/images/league@2x.png';
 import leagueImage3x from '@/assets/images/league@3x.png';
 import { cn } from '@/utils/cn';
-import Dropdown, { type DropdownItem } from './Dropdown';
+import Dropdown, { type DropdownItem } from '@/components/ui/Dropdown';
 import GnbMenuButton from './GnbMenuButton';
 import { HEADER_CLASS, HEADER_ICON_BUTTON_CLASS, HEADER_TITLE_CLASS } from './headerStyles';
-import { MoreIcon } from './icons';
+import { MoreIcon } from '@/components/ui/icons';
 
 interface LeagueHeaderProps {
   leagueName: string;

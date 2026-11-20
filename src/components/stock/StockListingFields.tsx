@@ -7,8 +7,8 @@ import {
 } from '@/apis/domains/stock/stock.validation';
 import { cn } from '@/utils/cn';
 import StockAvatar from './StockAvatar';
-import TextArea from './TextArea';
-import TextField from './TextField';
+import TextArea from '@/components/ui/TextArea';
+import TextField from '@/components/ui/TextField';
 
 interface StockListingFieldsProps {
   value: ListStockRequest;

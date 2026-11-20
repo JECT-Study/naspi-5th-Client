@@ -6,7 +6,7 @@ import type { DisclosureId, Reaction } from '@/apis/domains/disclosure/disclosur
 import { feedKeys } from '@/apis/domains/feed/feed.queries';
 import type { RoomId } from '@/apis/domains/room/room.types';
 import { cn } from '@/utils/cn';
-import { ThumbDownIcon, ThumbUpIcon } from './icons';
+import { ThumbDownIcon, ThumbUpIcon } from '@/components/ui/icons';
 
 interface DisclosureReactionsProps {
   roomId: RoomId;

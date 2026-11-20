@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { withdraw } from '@/apis/domains/user/user.service';
-import ConfirmModal from '@/components/ConfirmModal';
-import FieldMessage from '@/components/FieldMessage';
-import { CheckBoxIcon } from '@/components/icons';
-import NoticeModal from '@/components/NoticeModal';
+import ConfirmModal from '@/components/overlay/ConfirmModal';
+import FieldMessage from '@/components/ui/FieldMessage';
+import { CheckBoxIcon } from '@/components/ui/icons';
+import NoticeModal from '@/components/overlay/NoticeModal';
 import { useEndSession } from '@/hooks/useEndSession';
 
 interface WithdrawModalProps {

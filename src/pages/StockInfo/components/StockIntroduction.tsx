@@ -7,9 +7,9 @@ import {
   STOCK_DESCRIPTION_COUNTER_FROM,
   STOCK_DESCRIPTION_MAX_LENGTH,
 } from '@/apis/domains/stock/stock.validation';
-import Button from '@/components/Button';
-import { PencilIcon } from '@/components/icons';
-import TextArea from '@/components/TextArea';
+import Button from '@/components/ui/Button';
+import { PencilIcon } from '@/components/ui/icons';
+import TextArea from '@/components/ui/TextArea';
 import { useRoomId } from '@/hooks/useRoomId';
 
 interface StockIntroductionProps {

@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { Navigate, Outlet, useLocation } from 'react-router';
 import { userQueries } from '@/apis/domains/user/user.queries';
-import ErrorPage from '@/components/ErrorPage';
+import ErrorPage from '@/components/status/ErrorPage';
 import { isSessionEndedError } from '@/libs/apiError';
 import type { LandingState } from '@/libs/loginReturnPath';
 import { useGnbDrawerStore } from '@/stores/gnbDrawerStore';

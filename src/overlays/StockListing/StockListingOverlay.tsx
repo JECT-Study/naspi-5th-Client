@@ -9,9 +9,9 @@ import {
   validateStockForm,
   type StockFormErrors,
 } from '@/apis/domains/stock/stock.validation';
-import LoadError from '@/components/LoadError';
-import StockListingFields from '@/components/StockListingFields';
-import TaskHeader from '@/components/TaskHeader';
+import LoadError from '@/components/status/LoadError';
+import StockListingFields from '@/components/stock/StockListingFields';
+import TaskHeader from '@/components/header/TaskHeader';
 import { useCloseOverlay } from '@/hooks/useOverlay';
 import { getApiErrorCode } from '@/libs/apiError';
 

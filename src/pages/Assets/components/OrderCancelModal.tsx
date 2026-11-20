@@ -4,7 +4,7 @@ import { orderKeys } from '@/apis/domains/order/order.queries';
 import { cancelOrder } from '@/apis/domains/order/order.service';
 import type { OpenOrder, OrderErrorCode } from '@/apis/domains/order/order.types';
 import type { RoomId } from '@/apis/domains/room/room.types';
-import ConfirmModal from '@/components/ConfirmModal';
+import ConfirmModal from '@/components/overlay/ConfirmModal';
 import { getApiErrorCode } from '@/libs/apiError';
 import { notify } from '@/libs/notify';
 

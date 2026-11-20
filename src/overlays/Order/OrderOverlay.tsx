@@ -28,11 +28,11 @@ import {
 } from '@/apis/domains/order/order.validation';
 import { stockQueries } from '@/apis/domains/stock/stock.queries';
 import type { StockDetail, StockId } from '@/apis/domains/stock/stock.types';
-import Button from '@/components/Button';
-import FloatingFooter from '@/components/FloatingFooter';
-import { MinusIcon, PlusIcon } from '@/components/icons';
-import LoadError from '@/components/LoadError';
-import TaskHeader from '@/components/TaskHeader';
+import Button from '@/components/ui/Button';
+import FloatingFooter from '@/components/ui/FloatingFooter';
+import { MinusIcon, PlusIcon } from '@/components/ui/icons';
+import LoadError from '@/components/status/LoadError';
+import TaskHeader from '@/components/header/TaskHeader';
 import { useCloseOverlay } from '@/hooks/useOverlay';
 import { getApiErrorCode } from '@/libs/apiError';
 import { notify } from '@/libs/notify';

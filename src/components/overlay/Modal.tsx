@@ -2,7 +2,7 @@ import { useEffect, useId, useRef, type KeyboardEvent, type ReactNode } from 're
 import { createPortal } from 'react-dom';
 import { cn } from '@/utils/cn';
 import { getOverlayRoot } from './appFrame';
-import { CloseIcon } from './icons';
+import { CloseIcon } from '@/components/ui/icons';
 
 interface ModalProps {
   /** 제목. 줄바꿈은 \n으로 넣는다 */

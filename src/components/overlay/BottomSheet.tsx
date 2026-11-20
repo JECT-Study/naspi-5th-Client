@@ -11,7 +11,7 @@ import { createPortal } from 'react-dom';
 import { useContainTouchScroll } from '@/hooks/useContainTouchScroll';
 import { cn } from '@/utils/cn';
 import { getOverlayRoot } from './appFrame';
-import { CloseIcon } from './icons';
+import { CloseIcon } from '@/components/ui/icons';
 
 interface BottomSheetProps {
   title: string;

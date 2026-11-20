@@ -1,5 +1,5 @@
 import { useSearchParams } from 'react-router';
-import LoadError from '@/components/LoadError';
+import LoadError from '@/components/status/LoadError';
 import { useMyRooms } from '@/hooks/useMyRooms';
 import { useOpenLeagueEntry } from '@/hooks/useOpenLeagueEntry';
 import EndedLeagueList from './components/EndedLeagueList';

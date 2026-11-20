@@ -1,5 +1,5 @@
 import { useId, type ReactNode } from 'react';
-import FieldMessage from '@/components/FieldMessage';
+import FieldMessage from '@/components/ui/FieldMessage';
 import { cn } from '@/utils/cn';
 import { formatNumber } from '@/utils/format';
 

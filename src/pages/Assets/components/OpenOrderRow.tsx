@@ -1,7 +1,7 @@
 import type { OpenOrder } from '@/apis/domains/order/order.types';
 import { formatKstDateTime } from '@/utils/date';
 import { formatNumber } from '@/utils/format';
-import StockAvatar from '@/components/StockAvatar';
+import StockAvatar from '@/components/stock/StockAvatar';
 
 interface OpenOrderRowProps {
   order: OpenOrder;

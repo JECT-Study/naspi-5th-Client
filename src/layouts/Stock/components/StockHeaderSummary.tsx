@@ -1,5 +1,5 @@
 import type { StockDetail } from '@/apis/domains/stock/stock.types';
-import { getPriceColorClass } from '@/components/priceColor';
+import { getPriceColorClass } from '@/components/stock/priceColor';
 import { cn } from '@/utils/cn';
 import { formatNumber, formatRate } from '@/utils/format';
 
