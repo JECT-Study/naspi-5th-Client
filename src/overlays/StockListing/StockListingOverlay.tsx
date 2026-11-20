@@ -67,18 +67,13 @@ function StockListingForm({ roomId, listedStock }: StockListingFormProps) {
     <>
       <TaskHeader
         title="종목 상장"
-        action={
-          <button
-            type="button"
-            className="font-bold disabled:text-gray-300"
-            disabled={!isStockFormFilled(stock) || isPending}
-            aria-busy={isPending || undefined}
-            onClick={handleSubmit}
-          >
-            {/* 처음 상장이든 수정이든 버튼은 '상장' (종목 상장 2) */}
-            상장
-          </button>
-        }
+        // 처음 상장이든 수정이든 버튼은 '상장' (종목 상장 2)
+        action={{
+          label: '상장',
+          disabled: !isStockFormFilled(stock),
+          isPending,
+          onClick: handleSubmit,
+        }}
       />
       <main className="flex min-h-0 flex-1 flex-col overflow-y-auto px-9 py-4">
         <h2 className="text-lg font-bold">나의 종목을 상장해 주세요.</h2>

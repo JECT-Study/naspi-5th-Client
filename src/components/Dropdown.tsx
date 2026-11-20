@@ -12,11 +12,13 @@ interface DropdownProps {
   icon: ReactNode;
   items: DropdownItem[];
   className?: string;
+  /** 아이콘 버튼 자체의 클래스 (상단바에서는 44×44 누르는 영역) */
+  buttonClassName?: string;
 }
 
 // 아이콘 버튼 + 아래로 펼쳐지는 메뉴 (메인 + 버튼, 대기실 점 3개 메뉴)
 // 화면설계서 공통: 옵션을 고르거나 바깥 영역을 누르면 닫힌다
-function Dropdown({ label, icon, items, className }: DropdownProps) {
+function Dropdown({ label, icon, items, className, buttonClassName }: DropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
@@ -48,6 +50,7 @@ function Dropdown({ label, icon, items, className }: DropdownProps) {
         aria-label={label}
         aria-haspopup="menu"
         aria-expanded={isOpen}
+        className={buttonClassName}
         onClick={() => setIsOpen((prev) => !prev)}
       >
         {icon}

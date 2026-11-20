@@ -11,10 +11,8 @@ import {
 } from '@/apis/domains/room/room.utils';
 import Button from '@/components/Button';
 import ConfirmModal from '@/components/ConfirmModal';
-import Dropdown from '@/components/Dropdown';
 import FieldMessage from '@/components/FieldMessage';
 import FloatingFooter from '@/components/FloatingFooter';
-import { MoreIcon } from '@/components/icons';
 import LeagueHeader from '@/components/LeagueHeader';
 import LoadError from '@/components/LoadError';
 import { useOpenOverlay } from '@/hooks/useOverlay';
@@ -187,15 +185,7 @@ function WaitingPage() {
       <LeagueHeader
         leagueName={room.name}
         // 상단 메뉴는 대기실 멤버 모두에게 보인다 (방장·참여자·대기자, 대기실 1)
-        menu={
-          me && (
-            <Dropdown
-              label="대기실 메뉴"
-              icon={<MoreIcon className="text-grey-6" />}
-              items={headerMenu}
-            />
-          )
-        }
+        menu={me ? { label: '대기실 메뉴', items: headerMenu } : undefined}
       />
       <main className="flex min-h-0 flex-1 flex-col gap-8 overflow-y-auto px-9 pt-4">
         {daysUntilExpiry <= EXPIRY_BANNER_DAYS && (

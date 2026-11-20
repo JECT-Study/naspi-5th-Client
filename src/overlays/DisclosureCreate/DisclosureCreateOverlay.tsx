@@ -95,17 +95,12 @@ function DisclosureCreateOverlay({ roomId }: DisclosureCreateOverlayProps) {
     <>
       <TaskHeader
         title="새 공시"
-        action={
-          <button
-            type="button"
-            className="font-bold disabled:text-gray-300"
-            disabled={!isDisclosureFilled(title, content) || isPending}
-            aria-busy={isPending || undefined}
-            onClick={() => mutate()}
-          >
-            게시
-          </button>
-        }
+        action={{
+          label: '게시',
+          disabled: !isDisclosureFilled(title, content),
+          isPending,
+          onClick: () => mutate(),
+        }}
       />
       <main className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-9 py-2">
         <div className="flex items-center gap-2">
