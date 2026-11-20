@@ -69,7 +69,7 @@ function Modal({
   return createPortal(
     <div className="absolute inset-0 z-50 flex items-center justify-center px-4">
       {/* 뒤 배경(딤)은 시안에 없어 임시 값 (프로토타입 연결 뒤 확인) */}
-      <div className="absolute inset-0 bg-black/40" aria-hidden="true" onClick={close} />
+      <div className="absolute inset-0 bg-dim/40" aria-hidden="true" onClick={close} />
       <div
         ref={panelRef}
         role="dialog"

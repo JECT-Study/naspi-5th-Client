@@ -82,7 +82,7 @@ function GnbDrawer() {
         type="button"
         aria-label="메뉴 닫기"
         className={cn(
-          'absolute inset-0 animate-fade-in bg-black/40 transition-opacity duration-250 motion-reduce:animate-none motion-reduce:transition-none',
+          'absolute inset-0 animate-fade-in bg-dim/40 transition-opacity duration-250 motion-reduce:animate-none motion-reduce:transition-none',
           isClosing && 'opacity-0',
         )}
         onClick={close}

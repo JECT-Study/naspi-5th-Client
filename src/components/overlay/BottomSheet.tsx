@@ -158,7 +158,7 @@ function BottomSheet({ title, children, onClose }: BottomSheetProps) {
       <div
         aria-hidden="true"
         className={cn(
-          'absolute inset-0 bg-black/40 transition-opacity duration-250',
+          'absolute inset-0 bg-dim/40 transition-opacity duration-250',
           isClosing && 'opacity-0',
         )}
         onClick={close}

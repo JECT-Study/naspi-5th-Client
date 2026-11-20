@@ -20,7 +20,8 @@ interface HoldingRowProps {
 }
 
 // 시안 보유주식: 높이 54, 좌우 4, 사이 8, 모서리 4
-// - 종목 프로필 36 / 종목 이름 Title4 Grey/8, 3 띄우고 "{수량}주/ 내 종목" Body3 Grey/6 (문구는 설계서, 시안 "1,000주・내 종목")
+// - 종목 프로필 36 / 종목 이름 Title4 Grey/8, 3 띄우고 "{수량}주・내 종목" Body3 Grey/6
+//   (구분 기호는 시안 "・". 설계서 "{수량}주/ 내 종목"은 띄어쓰기가 어색해 시안을 따름)
 // - 오른쪽(오른쪽 정렬, 사이 4): 평가 금액 Title2.5 Grey/8 / 평가 손익 (수익률) Body2.5 등락 색
 // 내 자산, 종목 - 내 주식, 참여자 최종 자산에서 쓴다
 const ROW_CLASS = 'flex h-13.5 items-center gap-2 rounded px-1';
@@ -32,7 +33,7 @@ function HoldingRow({ holding, to, ownStockLabel = '내 종목' }: HoldingRowPro
       <div className="flex min-w-0 flex-1 flex-col gap-0.75">
         <p className="truncate text-title4 text-grey-8">{holding.stockName}</p>
         <p className="truncate text-body3 text-grey-6">
-          {formatNumber(holding.quantity)}주{holding.isMine && `/ ${ownStockLabel}`}
+          {formatNumber(holding.quantity)}주{holding.isMine && `・${ownStockLabel}`}
         </p>
       </div>
       <div className="flex shrink-0 flex-col items-end gap-1">
