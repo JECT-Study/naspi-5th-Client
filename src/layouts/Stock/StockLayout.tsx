@@ -48,25 +48,28 @@ function StockLayout() {
   const { data: stock } = useQuery(stockQueries.detail(roomId, stockId));
   const { data: room } = useQuery(roomQueries.detail(roomId));
   const scrollRef = useRef<HTMLDivElement>(null);
-  const summaryRef = useRef<HTMLDivElement>(null);
-  const isSummaryHidden = useIsScrolledOut(scrollRef, summaryRef, Boolean(stock));
+  // 등락 줄까지 다 가려지면 축소 상단바로 (사용자 결정, 스크롤 약 112)
+  // 화면에서 사라진 현재가·등락률이 그대로 상단바로 옮겨 가도록. 디자이너 코멘트는 종목명 줄이 가려질 때(기준 48)
+  // 내용이 짧아 112까지 스크롤되지 않는 화면이 생기면, 탭 아래 영역에 최소 높이를 줘서 보완한다
+  const changeRef = useRef<HTMLParagraphElement>(null);
+  const isSummaryHidden = useIsScrolledOut(scrollRef, changeRef, Boolean(stock));
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      {/* 현재가 박스가 가려지면 헤더 가운데에 종목명 + 가격·등락률 (토스증권처럼) */}
+      {/* 등락 줄까지 다 가려지면 헤더 가운데에 종목명 + 가격·등락률 (시안 Header/종목/최소화) */}
       <PageHeader
         title={stock?.name ?? ''}
         fallbackTo={`/leagues/${roomId}/market`}
         center={stock && <StockHeaderSummary stock={stock} />}
         showCenter={isSummaryHidden}
       />
-      <div ref={scrollRef} className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+      {/* 시안 '종목 차트 스크롤 콘텐츠': 위 8 */}
+      <div ref={scrollRef} className="flex min-h-0 flex-1 flex-col overflow-y-auto pt-2">
         {stock ? (
-          <div ref={summaryRef}>
-            <StockSummary stock={stock} day={room?.day} />
-          </div>
+          <StockSummary stock={stock} day={room?.day} changeRef={changeRef} />
         ) : (
-          <div className="mx-9 mb-4 h-24 shrink-0 animate-pulse rounded-lg bg-gray-100" />
+          // 임시 자리 표시 (스켈레톤 시안 작업 중, 나오면 교체): 시세 요약 자리
+          <div className="mx-6 my-5 h-21 shrink-0 animate-pulse rounded-md bg-grey-0" />
         )}
         {/* 시안 StockTab: 좌우 여백 24 안에 3칸 (360 화면에서 312). 스크롤해도 위에 붙어 있다 */}
         <nav className={cn(TAB_LIST_CLASS, 'sticky top-0 z-20 px-6')}>
