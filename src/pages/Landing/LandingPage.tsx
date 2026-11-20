@@ -2,9 +2,9 @@ import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Navigate, useLocation, useNavigate } from 'react-router';
 import { userQueries } from '@/apis/domains/user/user.queries';
-import Button from '@/components/Button';
-import ErrorPage from '@/components/ErrorPage';
-import LoginModal from '@/components/LoginModal';
+import Button from '@/components/ui/Button';
+import ErrorPage from '@/components/status/ErrorPage';
+import LoginModal from './components/LoginModal';
 import { isSessionEndedError } from '@/libs/apiError';
 import {
   clearLoginReturnPath,

@@ -11,7 +11,7 @@ function ErrorIllustration() {
       alt=""
       width={150}
       height={161}
-      className="h-[161px] w-[150px] shrink-0"
+      className="h-40.25 w-37.5 shrink-0"
     />
   );
 }

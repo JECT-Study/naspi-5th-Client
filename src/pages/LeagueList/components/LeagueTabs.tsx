@@ -1,5 +1,5 @@
-import TabIndicator from '@/components/TabIndicator';
-import { getTabClassName, TAB_LIST_CLASS } from '@/components/tabStyles';
+import TabIndicator from '@/components/ui/TabIndicator';
+import { getTabClassName, TAB_LIST_CLASS } from '@/components/ui/tabStyles';
 
 export type LeagueTab = 'ongoing' | 'ended';
 

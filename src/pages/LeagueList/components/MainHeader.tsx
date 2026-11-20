@@ -1,7 +1,7 @@
-import Dropdown from '@/components/Dropdown';
-import GnbMenuButton from '@/components/GnbMenuButton';
-import { HEADER_CLASS, HEADER_ICON_BUTTON_CLASS } from '@/components/headerStyles';
-import { PlusCircleIcon } from '@/components/icons';
+import Dropdown from '@/components/ui/Dropdown';
+import GnbMenuButton from '@/components/header/GnbMenuButton';
+import { HEADER_CLASS, HEADER_ICON_BUTTON_CLASS } from '@/components/header/headerStyles';
+import { PlusCircleIcon } from '@/components/ui/icons';
 import { cn } from '@/utils/cn';
 
 export type LeagueEntryAction = 'create' | 'join';
@@ -16,7 +16,7 @@ interface MainHeaderProps {
 function MainHeader({ onEntrySelect }: MainHeaderProps) {
   return (
     <header className={cn(HEADER_CLASS, 'justify-between px-2')}>
-      <div className="flex h-11 w-[95px] items-center pl-3">
+      <div className="flex h-11 w-23.75 items-center pl-3">
         <span className="font-bold text-grey-8">로고</span>
       </div>
       <div className="flex">

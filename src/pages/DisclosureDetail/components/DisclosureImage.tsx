@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import RetryButton from '@/components/RetryButton';
+import RetryButton from '@/components/ui/RetryButton';
 
 interface DisclosureImageProps {
   src: string;

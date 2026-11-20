@@ -1,6 +1,6 @@
 import { cn } from '@/utils/cn';
-import ErrorIllustration from './ErrorIllustration';
-import RetryButton from './RetryButton';
+import ErrorIllustration from '@/components/ui/ErrorIllustration';
+import RetryButton from '@/components/ui/RetryButton';
 
 interface LoadErrorProps {
   onRetry: () => void;

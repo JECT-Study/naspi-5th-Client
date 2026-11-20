@@ -1,7 +1,7 @@
 import { Link } from 'react-router';
 import type { Stock } from '@/apis/domains/stock/stock.types';
-import ChangeRate from '@/components/ChangeRate';
-import StockAvatar from '@/components/StockAvatar';
+import ChangeRate from '@/components/stock/ChangeRate';
+import StockAvatar from '@/components/stock/StockAvatar';
 import { formatNumber } from '@/utils/format';
 
 interface StockRowProps {

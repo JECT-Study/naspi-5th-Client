@@ -1,8 +1,8 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { feedQueries } from '@/apis/domains/feed/feed.queries';
-import Button from '@/components/Button';
-import FeedList from '@/components/FeedList';
-import FloatingFooter from '@/components/FloatingFooter';
+import Button from '@/components/ui/Button';
+import FeedList from '@/components/feed/FeedList';
+import FloatingFooter from '@/components/ui/FloatingFooter';
 import { useOpenOverlay } from '@/hooks/useOverlay';
 import { useRoomId } from '@/hooks/useRoomId';
 

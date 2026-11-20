@@ -1,6 +1,6 @@
 import type { StockDetail } from '@/apis/domains/stock/stock.types';
-import ChangeRate from '@/components/ChangeRate';
-import { getPriceColorClass } from '@/components/priceColor';
+import ChangeRate from '@/components/stock/ChangeRate';
+import { getPriceColorClass } from '@/components/stock/priceColor';
 import { formatNumber, formatSignedNumber } from '@/utils/format';
 
 interface StockSummaryProps {

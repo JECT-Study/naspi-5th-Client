@@ -9,12 +9,12 @@ import {
   getLeagueEndAt,
   groupWaitingMembers,
 } from '@/apis/domains/room/room.utils';
-import Button from '@/components/Button';
-import ConfirmModal from '@/components/ConfirmModal';
-import FieldMessage from '@/components/FieldMessage';
-import FloatingFooter from '@/components/FloatingFooter';
-import LeagueHeader from '@/components/LeagueHeader';
-import LoadError from '@/components/LoadError';
+import Button from '@/components/ui/Button';
+import ConfirmModal from '@/components/overlay/ConfirmModal';
+import FieldMessage from '@/components/ui/FieldMessage';
+import FloatingFooter from '@/components/ui/FloatingFooter';
+import LeagueHeader from '@/components/header/LeagueHeader';
+import LoadError from '@/components/status/LoadError';
 import { useOpenOverlay } from '@/hooks/useOverlay';
 import { useRoomId } from '@/hooks/useRoomId';
 import { getApiErrorCode } from '@/libs/apiError';

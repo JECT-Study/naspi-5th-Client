@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { clearNetworkError, isNetworkError } from '@/libs/networkError';
 import { queryClient } from '@/libs/queryClient';
-import Button from './Button';
+import Button from '@/components/ui/Button';
 
 // [네트워크 오류] 페이지 (화면설계서 공통 8). 아래 화면은 그대로 두고 위에 덮는다
 // 아래 화면이 살아 있어야 그 화면의 조회(active 쿼리)를 다시 할 수 있다

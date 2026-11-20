@@ -3,8 +3,8 @@ import type { InfiniteData, UseInfiniteQueryResult } from '@tanstack/react-query
 import type { FeedItem, FeedResponse } from '@/apis/domains/feed/feed.types';
 import type { RoomId } from '@/apis/domains/room/room.types';
 import FeedCard, { type FeedCardVariant } from './FeedCard';
-import LoadError from './LoadError';
-import LoadMoreTrigger from './LoadMoreTrigger';
+import LoadError from '@/components/status/LoadError';
+import LoadMoreTrigger from '@/components/ui/LoadMoreTrigger';
 
 interface FeedListProps {
   roomId: RoomId;

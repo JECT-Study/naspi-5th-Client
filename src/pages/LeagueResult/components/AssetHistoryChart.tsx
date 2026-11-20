@@ -7,7 +7,7 @@ import {
   type UTCTimestamp,
 } from 'lightweight-charts';
 import type { AssetHistoryPoint } from '@/apis/domains/league/league.types';
-import TradingViewAttribution from '@/components/TradingViewAttribution';
+import TradingViewAttribution from '@/components/chart/TradingViewAttribution';
 
 interface AssetHistoryChartProps {
   history: AssetHistoryPoint[];

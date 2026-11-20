@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState, type PointerEvent } from 'react';
 import { createPortal } from 'react-dom';
-import { getOverlayRoot } from '@/components/appFrame';
-import { CloseBoldIcon } from '@/components/icons';
-import RetryButton from '@/components/RetryButton';
+import { getOverlayRoot } from '@/components/overlay/appFrame';
+import { CloseBoldIcon } from '@/components/ui/icons';
+import RetryButton from '@/components/ui/RetryButton';
 import { cn } from '@/utils/cn';
 
 interface ImageViewerProps {

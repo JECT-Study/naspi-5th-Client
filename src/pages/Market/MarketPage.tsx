@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { stockQueries } from '@/apis/domains/stock/stock.queries';
 import { splitAndSortStocks } from '@/apis/domains/stock/stock.utils';
-import LoadError from '@/components/LoadError';
+import LoadError from '@/components/status/LoadError';
 import { useRoomId } from '@/hooks/useRoomId';
 import StockRow from './components/StockRow';
 

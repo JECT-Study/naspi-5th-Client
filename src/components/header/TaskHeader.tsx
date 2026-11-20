@@ -1,7 +1,7 @@
 import { useCloseOverlay } from '@/hooks/useOverlay';
 import { cn } from '@/utils/cn';
 import { HEADER_CLASS, HEADER_TITLE_CLASS } from './headerStyles';
-import { CloseBoldIcon } from './icons';
+import { CloseBoldIcon } from '@/components/ui/icons';
 
 interface TaskHeaderAction {
   label: string;

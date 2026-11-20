@@ -1,11 +1,11 @@
-import { useId, useState, type FormEvent } from 'react';
+import { useId, useState, type SubmitEvent } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { roomKeys } from '@/apis/domains/room/room.queries';
 import { updateRoomName } from '@/apis/domains/room/room.service';
 import type { RoomId } from '@/apis/domains/room/room.types';
 import { ROOM_NAME_MAX_LENGTH } from '@/apis/domains/room/room.validation';
-import ConfirmModal from '@/components/ConfirmModal';
-import TextField from '@/components/TextField';
+import ConfirmModal from '@/components/overlay/ConfirmModal';
+import TextField from '@/components/ui/TextField';
 
 interface RoomNameEditModalProps {
   roomId: RoomId;
@@ -29,7 +29,7 @@ function RoomNameEditModal({ roomId, currentName, onClose }: RoomNameEditModalPr
     meta: { action: '저장' },
   });
 
-  const handleSubmit = (event: FormEvent) => {
+  const handleSubmit = (event: SubmitEvent) => {
     event.preventDefault();
     mutate(name.trim());
   };

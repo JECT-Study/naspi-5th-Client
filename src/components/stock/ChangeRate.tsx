@@ -1,6 +1,6 @@
 import { cn } from '@/utils/cn';
 import { formatRate } from '@/utils/format';
-import { TriangleDownIcon, TriangleUpIcon } from './icons';
+import { TriangleDownIcon, TriangleUpIcon } from '@/components/ui/icons';
 import { getPriceColorClass } from './priceColor';
 
 interface ChangeRateProps {

@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { APP_FRAME_ID } from '@/components/appFrame';
+import { APP_FRAME_ID } from '@/components/overlay/appFrame';
 
 // 앱 틀: 화면 높이에 고정(dvh), 최대 너비 599(디자인 시스템)로 가운데 정렬
 // 페이지 전체는 스크롤되지 않으므로, 넘치는 영역은 각 페이지에서 `min-h-0 flex-1 overflow-y-auto`로 스크롤시킨다

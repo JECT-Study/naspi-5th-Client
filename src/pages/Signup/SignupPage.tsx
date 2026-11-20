@@ -4,7 +4,7 @@ import { signup } from '@/apis/domains/auth/auth.service';
 import type { SignupErrorCode } from '@/apis/domains/auth/auth.types';
 import { userKeys, userQueries } from '@/apis/domains/user/user.queries';
 import { INVALID_NAME_MESSAGE } from '@/apis/domains/user/user.validation';
-import NameFormModal from '@/components/NameFormModal';
+import NameFormModal from './components/NameFormModal';
 import { getApiErrorCode } from '@/libs/apiError';
 import { clearLoginReturnPath, readLoginReturnPath } from '@/libs/loginReturnPath';
 

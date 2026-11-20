@@ -1,7 +1,7 @@
-import { useId, useState, type FormEvent } from 'react';
+import { useId, useState, type SubmitEvent } from 'react';
 import { NAME_MAX_LENGTH, validateNameForm } from '@/apis/domains/user/user.validation';
-import ConfirmModal from './ConfirmModal';
-import TextField from './TextField';
+import ConfirmModal from '@/components/overlay/ConfirmModal';
+import TextField from '@/components/ui/TextField';
 
 interface NameFormModalProps {
   title: string;
@@ -23,7 +23,7 @@ function NameFormModal({ title, isPending, serverError, onChange, onSubmit }: Na
   const [name, setName] = useState('');
   const [error, setError] = useState<string>();
 
-  const handleSubmit = (event: FormEvent) => {
+  const handleSubmit = (event: SubmitEvent) => {
     event.preventDefault();
     const { isValid, errors } = validateNameForm({ name });
     if (!isValid) {

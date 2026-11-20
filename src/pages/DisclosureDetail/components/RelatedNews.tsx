@@ -1,9 +1,9 @@
 import { Link } from 'react-router';
 import type { DisclosureDetail } from '@/apis/domains/disclosure/disclosure.types';
-import Chip from '@/components/Chip';
-import FieldMessage from '@/components/FieldMessage';
-import { ChevronRightIcon } from '@/components/icons';
-import RetryButton from '@/components/RetryButton';
+import Chip from '@/components/ui/Chip';
+import FieldMessage from '@/components/ui/FieldMessage';
+import { ChevronRightIcon } from '@/components/ui/icons';
+import RetryButton from '@/components/ui/RetryButton';
 
 interface RelatedNewsProps {
   disclosure: DisclosureDetail;

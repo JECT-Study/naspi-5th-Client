@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from 'react';
-import { TrashIcon } from '@/components/icons';
+import { TrashIcon } from '@/components/ui/icons';
 
 interface ImageAttachmentsProps {
   images: File[];

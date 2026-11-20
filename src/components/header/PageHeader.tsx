@@ -3,7 +3,7 @@ import { useGoBack } from '@/hooks/useGoBack';
 import { cn } from '@/utils/cn';
 import GnbMenuButton from './GnbMenuButton';
 import { HEADER_CLASS, HEADER_ICON_BUTTON_CLASS, HEADER_TITLE_CLASS } from './headerStyles';
-import { ChevronLeftIcon } from './icons';
+import { ChevronLeftIcon } from '@/components/ui/icons';
 
 interface PageHeaderProps {
   title: string;

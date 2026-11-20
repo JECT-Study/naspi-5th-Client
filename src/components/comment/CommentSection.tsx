@@ -5,10 +5,10 @@ import { deleteComment } from '@/apis/domains/comment/comment.service';
 import type { Comment, CommentTargetType } from '@/apis/domains/comment/comment.types';
 import type { RoomId } from '@/apis/domains/room/room.types';
 import { formatRelativeTime } from '@/utils/date';
-import ConfirmModal from './ConfirmModal';
-import Dropdown from './Dropdown';
-import { MoreIcon, ReplyIcon } from './icons';
-import LoadError from './LoadError';
+import ConfirmModal from '@/components/overlay/ConfirmModal';
+import Dropdown from '@/components/ui/Dropdown';
+import { MoreIcon, ReplyIcon } from '@/components/ui/icons';
+import LoadError from '@/components/status/LoadError';
 
 interface CommentSectionProps {
   roomId: RoomId;

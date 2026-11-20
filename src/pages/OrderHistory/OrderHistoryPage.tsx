@@ -1,4 +1,4 @@
-import PageHeader from '@/components/PageHeader';
+import PageHeader from '@/components/header/PageHeader';
 import { useRoomId } from '@/hooks/useRoomId';
 
 // 주문 내역 (Depth 3, 화면설계서 공통 4-3 적용 페이지)

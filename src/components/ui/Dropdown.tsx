@@ -63,8 +63,9 @@ function Dropdown({ label, icon, items, className, buttonClassName }: DropdownPr
       {isOpen && (
         <div
           role="menu"
-          // 바깥 테두리는 시안처럼 안쪽 선(ring-inset)으로 그려 높이에 더하지 않는다 (항목 2개 = 80)
-          className="absolute top-full right-0 z-30 mt-2 flex w-40 flex-col divide-y divide-grey-1 overflow-hidden rounded-md bg-white shadow-modal ring-1 ring-grey-2 ring-inset"
+          // 바깥 테두리는 시안처럼 안쪽 선으로 그려 높이에 더하지 않는다 (항목 2개 = 80)
+          // ring은 그림자(box-shadow)와 같은 속성이라 shadow-modal과 겹쳐 보여서, 안쪽으로 들인 outline으로 그린다
+          className="absolute top-full right-0 z-30 mt-2 flex w-40 flex-col divide-y divide-grey-1 overflow-hidden rounded-md bg-white shadow-modal outline -outline-offset-1 outline-grey-2"
         >
           {items.map((item) => (
             <button

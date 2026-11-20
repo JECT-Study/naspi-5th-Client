@@ -1,5 +1,5 @@
-import ButtonLink from './ButtonLink';
-import ErrorIllustration from './ErrorIllustration';
+import ButtonLink from '@/components/ui/ButtonLink';
+import ErrorIllustration from '@/components/ui/ErrorIllustration';
 
 interface ErrorPageProps {
   /**

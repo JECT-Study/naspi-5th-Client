@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useState, type SubmitEvent } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { userKeys } from '@/apis/domains/user/user.queries';
 import { updateMyName } from '@/apis/domains/user/user.service';
@@ -7,8 +7,8 @@ import {
   NAME_MAX_LENGTH,
   validateNameForm,
 } from '@/apis/domains/user/user.validation';
-import { PencilIcon } from '@/components/icons';
-import TextField from '@/components/TextField';
+import { PencilIcon } from '@/components/ui/icons';
+import TextField from '@/components/ui/TextField';
 import { getApiErrorCode } from '@/libs/apiError';
 
 interface MyNameFieldProps {
@@ -46,7 +46,7 @@ function MyNameField({ name }: MyNameFieldProps) {
     setError(undefined);
   };
 
-  const handleSubmit = (event: FormEvent) => {
+  const handleSubmit = (event: SubmitEvent) => {
     event.preventDefault();
     if (draft === null) return;
     const { isValid, errors } = validateNameForm({ name: draft });

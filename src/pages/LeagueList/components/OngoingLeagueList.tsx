@@ -1,5 +1,5 @@
 import type { OngoingRoom, WaitingRoom } from '@/apis/domains/room/room.types';
-import Button from '@/components/Button';
+import Button from '@/components/ui/Button';
 import { useOpenLeagueEntry } from '@/hooks/useOpenLeagueEntry';
 import { formatDday, formatKstDate, getDaysUntil } from '@/utils/date';
 import LeagueCard from './LeagueCard';

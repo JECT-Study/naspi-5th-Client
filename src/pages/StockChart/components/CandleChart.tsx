@@ -14,7 +14,7 @@ import {
 import type { Bar } from '@/apis/domains/market/market.types';
 import { cn } from '@/utils/cn';
 import { formatNumber } from '@/utils/format';
-import TradingViewAttribution from '@/components/TradingViewAttribution';
+import TradingViewAttribution from '@/components/chart/TradingViewAttribution';
 import ExtremeLabel, { type ExtremeLabelData } from './ExtremeLabel';
 
 interface CandleChartProps {

@@ -1,9 +1,9 @@
 import type { Ranking } from '@/apis/domains/league/league.types';
 import { splitAndSortStocks } from '@/apis/domains/stock/stock.utils';
-import BottomSheet from '@/components/BottomSheet';
-import ChangeRate from '@/components/ChangeRate';
-import HoldingRow from '@/components/HoldingRow';
-import { getPriceColorClass } from '@/components/priceColor';
+import BottomSheet from '@/components/overlay/BottomSheet';
+import ChangeRate from '@/components/stock/ChangeRate';
+import HoldingRow from '@/components/stock/HoldingRow';
+import { getPriceColorClass } from '@/components/stock/priceColor';
 import { formatNumber, formatSignedNumber } from '@/utils/format';
 
 interface ParticipantAssetsSheetProps {

@@ -1,6 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
 import { logout } from '@/apis/domains/auth/auth.service';
-import ConfirmModal from '@/components/ConfirmModal';
+import ConfirmModal from '@/components/overlay/ConfirmModal';
 import { useEndSession } from '@/hooks/useEndSession';
 
 interface LogoutModalProps {

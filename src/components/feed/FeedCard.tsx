@@ -3,10 +3,10 @@ import type { CommentPreview, FeedItem } from '@/apis/domains/feed/feed.types';
 import type { RoomId } from '@/apis/domains/room/room.types';
 import { cn } from '@/utils/cn';
 import { formatRelativeTime } from '@/utils/date';
-import Chip from './Chip';
+import Chip from '@/components/ui/Chip';
 import DisclosureReactions from './DisclosureReactions';
-import { ChatIcon, ReplyIcon } from './icons';
-import StockAvatar from './StockAvatar';
+import { ChatIcon, ReplyIcon } from '@/components/ui/icons';
+import StockAvatar from '@/components/stock/StockAvatar';
 
 /**
  * 카드가 놓이는 화면. 피드와 종목 정보는 디자인이 조금 다를 예정이라 이 값으로 분기한다
