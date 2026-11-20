@@ -1,21 +1,25 @@
 import type { EndedRoom } from '@/apis/domains/room/room.types';
 import { formatKstDate } from '@/utils/date';
 import LeagueCard, { OutlineBadge } from './LeagueCard';
+import LeagueEmptyState from './LeagueEmptyState';
 
 interface EndedLeagueListProps {
   ended: EndedRoom[];
 }
 
 function EndedLeagueList({ ended }: EndedLeagueListProps) {
+  // 리그 없음 (설계서 3-2): 줄바꿈과 문구는 설계서대로
   if (ended.length === 0) {
     return (
-      <div className="flex flex-1 items-center justify-center">
-        <p className="text-center text-sm text-gray-500">
-          리그가 끝나도
-          <br />
-          결과를 다시 확인할 수 있어요.
-        </p>
-      </div>
+      <LeagueEmptyState
+        message={
+          <>
+            리그가 끝나도
+            <br />
+            결과를 다시 확인할 수 있어요.
+          </>
+        }
+      />
     );
   }
 
