@@ -14,25 +14,13 @@ import {
 } from '@/apis/domains/stock/stock.validation';
 import Button from '@/components/ui/Button';
 import FloatingFooter from '@/components/ui/FloatingFooter';
+import FormSection from '@/components/ui/FormSection';
 import StockListingFields from '@/components/stock/StockListingFields';
 import TaskHeader from '@/components/header/TaskHeader';
 import TextField from '@/components/ui/TextField';
 import { useOpenOverlay } from '@/hooks/useOverlay';
 import { getApiErrorCode } from '@/libs/apiError';
 import { notify } from '@/libs/notify';
-
-// 시안 섹션 (리그 이름 입력 섹션, 내 종목 상장 섹션): 여백 위 20·좌우 24·아래 16, 안내와 입력 사이 16
-const SECTION_CLASS = 'flex flex-col gap-4 px-6 pt-5 pb-4';
-
-// 섹션 안내: 제목 Title3 Grey/8, 4 띄우고 설명 Body2.5 Grey/6
-function SectionIntro({ title, description }: { title: string; description: string }) {
-  return (
-    <div className="flex flex-col gap-1">
-      <h2 className="text-title3 text-grey-8">{title}</h2>
-      <p className="text-body2-5 text-grey-6">{description}</p>
-    </div>
-  );
-}
 
 // 새 리그 (오버레이): 리그 이름 → (입력을 마치면) 방장 종목 상장 → 대기실 생성
 // 서비스 정책 2.1: 방장이 상장해야 생성 완료
@@ -92,11 +80,10 @@ function LeagueCreateOverlay() {
       <TaskHeader title="새 리그" />
       {/* 시안 '새 리그 생성 콘텐츠': 위 8. 섹션은 여백 20·24·16, 안내와 입력 사이 16 */}
       <main className="flex min-h-0 flex-1 flex-col overflow-y-auto pt-2">
-        <section className={SECTION_CLASS}>
-          <SectionIntro
-            title="리그 이름을 입력해 주세요."
-            description="방장은 리그 시작 전 대기실에서 리그 이름을 변경할 수 있어요."
-          />
+        <FormSection
+          title="리그 이름을 입력해 주세요."
+          description="방장은 리그 시작 전 대기실에서 리그 이름을 변경할 수 있어요."
+        >
           <TextField
             aria-label="리그 이름"
             placeholder="리그 이름을 입력해 주세요."
@@ -107,14 +94,13 @@ function LeagueCreateOverlay() {
             onBlur={showListing}
             onKeyDown={handleNameKeyDown}
           />
-        </section>
+        </FormSection>
 
         {isListingVisible && (
-          <section className={SECTION_CLASS}>
-            <SectionIntro
-              title="나의 종목을 상장해 주세요."
-              description="리그 기간 동안 친구들이 사고팔 나의 주식이에요."
-            />
+          <FormSection
+            title="나의 종목을 상장해 주세요."
+            description="리그 기간 동안 친구들이 사고팔 나의 주식이에요."
+          >
             <StockListingFields
               value={stock}
               errors={stockErrors}
@@ -123,7 +109,7 @@ function LeagueCreateOverlay() {
                 setStockErrors({});
               }}
             />
-          </section>
+          </FormSection>
         )}
 
         {/* 시안: 떠 있지 않고 마지막 섹션 바로 아래 (좌우 18, 폭 324)

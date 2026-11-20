@@ -35,15 +35,16 @@ function CodeInput({ value, onChange, disabled = false, hasError = false }: Code
         onBlur={() => setIsFocused(false)}
         onChange={(event) => onChange(normalizeInviteCode(event.target.value))}
       />
-      {/* 시안 Invitation Code Input: 36×48 칸 7개를 양 끝에 맞춰 놓는다 (312 폭에서 간격 10)
+      {/* 시안 Invitation Code Input: 높이 48 칸 7개, 사이 10 (360 화면의 312 폭에서 칸 폭 36)
+          화면이 넓어지면 사이는 10 그대로 두고 칸 폭이 같이 늘어난다 (컨테이너는 화면 폭 따라 늘어나는 시안 규칙)
           칸은 모서리 6, 흰색 + Grey/3 테두리, 글자 Heading2 Grey/8
           입력 중에는 마지막으로 입력한 칸(아무것도 없으면 첫 칸)이 NSBlue, 오류면 모든 칸이 NSBuy */}
-      <div className="flex justify-between" aria-hidden="true">
+      <div className="flex gap-2.5" aria-hidden="true">
         {Array.from({ length: INVITE_CODE_LENGTH }, (_, index) => (
           <div
             key={index}
             className={cn(
-              'flex h-12 w-9 items-center justify-center rounded-md border border-grey-3 bg-white text-heading2 text-grey-8',
+              'flex h-12 min-w-0 flex-1 items-center justify-center rounded-md border border-grey-3 bg-white text-heading2 text-grey-8',
               isFocused && index === Math.max(value.length - 1, 0) && 'border-ns-blue',
               hasError && 'border-ns-buy',
               // 확인 중 모양은 시안에 없어 임시 (Grey/0 바탕, Grey/4 글자)
