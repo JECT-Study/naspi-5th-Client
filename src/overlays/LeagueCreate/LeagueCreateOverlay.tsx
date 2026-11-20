@@ -14,6 +14,7 @@ import {
 } from '@/apis/domains/stock/stock.validation';
 import Button from '@/components/ui/Button';
 import FloatingFooter from '@/components/ui/FloatingFooter';
+import FormSection from '@/components/ui/FormSection';
 import StockListingFields from '@/components/stock/StockListingFields';
 import TaskHeader from '@/components/header/TaskHeader';
 import TextField from '@/components/ui/TextField';
@@ -77,14 +78,13 @@ function LeagueCreateOverlay() {
   return (
     <>
       <TaskHeader title="새 리그" />
-      <main className="flex min-h-0 flex-1 flex-col gap-10 overflow-y-auto px-9 pt-4">
-        <section>
-          <h2 className="text-lg font-bold">리그 이름을 입력해 주세요.</h2>
-          <p className="mt-1 text-sm text-gray-500">
-            방장은 리그 시작 전 대기실에서 리그 이름을 변경할 수 있어요.
-          </p>
+      {/* 시안 '새 리그 생성 콘텐츠': 위 8. 섹션은 여백 20·24·16, 안내와 입력 사이 16 */}
+      <main className="flex min-h-0 flex-1 flex-col overflow-y-auto pt-2">
+        <FormSection
+          title="리그 이름을 입력해 주세요."
+          description="방장은 리그 시작 전 대기실에서 리그 이름을 변경할 수 있어요."
+        >
           <TextField
-            className="mt-4"
             aria-label="리그 이름"
             placeholder="리그 이름을 입력해 주세요."
             value={leagueName}
@@ -94,14 +94,13 @@ function LeagueCreateOverlay() {
             onBlur={showListing}
             onKeyDown={handleNameKeyDown}
           />
-        </section>
+        </FormSection>
 
         {isListingVisible && (
-          <section>
-            <h2 className="text-lg font-bold">나의 종목을 상장해 주세요.</h2>
-            <p className="mt-1 mb-4 text-sm text-gray-500">
-              리그 기간 동안 친구들이 사고팔 나의 주식이에요.
-            </p>
+          <FormSection
+            title="나의 종목을 상장해 주세요."
+            description="리그 기간 동안 친구들이 사고팔 나의 주식이에요."
+          >
             <StockListingFields
               value={stock}
               errors={stockErrors}
@@ -110,31 +109,34 @@ function LeagueCreateOverlay() {
                 setStockErrors({});
               }}
             />
-          </section>
+          </FormSection>
         )}
-        <FloatingFooter>
-          <div className="flex flex-col items-center gap-3">
-            {isListingVisible && (
-              <Button
-                className="w-full"
-                disabled={!canSubmit}
-                isPending={isPending}
-                pendingLabel="생성 중..."
-                onClick={handleSubmit}
-              >
-                대기실 생성하기
-              </Button>
-            )}
-            {/* 작업형 화면끼리 전환: 오버레이 내용만 바꾼다 (기록은 그대로) */}
+
+        {/* 시안: 떠 있지 않고 마지막 섹션 바로 아래 (좌우 18, 폭 324)
+            작업형 화면끼리 전환: 오버레이 내용만 바꾼다 (기록은 그대로) */}
+        <div className="px-4.5">
+          <Button
+            variant="link"
+            className="w-full"
+            onClick={() => openOverlay({ type: 'leagueJoin' })}
+          >
+            또는 코드로 참여하기
+          </Button>
+        </div>
+
+        {isListingVisible && (
+          <FloatingFooter className="px-4.5">
             <Button
-              variant="link"
               className="w-full"
-              onClick={() => openOverlay({ type: 'leagueJoin' })}
+              disabled={!canSubmit}
+              isPending={isPending}
+              pendingLabel="생성 중..."
+              onClick={handleSubmit}
             >
-              또는 코드로 참여하기
+              대기실 생성하기
             </Button>
-          </div>
-        </FloatingFooter>
+          </FloatingFooter>
+        )}
       </main>
     </>
   );

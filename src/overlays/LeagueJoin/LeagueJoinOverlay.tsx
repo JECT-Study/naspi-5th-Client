@@ -9,6 +9,7 @@ import { isInviteCodeComplete } from '@/apis/domains/room/room.validation';
 import Button from '@/components/ui/Button';
 import FieldMessage from '@/components/ui/FieldMessage';
 import FloatingFooter from '@/components/ui/FloatingFooter';
+import FormSection from '@/components/ui/FormSection';
 import { SpinnerIcon } from '@/components/ui/icons';
 import RetryButton from '@/components/ui/RetryButton';
 import TaskHeader from '@/components/header/TaskHeader';
@@ -74,29 +75,33 @@ function LeagueJoinOverlay() {
     const isInvalidCode = hasCheckError && previewErrorCode === 'INVALID_INVITE_CODE';
     return (
       <>
-        <h2 className="text-lg font-bold">
-          {isChecking ? '초대 코드를 확인 중이에요...' : '초대 코드를 입력해 주세요.'}
-        </h2>
-        <p className="mt-1 text-sm text-gray-500">공유받은 초대 코드로 대기실에 입장하세요.</p>
-        {hasCheckError && (
-          <FieldMessage className="mt-3">
-            {isInvalidCode
-              ? '유효하지 않은 초대 코드예요. 코드를 다시 확인해 주세요.'
-              : '대기실 정보를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.'}
-          </FieldMessage>
-        )}
-        <div className="mt-4">
-          <CodeInput
-            // 없는 코드면 칸을 비워 보여 준다. 한 글자를 넣으면 그 글자부터 새 코드가 된다
-            value={isInvalidCode ? '' : inviteCode}
-            disabled={isChecking}
-            hasError={hasCheckError}
-            onChange={handleCodeChange}
-          />
-        </div>
-        {isChecking && <SpinnerIcon className="mx-auto mt-10 size-12 text-gray-400" />}
+        <FormSection
+          title={isChecking ? '초대 코드를 확인 중이에요...' : '초대 코드를 입력해 주세요.'}
+          description="공유받은 초대 코드로 대기실에 입장하세요."
+        >
+          {/* 시안: 오류 문구는 코드 칸 바로 위 (사이 4) */}
+          <div className="flex flex-col gap-1">
+            {hasCheckError && (
+              <FieldMessage>
+                {isInvalidCode
+                  ? '유효하지 않은 초대 코드예요. 코드를 다시 확인해 주세요.'
+                  : '대기실 정보를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.'}
+              </FieldMessage>
+            )}
+            <CodeInput
+              // 없는 코드면 칸을 비워 보여 준다. 한 글자를 넣으면 그 글자부터 새 코드가 된다
+              value={isInvalidCode ? '' : inviteCode}
+              disabled={isChecking}
+              hasError={hasCheckError}
+              onChange={handleCodeChange}
+            />
+          </div>
+          {/* 확인 중 표시는 시안에 없어 임시 */}
+          {isChecking && <SpinnerIcon className="mx-auto mt-6 size-12 text-grey-4" />}
+        </FormSection>
+        {/* 시안 '대기실 조회 실패': 섹션 바로 아래 가운데, 아래 8 띄우고 "또는 새 리그 만들기" */}
         {hasCheckError && !isInvalidCode && (
-          <RetryButton className="mx-auto mt-6" onClick={() => preview.refetch()} />
+          <RetryButton className="mx-auto mb-2" onClick={() => preview.refetch()} />
         )}
       </>
     );
@@ -105,27 +110,34 @@ function LeagueJoinOverlay() {
   const renderConfirmStep = () => {
     if (!preview.data) return null;
     return (
-      <>
-        <h2 className="text-lg font-bold">이 대기실에 입장할까요?</h2>
-        <p className="mt-1 text-sm text-gray-500">
-          대기실에서 상장을 완료하면, 참여 준비가 완료돼요.
-        </p>
-        {joinErrorMessage && <FieldMessage className="mt-3">{joinErrorMessage}</FieldMessage>}
-        <div className="mt-4 flex flex-col gap-2 rounded-lg border px-6 py-5">
-          <div className="flex items-center justify-between gap-2">
-            <span className="truncate font-bold">{preview.data.name}</span>
-            <span className="shrink-0 rounded bg-gray-100 px-1.5 py-0.5 text-xs">대기</span>
+      <FormSection
+        title="이 대기실에 입장할까요?"
+        description="대기실에서 상장을 완료하면, 참여 준비가 완료돼요."
+      >
+        {joinErrorMessage && <FieldMessage>{joinErrorMessage}</FieldMessage>}
+        {/* 시안 List/대기실입장: Grey/0 바탕, 모서리 6, 여백 16·18·12, 높이 88
+            이름 줄 26(Title2 Grey/8 + "대기" 배지 60×26) / 4 / 정보 줄 30(Body2 Grey/5) */}
+        <div className="flex flex-col gap-1 rounded-md bg-grey-0 px-4.5 pt-4 pb-3">
+          <div className="flex h-6.5 items-center justify-between gap-1.5">
+            <span className="truncate text-title2 text-grey-8">{preview.data.name}</span>
+            <span className="flex h-6.5 w-15 shrink-0 items-center justify-center rounded-md border border-grey-2 bg-white text-body2 text-grey-6">
+              대기
+            </span>
           </div>
-          <span className="text-xs text-gray-500">{preview.data.listedCount}명 상장 완료</span>
+          <p className="flex h-7.5 items-center text-body2 text-grey-5">
+            {preview.data.listedCount}명 상장 완료
+          </p>
         </div>
+        {/* 시안: 왼쪽 정렬 "←" + 4 + 문구, Body2 Grey/5 */}
         <button
           type="button"
-          className="mt-4 text-sm text-gray-500"
+          className="flex items-center gap-1 self-start text-body2 text-grey-5"
           onClick={() => handleCodeChange('')}
         >
-          ← 초대 코드 다시 입력하기
+          <span aria-hidden="true">←</span>
+          초대 코드 다시 입력하기
         </button>
-      </>
+      </FormSection>
     );
   };
 
@@ -134,31 +146,32 @@ function LeagueJoinOverlay() {
   return (
     <>
       <TaskHeader title="코드로 참여" />
-      <main className="flex min-h-0 flex-1 flex-col overflow-y-auto px-9 pt-4">
+      {/* 시안 'Join League Content': 위 8. 섹션 → "또는 새 리그 만들기"(떠 있지 않음) → 떠 있는 입장 버튼 */}
+      <main className="flex min-h-0 flex-1 flex-col overflow-y-auto pt-2">
         {isConfirmStep ? renderConfirmStep() : renderCodeStep()}
-        <FloatingFooter>
-          <div className="flex flex-col items-center gap-3">
-            {isConfirmStep && (
-              <Button
-                className="w-full"
-                disabled={Boolean(joinErrorMessage)}
-                isPending={join.isPending}
-                pendingLabel="입장 중..."
-                onClick={() => join.mutate({ inviteCode })}
-              >
-                대기실 입장하기
-              </Button>
-            )}
-            {/* 작업형 화면끼리 전환: 오버레이 내용만 바꾼다 (기록은 그대로) */}
+        {/* 작업형 화면끼리 전환: 오버레이 내용만 바꾼다 (기록은 그대로) */}
+        <div className="px-4.5">
+          <Button
+            variant="link"
+            className="w-full"
+            onClick={() => openOverlay({ type: 'leagueCreate' })}
+          >
+            또는 새 리그 만들기
+          </Button>
+        </div>
+        {isConfirmStep && (
+          <FloatingFooter className="px-4.5">
             <Button
-              variant="link"
               className="w-full"
-              onClick={() => openOverlay({ type: 'leagueCreate' })}
+              disabled={Boolean(joinErrorMessage)}
+              isPending={join.isPending}
+              pendingLabel="입장 중..."
+              onClick={() => join.mutate({ inviteCode })}
             >
-              또는 새 리그 만들기
+              대기실 입장하기
             </Button>
-          </div>
-        </FloatingFooter>
+          </FloatingFooter>
+        )}
       </main>
     </>
   );
