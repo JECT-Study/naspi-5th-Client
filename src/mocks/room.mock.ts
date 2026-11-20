@@ -16,6 +16,7 @@ import type {
 import type { ListStockRequest, StockErrorCode } from '@/apis/domains/stock/stock.types';
 import type { UserId } from '@/apis/domains/user/user.types';
 import { findMemberMock, leagueMembersMock } from './members.mock';
+import { startsWithNoRooms } from './delay';
 import { createMockApiError } from './mockError';
 import { meMock } from './user.mock';
 
@@ -242,6 +243,11 @@ const removeRoom = (roomId: RoomId) => {
   const index = rooms.findIndex((room) => room.roomId === roomId);
   if (index >= 0) rooms.splice(index, 1);
 };
+
+// ?mock=empty: 처음 들고 있던 내 리그를 모두 지운다 (새로 만들거나 참여한 리그는 그대로 쌓인다)
+if (startsWithNoRooms) {
+  for (const room of myRooms()) removeRoom(room.roomId);
+}
 const findMyMember = (room: MockRoom) => room.members.find(isMe) ?? fail('ROOM_DELETED', 404);
 const assertUniqueStockName = (room: MockRoom, name: string) => {
   if (room.members.some((member) => !isMe(member) && member.stock?.name === name)) {
