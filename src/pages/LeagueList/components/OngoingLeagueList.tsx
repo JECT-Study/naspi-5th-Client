@@ -25,11 +25,7 @@ function OngoingLeagueList({ ongoing, waiting }: OngoingLeagueListProps) {
         <Button className="w-full" onClick={() => openLeagueEntry('leagueCreate')}>
           새 리그 만들기
         </Button>
-        <Button
-          variant="secondary"
-          className="w-full"
-          onClick={() => openLeagueEntry('leagueJoin')}
-        >
+        <Button variant="subtle" className="w-full" onClick={() => openLeagueEntry('leagueJoin')}>
           코드로 참여
         </Button>
       </div>

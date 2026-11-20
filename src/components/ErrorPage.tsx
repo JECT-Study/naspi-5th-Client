@@ -19,7 +19,7 @@ function ErrorPage({ onMoveToMain }: ErrorPageProps) {
         <br />
         메인 페이지로 이동해 주세요.
       </p>
-      <ButtonLink to="/leagues" replace className="mt-6 w-full" onClick={onMoveToMain}>
+      <ButtonLink to="/leagues" replace variant="small" className="mt-6" onClick={onMoveToMain}>
         메인 페이지로 이동
       </ButtonLink>
     </main>

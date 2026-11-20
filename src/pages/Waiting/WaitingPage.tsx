@@ -126,7 +126,7 @@ function WaitingPage() {
   if (isPending || isError) {
     return (
       <>
-        <LeagueHeader leagueName="" badge="대기" />
+        <LeagueHeader leagueName="" />
         {isPending ? (
           <div className="mx-9 mt-4 h-40 animate-pulse rounded-lg bg-gray-100" />
         ) : (
@@ -185,7 +185,6 @@ function WaitingPage() {
     <>
       <LeagueHeader
         leagueName={room.name}
-        badge="대기"
         // 상단 메뉴는 대기실 멤버 모두에게 보인다 (방장·참여자·대기자, 대기실 1)
         menu={
           me && (
@@ -265,7 +264,7 @@ function WaitingPage() {
             </Button>
           )}
           {!isHost && !myStock && (
-            <Button className="w-full" onClick={openListing}>
+            <Button variant="secondary" className="w-full" onClick={openListing}>
               내 종목 상장하기
             </Button>
           )}

@@ -163,7 +163,7 @@ function BottomSheet({ title, children, onClose }: BottomSheetProps) {
         onClick={close}
       />
       {/* 이 틀은 위치만 잡는다: 빈 곳의 클릭이 뒤의 어두운 배경까지 가야 바깥을 눌러 닫을 수 있다 */}
-      <div className="pointer-events-none relative flex w-full flex-col justify-end tablet:max-w-app-tablet desktop:max-w-app-desktop">
+      <div className="pointer-events-none relative flex w-full max-w-app flex-col justify-end">
         <div
           ref={panelRef}
           role="dialog"

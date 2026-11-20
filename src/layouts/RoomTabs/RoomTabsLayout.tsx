@@ -4,7 +4,6 @@ import { roomQueries } from '@/apis/domains/room/room.queries';
 import LeagueHeader from '@/components/LeagueHeader';
 import { useRoomId } from '@/hooks/useRoomId';
 import { cn } from '@/utils/cn';
-import { formatDday, getDaysUntil } from '@/utils/date';
 
 const TABS = [
   { to: '', label: '피드', end: true },
@@ -19,11 +18,10 @@ const TABS = [
 function RoomTabsLayout() {
   const roomId = useRoomId();
   const { data: room } = useQuery(roomQueries.detail(roomId));
-  const dday = room?.endAt ? formatDday(getDaysUntil(new Date(room.endAt))) : undefined;
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <LeagueHeader leagueName={room?.name ?? ''} badge={dday} />
+      <LeagueHeader leagueName={room?.name ?? ''} />
       <nav className="flex border-b">
         {TABS.map((tab) => (
           <NavLink
