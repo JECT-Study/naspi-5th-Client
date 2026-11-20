@@ -38,6 +38,8 @@ function WithdrawModal({ onClose }: WithdrawModalProps) {
         '진행 중인 모든 리그에서 제외돼요.\n상장한 종목과 공시, 뉴스, 댓글은 모두 유지돼요.'
       }
       confirmLabel="탈퇴하기"
+      // 시안: 탈퇴 모달만 본문 좌우 여백 8 (동의 문구가 한 줄에 들어가게)
+      contentClassName="px-2"
       confirmDisabled={!isAgreed}
       isPending={isPending}
       onConfirm={() => {
@@ -61,9 +63,7 @@ function WithdrawModal({ onClose }: WithdrawModalProps) {
         안내를 확인했고, 탈퇴를 되돌릴 수 없다는 점을 이해했어요.
       </label>
       {isError && (
-        <FieldMessage className="mt-2">
-          탈퇴 중 문제가 발생했어요. 잠시 후 다시 시도해 주세요.
-        </FieldMessage>
+        <FieldMessage>탈퇴 중 문제가 발생했어요. 잠시 후 다시 시도해 주세요.</FieldMessage>
       )}
     </ConfirmModal>
   );

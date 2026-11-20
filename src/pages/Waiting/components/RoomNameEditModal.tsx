@@ -43,7 +43,8 @@ function RoomNameEditModal({ roomId, currentName, onClose }: RoomNameEditModalPr
       isPending={isPending}
       onCancel={onClose}
     >
-      <form id={formId} onSubmit={handleSubmit}>
+      {/* 시안: 제목과 입력칸 사이 16 (모달 기본 간격 8 + 8) */}
+      <form id={formId} className="mt-2 w-full" onSubmit={handleSubmit}>
         <TextField
           aria-label="리그 이름"
           placeholder="리그 이름을 입력해 주세요."
