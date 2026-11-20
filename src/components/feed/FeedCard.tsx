@@ -133,7 +133,7 @@ function FeedCard({ roomId, item, to, variant }: FeedCardProps) {
           </>
         )}
 
-        <p className="line-clamp-2 text-body1 text-grey-8">{item.content}</p>
+        <p className="line-clamp-2 text-body1 wrap-break-word text-grey-8">{item.content}</p>
 
         {item.type === 'DISCLOSURE' && item.imageUrls.length > 0 && (
           <FeedImages imageUrls={item.imageUrls} to={to} />

@@ -114,7 +114,7 @@ function DisclosureDetailPage() {
                 <span aria-hidden="true" className="h-2.5 w-px shrink-0 bg-grey-6" />
                 <span className="shrink-0">{formatRelativeTime(new Date(item.createdAt))}</span>
               </div>
-              <h2 className="text-title4 text-grey-8">{item.title}</h2>
+              <h2 className="text-title4 wrap-break-word text-grey-8">{item.title}</h2>
             </div>
             {item.isMine && (
               // 공시 미트볼 → 드롭다운 '삭제하기' → 확인 모달 (공시 상세 2, 2-1, 2-1-1)
@@ -126,7 +126,10 @@ function DisclosureDetailPage() {
               />
             )}
           </div>
-          <p className="text-body1 whitespace-pre-line text-grey-8">{item.content}</p>
+          {/* 띄어쓰기 없는 긴 영문·주소도 줄을 넘겨 화면이 가로로 밀리지 않게 한다 */}
+          <p className="text-body1 wrap-break-word whitespace-pre-line text-grey-8">
+            {item.content}
+          </p>
           {item.imageUrls.length > 0 && (
             <AttachedImages
               imageUrls={item.imageUrls}

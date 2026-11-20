@@ -85,7 +85,9 @@ function StockIntroduction({ stock }: StockIntroductionProps) {
           onChange={(event) => setDraft(event.target.value)}
         />
       ) : (
-        <p className="text-body2-5 whitespace-pre-line text-grey-8">{stock.description}</p>
+        <p className="text-body2-5 wrap-break-word whitespace-pre-line text-grey-8">
+          {stock.description}
+        </p>
       )}
     </section>
   );
