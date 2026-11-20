@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router';
 import type { Holding } from '@/apis/domains/asset/asset.types';
-import { formatNumber, formatSignedNumber } from '@/utils/format';
+import { cn } from '@/utils/cn';
+import { formatNumber, formatRate, formatSignedNumber } from '@/utils/format';
 import { getPriceColorClass } from './priceColor';
 import StockAvatar from './StockAvatar';
 
@@ -18,33 +19,39 @@ interface HoldingRowProps {
   ownStockLabel?: string;
 }
 
-// 보유 주식 한 줄: 종목, 보유 수량(자기 종목 표시), 평가 금액, 평가 손익(수익률)
+// 시안 보유주식: 높이 54, 좌우 4, 사이 8, 모서리 4
+// - 종목 프로필 36 / 종목 이름 Title4 Grey/8, 3 띄우고 "{수량}주/ 내 종목" Body3 Grey/6 (문구는 설계서, 시안 "1,000주・내 종목")
+// - 오른쪽(오른쪽 정렬, 사이 4): 평가 금액 Title2.5 Grey/8 / 평가 손익 (수익률) Body2.5 등락 색
 // 내 자산, 종목 - 내 주식, 참여자 최종 자산에서 쓴다
+const ROW_CLASS = 'flex h-13.5 items-center gap-2 rounded px-1';
+
 function HoldingRow({ holding, to, ownStockLabel = '내 종목' }: HoldingRowProps) {
   const content: ReactNode = (
     <>
       <StockAvatar name={holding.stockName} />
-      <div className="min-w-0 flex-1">
-        <p className="truncate font-bold">{holding.stockName}</p>
-        <p className="truncate text-sm text-gray-500">
+      <div className="flex min-w-0 flex-1 flex-col gap-0.75">
+        <p className="truncate text-title4 text-grey-8">{holding.stockName}</p>
+        <p className="truncate text-body3 text-grey-6">
           {formatNumber(holding.quantity)}주{holding.isMine && `/ ${ownStockLabel}`}
         </p>
       </div>
-      <div className="flex shrink-0 flex-col items-end">
-        <span className="font-bold">{formatNumber(holding.evaluationAmount)}원</span>
-        <span className={`text-sm ${getPriceColorClass(holding.profit)}`}>
-          {formatSignedNumber(holding.profit)} ({Math.abs(holding.profitRate).toFixed(1)}%)
+      <div className="flex shrink-0 flex-col items-end gap-1">
+        <span className="text-title2-5 text-grey-8">
+          {formatNumber(holding.evaluationAmount)}원
+        </span>
+        <span className={cn('text-body2-5', getPriceColorClass(holding.profit))}>
+          {formatSignedNumber(holding.profit)} ({formatRate(holding.profitRate)})
         </span>
       </div>
     </>
   );
 
   return to ? (
-    <Link to={to} className="flex items-center gap-3 py-2">
+    <Link to={to} className={ROW_CLASS}>
       {content}
     </Link>
   ) : (
-    <div className="flex items-center gap-3 py-2">{content}</div>
+    <div className={ROW_CLASS}>{content}</div>
   );
 }
 

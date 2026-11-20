@@ -1,35 +1,36 @@
 import type { MyAssets } from '@/apis/domains/asset/asset.types';
-import ChangeRate from '@/components/stock/ChangeRate';
 import { getPriceColorClass } from '@/components/stock/priceColor';
-import { formatNumber, formatSignedNumber } from '@/utils/format';
+import { formatNumber, formatRate, formatSignedNumber } from '@/utils/format';
 
 interface AssetSummaryProps {
   assets: MyAssets;
 }
 
-// {이름}님의 자산: 총자산, 시작보다 손익·수익률, 현금·보유 주식 평가금액
+// 시안 '자산 요약 섹션': [제목·총자산·손익] → 8 → 현금·보유 주식 평가금액 상자
+// - 제목 "{이름}님의 자산" Title3 Grey/8, 4 띄우고 총자산 Heading1 Grey/8, 4 띄우고 손익 한 줄 Body1.5
+// - 손익: "시작보다" Grey/6 + "+110,200원 (3.0%)" 상승 NSBuy / 하락 NSSell / 보합 Grey/6 (삼각형 없음)
+// - 상자: Grey/0 바탕 + Grey/2 테두리, 모서리 6, 여백 12·8, 줄 사이 12. 이름 Title4.5 Grey/6, 금액 Heading4 Grey/8
 function AssetSummary({ assets }: AssetSummaryProps) {
   return (
-    <section>
-      <p className="text-sm text-gray-500">{assets.userName}님의 자산</p>
-      <p className="mt-1 text-3xl font-bold">{formatNumber(assets.totalAsset)}원</p>
-      <div className="mt-2 flex items-center justify-between text-sm">
-        <span className="text-gray-500">
+    <section className="flex flex-col gap-2">
+      <div className="flex flex-col gap-1">
+        <h2 className="text-title3 text-grey-8">{assets.userName}님의 자산</h2>
+        <p className="text-heading1 text-grey-8">{formatNumber(assets.totalAsset)}원</p>
+        <p className="text-body1-5 text-grey-6">
           시작보다{' '}
           <span className={getPriceColorClass(assets.profit)}>
-            {formatSignedNumber(assets.profit)}원
+            {formatSignedNumber(assets.profit)}원 ({formatRate(assets.profitRate)})
           </span>
-        </span>
-        <ChangeRate change={assets.profit} changeRate={assets.profitRate} />
+        </p>
       </div>
-      <dl className="mt-5 flex flex-col gap-2 rounded-lg bg-gray-50 px-5 py-4 text-sm">
-        <div className="flex justify-between">
-          <dt className="text-gray-500">현금</dt>
-          <dd className="font-bold">{formatNumber(assets.cash)}원</dd>
+      <dl className="flex flex-col gap-3 rounded-md border border-grey-2 bg-grey-0 px-2 py-3">
+        <div className="flex h-5.5 items-center justify-between gap-2">
+          <dt className="text-title4-5 text-grey-6">현금</dt>
+          <dd className="text-heading4 text-grey-8">{formatNumber(assets.cash)}원</dd>
         </div>
-        <div className="flex justify-between">
-          <dt className="text-gray-500">보유 주식 평가금액</dt>
-          <dd className="font-bold">{formatNumber(assets.stockValue)}원</dd>
+        <div className="flex h-5.5 items-center justify-between gap-2">
+          <dt className="text-title4-5 text-grey-6">보유 주식 평가금액</dt>
+          <dd className="text-heading4 text-grey-8">{formatNumber(assets.stockValue)}원</dd>
         </div>
       </dl>
     </section>

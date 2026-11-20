@@ -3,17 +3,16 @@ import { useQuery } from '@tanstack/react-query';
 import { stockQueries } from '@/apis/domains/stock/stock.queries';
 import { splitAndSortStocks } from '@/apis/domains/stock/stock.utils';
 import LoadError from '@/components/status/LoadError';
+import ListBox from '@/components/ui/ListBox';
 import { useRoomId } from '@/hooks/useRoomId';
 import StockRow from './components/StockRow';
 
-// 시안 묶음: 제목 Title3 Grey/8, 8 띄우고 흰색 + Grey/3 테두리 상자(모서리 6, 여백 12·8)에 종목 카드를 8씩
+// 시안 묶음: 제목 Title3 Grey/8, 8 띄우고 테두리 상자에 종목 카드
 function StockSection({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="flex flex-col gap-2">
       <h2 className="text-title3 text-grey-8">{title}</h2>
-      <div className="flex flex-col gap-2 rounded-md border border-grey-3 bg-white px-2 py-3">
-        {children}
-      </div>
+      <ListBox>{children}</ListBox>
     </section>
   );
 }

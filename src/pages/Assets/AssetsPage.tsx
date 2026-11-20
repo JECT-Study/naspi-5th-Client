@@ -9,6 +9,7 @@ import { userQueries } from '@/apis/domains/user/user.queries';
 import HoldingRow from '@/components/stock/HoldingRow';
 import { CaretDownIcon, CaretUpIcon, ChevronRightIcon } from '@/components/ui/icons';
 import LoadError from '@/components/status/LoadError';
+import ListBox from '@/components/ui/ListBox';
 import { useRoomId } from '@/hooks/useRoomId';
 import AssetSummary from './components/AssetSummary';
 import OpenOrderRow from './components/OpenOrderRow';
@@ -25,22 +26,33 @@ function AssetsPage() {
   const [cancelTarget, setCancelTarget] = useState<OpenOrder | null>(null);
   const [isOpenOrdersExpanded, setIsOpenOrdersExpanded] = useState(false);
 
+  // 시안 '주문 내역 섹션': 제목 Title3 Grey/8 + 오른쪽 Right 18 Grey/8 (양 끝)
   const orderHistoryLink = (
-    <Link to={`/leagues/${roomId}/orders`} className="flex items-center justify-between font-bold">
+    <Link
+      to={`/leagues/${roomId}/orders`}
+      className="flex items-center justify-between text-title3 text-grey-8"
+    >
       주문 내역
-      <ChevronRightIcon className="text-grey-8" />
+      <ChevronRightIcon />
     </Link>
   );
 
   const renderContent = () => {
     if (assets.isPending) {
-      return <div className="h-48 animate-pulse rounded-lg bg-gray-100" />;
+      // 임시 자리 표시 (스켈레톤 시안 작업 중, 나오면 교체): 자산 요약·보유 주식 자리
+      return (
+        <>
+          <div className="h-43.5 animate-pulse rounded-md bg-grey-0" />
+          <div className="h-60 animate-pulse rounded-md bg-grey-0" />
+        </>
+      );
     }
-    // 조회 실패 (내 자산 4): "{이름}님의 자산"과 주문 내역 메뉴는 남기고 그 사이에 다시 시도
+    // 조회 실패 (내 자산 4): "{이름}님의 자산"(설계서 문구)과 주문 내역 메뉴는 남기고 그 사이 남은 영역 가운데에 다시 시도
+    // 시안 조회 실패 화면은 마스코트·문구·다시 시도만 있다
     if (assets.isError) {
       return (
         <>
-          <p className="text-sm text-gray-500">{me.data?.name}님의 자산</p>
+          <h2 className="text-title3 text-grey-8">{me.data?.name}님의 자산</h2>
           <LoadError onRetry={() => assets.refetch()} />
           {orderHistoryLink}
         </>
@@ -56,52 +68,50 @@ function AssetsPage() {
 
         {/* 대기 주문이 없으면 영역을 숨긴다 (내 자산 1). 조회에 실패하면 그 자리에서 다시 시도 */}
         {openOrders.isError && (
-          <section>
-            <h2 className="font-bold">대기 중인 주문</h2>
+          <section className="flex flex-col gap-2">
+            <h2 className="text-title3 text-grey-8">대기 중인 주문</h2>
             <LoadError size="inline" className="py-6" onRetry={() => openOrders.refetch()} />
           </section>
         )}
-        {/* 대기 중인 주문만 접고 펼친다 (디자이너 코멘트). 시안 기본 화면은 접힌 상태(CaretDown) */}
+        {/* 대기 중인 주문만 접고 펼친다 (디자이너 코멘트). 시안 기본 화면은 접힌 상태(CaretDown)
+            제목 줄: Title3 Grey/8 + 오른쪽 Caret 18 Grey/8(좌우 4). 펼치면 8 띄우고 테두리 상자 */}
         {openOrders.data && openOrders.data.length > 0 && (
-          <section>
+          <section className="flex flex-col gap-2">
             <h2>
               <button
                 type="button"
                 aria-expanded={isOpenOrdersExpanded}
-                className="flex w-full items-center justify-between font-bold"
+                className="flex w-full items-center justify-between text-title3 text-grey-8"
                 onClick={() => setIsOpenOrdersExpanded((prev) => !prev)}
               >
                 대기 중인 주문
                 <span className="px-1">
-                  {isOpenOrdersExpanded ? (
-                    <CaretUpIcon className="text-grey-8" />
-                  ) : (
-                    <CaretDownIcon className="text-grey-8" />
-                  )}
+                  {isOpenOrdersExpanded ? <CaretUpIcon /> : <CaretDownIcon />}
                 </span>
               </button>
             </h2>
             {isOpenOrdersExpanded && (
-              <ul className="mt-2">
+              <ListBox>
                 {openOrders.data.map((order) => (
-                  <li key={order.orderId}>
-                    <OpenOrderRow order={order} onCancel={setCancelTarget} />
-                  </li>
+                  <OpenOrderRow key={order.orderId} order={order} onCancel={setCancelTarget} />
                 ))}
-              </ul>
+              </ListBox>
             )}
           </section>
         )}
 
-        <section>
-          <h2 className="font-bold">보유 주식</h2>
-          <ul className="mt-2">
+        {/* 시안 '보유 주식': 제목 Title3 Grey/8, 8 띄우고 테두리 상자 (아코디언 없음) */}
+        <section className="flex flex-col gap-2">
+          <h2 className="text-title3 text-grey-8">보유 주식</h2>
+          <ListBox>
             {holdings.map((holding) => (
-              <li key={holding.stockId}>
-                <HoldingRow holding={holding} to={`/leagues/${roomId}/stocks/${holding.stockId}`} />
-              </li>
+              <HoldingRow
+                key={holding.stockId}
+                holding={holding}
+                to={`/leagues/${roomId}/stocks/${holding.stockId}`}
+              />
             ))}
-          </ul>
+          </ListBox>
         </section>
 
         {orderHistoryLink}
@@ -111,8 +121,10 @@ function AssetsPage() {
 
   return (
     <>
-      <main className="flex min-h-0 flex-1 flex-col gap-8 overflow-y-auto px-9 py-6">
-        {renderContent()}
+      {/* 시안 '내 자산 콘텐츠': 위아래 8 안에 '자산 및 주문 섹션'(여백 20·24·16, 영역 사이 32) */}
+      <main className="flex min-h-0 flex-1 flex-col overflow-y-auto py-2">
+        {/* flex-1: 조회 실패 안내가 남은 영역 가운데에 오도록 */}
+        <div className="flex flex-1 flex-col gap-8 px-6 pt-5 pb-4">{renderContent()}</div>
       </main>
       {cancelTarget && (
         <OrderCancelModal
