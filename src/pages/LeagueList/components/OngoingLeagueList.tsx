@@ -29,7 +29,7 @@ function OngoingLeagueList({ ongoing, waiting }: OngoingLeagueListProps) {
           <>
             <Button onClick={() => openLeagueEntry('leagueCreate')}>새 리그 만들기</Button>
             <Button variant="subtle" onClick={() => openLeagueEntry('leagueJoin')}>
-              코드로 참여
+              코드로 참여하기
             </Button>
           </>
         }
@@ -51,7 +51,7 @@ function OngoingLeagueList({ ongoing, waiting }: OngoingLeagueListProps) {
                 to={`/leagues/${room.roomId}`}
                 name={room.name}
                 badge={<OutlineBadge>{formatDday(getDaysUntil(endAt))}</OutlineBadge>}
-                meta={`${room.participantCount}명`}
+                meta={`인원 ${room.participantCount}명`}
                 date={`${formatKstDate(endAt)} 종료 예정`}
               />
             );
@@ -68,7 +68,7 @@ function OngoingLeagueList({ ongoing, waiting }: OngoingLeagueListProps) {
               name={room.name}
               tone="muted"
               badge={<ListingBadge isListed={room.isListed} />}
-              meta={`${room.listedCount}명 상장 완료`}
+              meta={`상장 완료 ${room.listedCount}명`}
               date={`${formatKstDate(new Date(room.expiresAt))} 만료 예정`}
             />
           ))}
@@ -78,10 +78,11 @@ function OngoingLeagueList({ ongoing, waiting }: OngoingLeagueListProps) {
   );
 }
 
-// 시안 SmallBoard: 제목(SmallTitle, 여백 16·20, Title1 Grey/8, 높이 57) 아래 8 띄우고 카드 목록(좌우 12, 사이 8)
+// 시안 SmallBoard: 제목(SmallTitle, 여백 16·20, Title1 Grey/8, 높이 57) 바로 아래 카드 목록(좌우 12, 사이 8)
+// 제목과 첫 카드 사이는 0 (시안은 나의 리그 8·나의 대기실 0으로 달라 디자이너와 0으로 통일)
 function LeagueBoard({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <section className="flex flex-col gap-2">
+    <section className="flex flex-col">
       <h2 className="px-5 py-4 text-title1 text-grey-8">{title}</h2>
       <div className="flex flex-col gap-2 px-3">{children}</div>
     </section>

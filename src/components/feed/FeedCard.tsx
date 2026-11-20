@@ -25,7 +25,7 @@ interface FeedCardProps {
   variant: FeedCardVariant;
 }
 
-// 시안 Comment Preview: 카드 바로 아래(사이 0)에 댓글 한 줄, 본문은 2줄까지
+// 시안 Comment Preview: 카드 바로 아래(사이 0)에 댓글 한 줄, 본문은 1줄까지 (넘치면 말줄임, 디자이너 확인)
 function FirstComment({ comment }: { comment: CommentPreview }) {
   return (
     <CommentRow
@@ -133,7 +133,8 @@ function FeedCard({ roomId, item, to, variant }: FeedCardProps) {
           </>
         )}
 
-        <p className="line-clamp-2 text-body1 wrap-break-word text-grey-8">{item.content}</p>
+        {/* 본문은 1줄까지, 넘치면 말줄임 (디자이너 확인) */}
+        <p className="line-clamp-1 text-body1 wrap-break-word text-grey-8">{item.content}</p>
 
         {item.type === 'DISCLOSURE' && item.imageUrls.length > 0 && (
           <FeedImages imageUrls={item.imageUrls} to={to} />

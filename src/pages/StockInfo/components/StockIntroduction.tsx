@@ -3,10 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { stockKeys } from '@/apis/domains/stock/stock.queries';
 import { updateStockDescription } from '@/apis/domains/stock/stock.service';
 import type { StockDetail } from '@/apis/domains/stock/stock.types';
-import {
-  STOCK_DESCRIPTION_COUNTER_FROM,
-  STOCK_DESCRIPTION_MAX_LENGTH,
-} from '@/apis/domains/stock/stock.validation';
+import { STOCK_DESCRIPTION_MAX_LENGTH } from '@/apis/domains/stock/stock.validation';
 import { PencilIcon } from '@/components/ui/icons';
 import TextArea from '@/components/ui/TextArea';
 import { useRoomId } from '@/hooks/useRoomId';
@@ -80,7 +77,6 @@ function StockIntroduction({ stock }: StockIntroductionProps) {
           aria-label="종목 소개"
           value={draft}
           maxLength={STOCK_DESCRIPTION_MAX_LENGTH}
-          counterFrom={STOCK_DESCRIPTION_COUNTER_FROM}
           autoFocus
           onChange={(event) => setDraft(event.target.value)}
         />

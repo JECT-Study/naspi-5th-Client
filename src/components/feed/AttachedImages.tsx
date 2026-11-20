@@ -31,7 +31,7 @@ function AttachedImages({
     <div
       className={cn(
         'flex gap-2',
-        isScroll && cn('snap-x [scrollbar-width:none] overflow-x-auto', bleedClass),
+        isScroll && cn('snap-x scrollbar-none overflow-x-auto', bleedClass),
         isScroll && raised && 'relative z-10',
       )}
     >

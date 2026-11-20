@@ -8,19 +8,9 @@ interface EndedLeagueListProps {
 }
 
 function EndedLeagueList({ ended }: EndedLeagueListProps) {
-  // 리그 없음 (설계서 3-2): 줄바꿈과 문구는 설계서대로
+  // 리그 없음 (설계서 3-2): 문구는 시안대로 한 줄 (기획 확인)
   if (ended.length === 0) {
-    return (
-      <LeagueEmptyState
-        message={
-          <>
-            리그가 끝나도
-            <br />
-            결과를 다시 확인할 수 있어요.
-          </>
-        }
-      />
-    );
+    return <LeagueEmptyState message="리그가 끝나도 결과를 다시 확인할 수 있어요!" />;
   }
 
   // 시안 '종료된 리그': 묶음 제목 없이 카드 목록만 (위아래 16, 좌우 12, 카드 사이 8)
@@ -33,7 +23,7 @@ function EndedLeagueList({ ended }: EndedLeagueListProps) {
           to={`/leagues/${room.roomId}/result`}
           name={room.name}
           badge={<OutlineBadge>{room.rank}위</OutlineBadge>}
-          meta={`${room.participantCount}명`}
+          meta={`인원 ${room.participantCount}명`}
           date={`${formatKstDate(new Date(room.endedAt))} 종료`}
         />
       ))}

@@ -44,16 +44,22 @@ function CodeInput({ value, onChange, disabled = false, hasError = false }: Code
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
         onChange={(event) => {
-          if (event.nativeEvent instanceof InputEvent && event.nativeEvent.isComposing) {
-            setComposingValue(event.target.value);
-          } else {
-            commit(event.target.value);
+          const raw = event.target.value;
+          const isComposing =
+            event.nativeEvent instanceof InputEvent && event.nativeEvent.isComposing;
+          if (isComposing && normalizeInviteCode(raw).length < INVITE_CODE_LENGTH) {
+            setComposingValue(raw);
+            return;
           }
+          // 마지막 칸을 한글 자판으로 채우면 조합이 끝나지 않아 코드가 넘어가지 않는다 (확인이 시작되지 않음)
+          // 7칸이 다 차면 입력창에서 포커스를 빼서 조합을 끝내고 바로 넘긴다. 확인이 끝나면 위에서 포커스를 돌려준다
+          if (isComposing) inputRef.current?.blur();
+          commit(raw);
         }}
         onCompositionEnd={(event) => commit(event.currentTarget.value)}
       />
-      {/* 시안 Invitation Code Input: 높이 48 칸 7개, 사이 10 (360 화면의 312 폭에서 칸 폭 36)
-          화면이 넓어지면 사이는 10 그대로 두고 칸 폭이 같이 늘어난다 (컨테이너는 화면 폭 따라 늘어나는 시안 규칙)
+      {/* 시안 Invitation Code Input: 36×48 칸 7개, 사이 10 (묶음 폭 312)
+          칸 폭은 화면이 넓어져도 36 고정, 묶음은 가운데 정렬 (시안 섹션 정렬 CENTER, 디자이너 확인)
           칸은 모서리 6, 흰색 + Grey/3 테두리, 글자 Heading2 Grey/8
           입력 중에는 다음에 입력할 칸이 NSBlue (다 채우면 마지막 칸), 오류면 모든 칸이 NSBuy
           화면설계서 코드로 참여 1 "입력 완료 시 다음 칸으로 포커스 이동" (시안은 첫 칸이 파란 예시 한 장뿐) */}
@@ -62,7 +68,7 @@ function CodeInput({ value, onChange, disabled = false, hasError = false }: Code
           <div
             key={index}
             className={cn(
-              'flex h-12 min-w-0 flex-1 items-center justify-center rounded-md border border-grey-3 bg-white text-heading2 text-grey-8',
+              'flex h-12 w-9 items-center justify-center rounded-md border border-grey-3 bg-white text-heading2 text-grey-8',
               isFocused &&
                 index === Math.min(shownCode.length, INVITE_CODE_LENGTH - 1) &&
                 'border-ns-blue',

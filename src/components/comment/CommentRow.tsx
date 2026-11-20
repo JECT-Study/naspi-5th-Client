@@ -9,7 +9,7 @@ interface CommentRowProps {
   content: string;
   /** 오른쪽 끝 메뉴 (내 댓글의 점 3개) */
   menu?: ReactNode;
-  /** 본문을 2줄까지만 보여준다 (피드 카드의 댓글 미리보기) */
+  /** 본문을 1줄까지만 보여준다 (피드 카드의 댓글 미리보기) */
   isClamped?: boolean;
 }
 
@@ -33,7 +33,7 @@ function CommentRow({ authorName, createdAt, content, menu, isClamped = false }:
         <p
           className={cn(
             'text-body1 wrap-break-word whitespace-pre-line text-grey-8',
-            isClamped && 'line-clamp-2',
+            isClamped && 'line-clamp-1',
           )}
         >
           {content}

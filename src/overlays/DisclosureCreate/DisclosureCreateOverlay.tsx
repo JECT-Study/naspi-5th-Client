@@ -3,12 +3,10 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useBlocker, useNavigate } from 'react-router';
 import { createDisclosure } from '@/apis/domains/disclosure/disclosure.service';
 import {
-  DISCLOSURE_CONTENT_COUNTER_FROM,
   DISCLOSURE_CONTENT_MAX_LENGTH,
   DISCLOSURE_IMAGE_MAX_MB,
   DISCLOSURE_IMAGE_TYPES,
   DISCLOSURE_MAX_IMAGES,
-  DISCLOSURE_TITLE_COUNTER_FROM,
   DISCLOSURE_TITLE_MAX_LENGTH,
   isDisclosureFilled,
   isDisclosureImage,
@@ -22,10 +20,9 @@ import ConfirmModal from '@/components/overlay/ConfirmModal';
 import { CameraIcon, ImageIcon } from '@/components/ui/icons';
 import TaskHeader from '@/components/header/TaskHeader';
 import { useAutoHeight } from '@/hooks/useAutoHeight';
-import { useMaxLengthInput } from '@/hooks/useMaxLengthInput';
 import { isForcedNavigation } from '@/hooks/useOverlay';
 import { notify } from '@/libs/notify';
-import { cn } from '@/utils/cn';
+import { maxLengthHandlers } from '@/utils/maxLength';
 import ImageAttachments from './components/ImageAttachments';
 
 interface DisclosureCreateOverlayProps {
@@ -42,23 +39,8 @@ function DisclosureCreateOverlay({ roomId }: DisclosureCreateOverlayProps) {
 
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const {
-    ref: titleRef,
-    isOverLimit: isTitleOverLimit,
-    handlers: titleHandlers,
-  } = useMaxLengthInput<HTMLTextAreaElement>({
-    maxLength: DISCLOSURE_TITLE_MAX_LENGTH,
-    // 붙여넣은 줄바꿈도 빼서 제목을 한 줄 글로 둔다
-    onChange: (event) => setTitle(event.target.value.replace(/\n/g, ' ')),
-  });
-  const {
-    ref: contentRef,
-    isOverLimit: isContentOverLimit,
-    handlers: contentHandlers,
-  } = useMaxLengthInput<HTMLTextAreaElement>({
-    maxLength: DISCLOSURE_CONTENT_MAX_LENGTH,
-    onChange: (event) => setContent(event.target.value),
-  });
+  const titleRef = useRef<HTMLTextAreaElement>(null);
+  const contentRef = useRef<HTMLTextAreaElement>(null);
   useAutoHeight(titleRef, title);
   useAutoHeight(contentRef, content);
   const [images, setImages] = useState<File[]>([]);
@@ -134,8 +116,9 @@ function DisclosureCreateOverlay({ roomId }: DisclosureCreateOverlayProps) {
           {/* 시안 Post Header: 종목 이름 Body1.5 Grey/7 → 4 → 제목 */}
           <div className="flex flex-col gap-1">
             <span className="text-body1-5 text-grey-7">{myStock?.name}</span>
-            {/* 시안 TitleInput: Heading3 Grey/8 (안내 문구도 Grey/8). 길면 줄바꿈되고, 글자 수가 보이면 아래 32를 비운다 */}
-            <div className="relative">
+            {/* 시안 TitleInput: Heading3 Grey/8 (안내 문구도 Grey/8). 길면 줄바꿈된다
+                글자 수는 처음부터 제목 오른쪽 끝(마지막 줄 높이)에 둔다. 제목은 글자 수 앞에서 줄바꿈 (테두리 없는 칸이라 자리는 정함) */}
+            <div className="flex items-end gap-2">
               <textarea
                 ref={titleRef}
                 aria-label="제목"
@@ -143,26 +126,22 @@ function DisclosureCreateOverlay({ roomId }: DisclosureCreateOverlayProps) {
                 rows={1}
                 maxLength={DISCLOSURE_TITLE_MAX_LENGTH}
                 value={title}
-                className={cn(
-                  'block w-full resize-none text-heading3 text-grey-8 outline-none placeholder:text-grey-8',
-                  title.length >= DISCLOSURE_TITLE_COUNTER_FROM && 'pb-8',
-                )}
+                className="block min-w-0 flex-1 resize-none text-heading3 text-grey-8 outline-none placeholder:text-grey-8"
                 // 제목은 한 줄 글이라 Enter로 줄을 바꾸지 않는다 (화면에서만 길면 줄바꿈)
                 onKeyDown={(event) => {
                   if (event.key === 'Enter') event.preventDefault();
                 }}
-                {...titleHandlers}
+                {...maxLengthHandlers<HTMLTextAreaElement>((event) =>
+                  // 붙여넣은 줄바꿈도 빼서 제목을 한 줄 글로 둔다
+                  setTitle(event.target.value.replace(/\n/g, ' ')),
+                )}
               />
-              <CharCounter
-                length={title.length}
-                max={DISCLOSURE_TITLE_MAX_LENGTH}
-                showFrom={DISCLOSURE_TITLE_COUNTER_FROM}
-                isOverLimit={isTitleOverLimit}
-              />
+              <CharCounter length={title.length} max={DISCLOSURE_TITLE_MAX_LENGTH} />
             </div>
           </div>
-          {/* 시안 BodyInput: Body1.5 (안내 문구 Grey/6, 입력값 Grey/8). 처음엔 안내 두 줄 높이, 쓰는 만큼 늘어난다 */}
-          <div className="relative">
+          {/* 시안 BodyInput: Body1.5 (안내 문구 Grey/6, 입력값 Grey/8). 처음엔 안내 두 줄 높이, 쓰는 만큼 늘어난다
+              글자 수는 처음부터 본문 바로 아래 오른쪽 (사이 4) */}
+          <div className="flex flex-col items-end gap-1">
             <textarea
               ref={contentRef}
               aria-label="내용"
@@ -172,18 +151,10 @@ function DisclosureCreateOverlay({ roomId }: DisclosureCreateOverlayProps) {
               rows={2}
               maxLength={DISCLOSURE_CONTENT_MAX_LENGTH}
               value={content}
-              className={cn(
-                'block w-full resize-none text-body1-5 text-grey-8 outline-none placeholder:text-grey-6',
-                content.length >= DISCLOSURE_CONTENT_COUNTER_FROM && 'pb-8',
-              )}
-              {...contentHandlers}
+              className="block w-full resize-none text-body1-5 text-grey-8 outline-none placeholder:text-grey-6"
+              {...maxLengthHandlers<HTMLTextAreaElement>((event) => setContent(event.target.value))}
             />
-            <CharCounter
-              length={content.length}
-              max={DISCLOSURE_CONTENT_MAX_LENGTH}
-              showFrom={DISCLOSURE_CONTENT_COUNTER_FROM}
-              isOverLimit={isContentOverLimit}
-            />
+            <CharCounter length={content.length} max={DISCLOSURE_CONTENT_MAX_LENGTH} />
           </div>
           <ImageAttachments
             images={images}

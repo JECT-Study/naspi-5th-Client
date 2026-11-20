@@ -14,8 +14,6 @@ interface ValidationResult {
 export const STOCK_NAME_MAX_LENGTH = 12;
 /** 종목 소개 최대 글자 수 (서비스 정책 4.1: 최대 50자) */
 export const STOCK_DESCRIPTION_MAX_LENGTH = 50;
-/** 종목 소개 글자 수를 보여주기 시작하는 글자 수 (화면설계서 새 리그 3-3-1, 종목 정보 1-1) */
-export const STOCK_DESCRIPTION_COUNTER_FROM = 40;
 
 // 글자·숫자 없이 특수문자(공백 포함)로만 이루어졌는지
 const SPECIAL_CHAR_ONLY_REGEX = /^[^\p{L}\p{N}]+$/u;
