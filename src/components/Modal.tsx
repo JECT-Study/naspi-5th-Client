@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, type KeyboardEvent, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { cn } from '@/utils/cn';
+import { getOverlayRoot } from './appFrame';
 import { CloseIcon } from './icons';
 
 interface ModalProps {
@@ -31,7 +32,7 @@ interface ModalProps {
 // - 내용: 제목 Title2 Grey/8 + 설명 Body2 Grey/5, 가운데 정렬, 간격 8
 // - 버튼: 구분선(Grey/1 0.8) 아래 높이 48 (ModalActions)
 // 닫기 규칙(화면설계서 공통): X 버튼이 있으면 X·바깥 클릭으로 닫히고, 없으면 내부 버튼으로만 닫힌다
-// 부모에 transform이 생겨도 위치가 틀어지지 않도록 body에 그린다
+// 부모에 transform이 생겨도 위치가 틀어지지 않도록 앱 틀에 바로 그린다. 어두운 배경은 앱 틀만 덮는다 (components/appFrame)
 function Modal({
   title,
   description,
@@ -66,7 +67,7 @@ function Modal({
   const isNotice = variant === 'notice';
 
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+    <div className="absolute inset-0 z-50 flex items-center justify-center px-4">
       {/* 뒤 배경(딤)은 시안에 없어 임시 값 (프로토타입 연결 뒤 확인) */}
       <div className="absolute inset-0 bg-black/40" aria-hidden="true" onClick={close} />
       <div
@@ -117,7 +118,7 @@ function Modal({
         {footer && <div className="flex h-12 border-t-[0.8px] border-grey-1">{footer}</div>}
       </div>
     </div>,
-    document.body,
+    getOverlayRoot(),
   );
 }
 

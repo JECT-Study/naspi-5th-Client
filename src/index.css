@@ -168,6 +168,30 @@
       transform: translateY(0);
     }
   }
+
+  /* GNB 드로어 오른쪽에서 슬라이드 인 (닫힐 때는 GnbDrawer의 transition으로 슬라이드 아웃). 시안에 없어 바텀시트와 같은 0.25초로 둔다 */
+  --animate-drawer-in: drawer-in 250ms ease-out;
+
+  @keyframes drawer-in {
+    from {
+      transform: translateX(100%);
+    }
+    to {
+      transform: translateX(0);
+    }
+  }
+
+  /* 뒤 배경(딤) 서서히 나타나기 */
+  --animate-fade-in: fade-in 250ms ease-out;
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
 }
 
 /* Figma 글자 스타일 중 (t)가 붙은 것: 글자 상자 위아래 여백을 잘라 상자 높이를 글자 높이(대문자 높이 ~ 기준선)에 맞춘다
