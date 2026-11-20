@@ -4,6 +4,8 @@ import { NavLink, Outlet } from 'react-router';
 import { roomQueries } from '@/apis/domains/room/room.queries';
 import { stockQueries } from '@/apis/domains/stock/stock.queries';
 import PageHeader from '@/components/PageHeader';
+import TabIndicator from '@/components/TabIndicator';
+import { getTabClassName, TAB_LIST_CLASS } from '@/components/tabStyles';
 import { useRoomId } from '@/hooks/useRoomId';
 import { useStockId } from '@/hooks/useStockId';
 import { cn } from '@/utils/cn';
@@ -66,18 +68,22 @@ function StockLayout() {
         ) : (
           <div className="mx-9 mb-4 h-24 shrink-0 animate-pulse rounded-lg bg-gray-100" />
         )}
-        <nav className="sticky top-0 z-20 flex shrink-0 border-b bg-white">
+        {/* 시안 StockTab: 좌우 여백 24 안에 3칸 (360 화면에서 312). 스크롤해도 위에 붙어 있다 */}
+        <nav className={cn(TAB_LIST_CLASS, 'sticky top-0 z-20 px-6')}>
           {TABS.map((tab) => (
             <NavLink
               key={tab.label}
               to={tab.to}
               end={tab.end}
               replace
-              className={({ isActive }) =>
-                cn('flex-1 py-3 text-center', isActive && 'border-b-2 border-current font-bold')
-              }
+              className={({ isActive }) => getTabClassName(isActive)}
             >
-              {tab.label}
+              {({ isActive }) => (
+                <>
+                  {tab.label}
+                  {isActive && <TabIndicator />}
+                </>
+              )}
             </NavLink>
           ))}
         </nav>

@@ -2,8 +2,9 @@ import { useQuery } from '@tanstack/react-query';
 import { NavLink, Outlet } from 'react-router';
 import { roomQueries } from '@/apis/domains/room/room.queries';
 import LeagueHeader from '@/components/LeagueHeader';
+import TabIndicator from '@/components/TabIndicator';
+import { getTabClassName, TAB_LIST_CLASS } from '@/components/tabStyles';
 import { useRoomId } from '@/hooks/useRoomId';
-import { cn } from '@/utils/cn';
 
 const TABS = [
   { to: '', label: '피드', end: true },
@@ -22,18 +23,22 @@ function RoomTabsLayout() {
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <LeagueHeader leagueName={room?.name ?? ''} />
-      <nav className="flex border-b">
+      {/* 시안 Tab: 화면 폭 4칸 */}
+      <nav className={TAB_LIST_CLASS}>
         {TABS.map((tab) => (
           <NavLink
             key={tab.label}
             to={tab.to}
             end={tab.end}
             replace
-            className={({ isActive }) =>
-              cn('flex-1 py-3 text-center', isActive && 'border-b-2 border-current font-bold')
-            }
+            className={({ isActive }) => getTabClassName(isActive)}
           >
-            {tab.label}
+            {({ isActive }) => (
+              <>
+                {tab.label}
+                {isActive && <TabIndicator />}
+              </>
+            )}
           </NavLink>
         ))}
       </nav>

@@ -25,7 +25,8 @@ function MainHeader({ onEntrySelect }: MainHeaderProps) {
           icon={<PlusCircleIcon className="text-grey-8" />}
           buttonClassName={HEADER_ICON_BUTTON_CLASS}
           items={[
-            { label: '새 리그 만들기', onSelect: () => onEntrySelect('create') },
+            // 시안 ContextMenu/Main: 새 리그 만들기만 NSBlue로 강조
+            { label: '새 리그 만들기', tone: 'primary', onSelect: () => onEntrySelect('create') },
             { label: '코드로 참여', onSelect: () => onEntrySelect('join') },
           ]}
         />
