@@ -72,8 +72,15 @@ function StockLayout() {
           // 임시 자리 표시 (스켈레톤 시안 작업 중, 나오면 교체): 시세 요약 자리
           <div className="mx-6 mt-7 mb-5 h-21 shrink-0 animate-pulse rounded-md bg-grey-0" />
         )}
-        {/* 시안 StockTab: 좌우 여백 24 안에 3칸 (360 화면에서 312). 스크롤해도 위에 붙어 있다 */}
-        <nav className={cn(TAB_LIST_CLASS, 'sticky top-0 z-20 px-6')}>
+        {/* 시안 StockTab: 좌우 여백 24 안에 3칸 (360 화면에서 312). 스크롤해도 위에 붙어 있다
+            브라우저 확대 배율에 따라 상단바와 탭 경계에 1px 미만 틈이 그려져 뒤 내용이 비칠 수 있어,
+            탭 위로 1px 흰색을 덧칠해 가린다 (크기·위치는 그대로) */}
+        <nav
+          className={cn(
+            TAB_LIST_CLASS,
+            'sticky top-0 z-20 px-6 shadow-[0_-1px_0_var(--color-white)]',
+          )}
+        >
           {TABS.map((tab) => (
             <NavLink
               key={tab.label}

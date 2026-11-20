@@ -20,7 +20,6 @@ import { stockQueries } from '@/apis/domains/stock/stock.queries';
 import CharCounter from '@/components/ui/CharCounter';
 import ConfirmModal from '@/components/overlay/ConfirmModal';
 import { CameraIcon, ImageIcon } from '@/components/ui/icons';
-import StockAvatar from '@/components/stock/StockAvatar';
 import TaskHeader from '@/components/header/TaskHeader';
 import { useAutoHeight } from '@/hooks/useAutoHeight';
 import { useMaxLengthInput } from '@/hooks/useMaxLengthInput';
@@ -61,6 +60,7 @@ function DisclosureCreateOverlay({ roomId }: DisclosureCreateOverlayProps) {
     onChange: (event) => setContent(event.target.value),
   });
   useAutoHeight(titleRef, title);
+  useAutoHeight(contentRef, content);
   const [images, setImages] = useState<File[]>([]);
   const galleryInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
@@ -122,66 +122,77 @@ function DisclosureCreateOverlay({ roomId }: DisclosureCreateOverlayProps) {
           onClick: () => mutate(),
         }}
       />
-      <main className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-9 py-2">
-        <div className="flex items-center gap-2">
-          <StockAvatar name={myStock?.name ?? ' '} className="size-7 text-xs" />
-          <span className="text-sm font-bold">{myStock?.name}</span>
+      {/* 시안 '공시 작성 콘텐츠': 위아래 8, 안쪽 폼은 위 20·좌우 24·아래 16, 칸 사이 24
+          폼 아래 빈 곳을 눌러도 내용 칸에 입력되게 한다 */}
+      <main
+        className="flex min-h-0 flex-1 flex-col overflow-y-auto py-2"
+        onClick={(event) => {
+          if (event.target === event.currentTarget) contentRef.current?.focus();
+        }}
+      >
+        <div className="flex flex-col gap-6 px-6 pt-5 pb-4">
+          {/* 시안 Post Header: 종목 이름 Body1.5 Grey/7 → 4 → 제목 */}
+          <div className="flex flex-col gap-1">
+            <span className="text-body1-5 text-grey-7">{myStock?.name}</span>
+            {/* 시안 TitleInput: Heading3 Grey/8 (안내 문구도 Grey/8). 길면 줄바꿈되고, 글자 수가 보이면 아래 32를 비운다 */}
+            <div className="relative">
+              <textarea
+                ref={titleRef}
+                aria-label="제목"
+                placeholder="제목을 입력해 주세요."
+                rows={1}
+                maxLength={DISCLOSURE_TITLE_MAX_LENGTH}
+                value={title}
+                className={cn(
+                  'block w-full resize-none text-heading3 text-grey-8 outline-none placeholder:text-grey-8',
+                  title.length >= DISCLOSURE_TITLE_COUNTER_FROM && 'pb-8',
+                )}
+                // 제목은 한 줄 글이라 Enter로 줄을 바꾸지 않는다 (화면에서만 길면 줄바꿈)
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') event.preventDefault();
+                }}
+                {...titleHandlers}
+              />
+              <CharCounter
+                length={title.length}
+                max={DISCLOSURE_TITLE_MAX_LENGTH}
+                showFrom={DISCLOSURE_TITLE_COUNTER_FROM}
+                isOverLimit={isTitleOverLimit}
+              />
+            </div>
+          </div>
+          {/* 시안 BodyInput: Body1.5 (안내 문구 Grey/6, 입력값 Grey/8). 처음엔 안내 두 줄 높이, 쓰는 만큼 늘어난다 */}
+          <div className="relative">
+            <textarea
+              ref={contentRef}
+              aria-label="내용"
+              placeholder={
+                '오늘 있었던 일을 친구들과 공유해 주세요.\n작성한 소식을 바탕으로 AI 공시브리핑이 발행돼요.'
+              }
+              rows={2}
+              maxLength={DISCLOSURE_CONTENT_MAX_LENGTH}
+              value={content}
+              className={cn(
+                'block w-full resize-none text-body1-5 text-grey-8 outline-none placeholder:text-grey-6',
+                content.length >= DISCLOSURE_CONTENT_COUNTER_FROM && 'pb-8',
+              )}
+              {...contentHandlers}
+            />
+            <CharCounter
+              length={content.length}
+              max={DISCLOSURE_CONTENT_MAX_LENGTH}
+              showFrom={DISCLOSURE_CONTENT_COUNTER_FROM}
+              isOverLimit={isContentOverLimit}
+            />
+          </div>
+          <ImageAttachments
+            images={images}
+            onRemove={(index) => setImages((prev) => prev.filter((_, i) => i !== index))}
+          />
         </div>
-        {/* 시안 TitleInput: Heading3 Grey/8 (안내 문구도 Grey/8). 길면 줄바꿈되고, 글자 수가 보이면 아래 32를 비운다 */}
-        <div className="relative">
-          <textarea
-            ref={titleRef}
-            aria-label="제목"
-            placeholder="제목을 입력해 주세요."
-            rows={1}
-            maxLength={DISCLOSURE_TITLE_MAX_LENGTH}
-            value={title}
-            className={cn(
-              'block w-full resize-none text-heading3 text-grey-8 outline-none placeholder:text-grey-8',
-              title.length >= DISCLOSURE_TITLE_COUNTER_FROM && 'pb-8',
-            )}
-            // 제목은 한 줄 글이라 Enter로 줄을 바꾸지 않는다 (화면에서만 길면 줄바꿈)
-            onKeyDown={(event) => {
-              if (event.key === 'Enter') event.preventDefault();
-            }}
-            {...titleHandlers}
-          />
-          <CharCounter
-            length={title.length}
-            max={DISCLOSURE_TITLE_MAX_LENGTH}
-            showFrom={DISCLOSURE_TITLE_COUNTER_FROM}
-            isOverLimit={isTitleOverLimit}
-          />
-        </div>
-        {/* 시안 BodyInput: Body1.5 (안내 문구 Grey/6, 입력값 Grey/8). 남은 높이를 채워 어디를 눌러도 입력된다 */}
-        <div className="relative flex flex-1 flex-col">
-          <textarea
-            ref={contentRef}
-            aria-label="내용"
-            placeholder={
-              '오늘 있었던 일을 친구들과 공유해 주세요.\n작성한 소식을 바탕으로 AI 공시브리핑이 발행돼요.'
-            }
-            maxLength={DISCLOSURE_CONTENT_MAX_LENGTH}
-            value={content}
-            className={cn(
-              'min-h-40 flex-1 resize-none text-body1-5 text-grey-8 outline-none placeholder:text-grey-6',
-              content.length >= DISCLOSURE_CONTENT_COUNTER_FROM && 'pb-8',
-            )}
-            {...contentHandlers}
-          />
-          <CharCounter
-            length={content.length}
-            max={DISCLOSURE_CONTENT_MAX_LENGTH}
-            showFrom={DISCLOSURE_CONTENT_COUNTER_FROM}
-            isOverLimit={isContentOverLimit}
-          />
-        </div>
-        <ImageAttachments
-          images={images}
-          onRemove={(index) => setImages((prev) => prev.filter((_, i) => i !== index))}
-        />
       </main>
-      <footer className="flex shrink-0 items-center gap-4 border-t px-9 pt-3 pb-5 text-gray-500">
+      {/* 시안 '이미지업로드': 왼쪽 16에 카메라·갤러리 24 (사이 6), 화면 아래에서 19 위 */}
+      <footer className="flex shrink-0 items-center gap-1.5 px-4 pt-2 pb-4.75">
         <button
           type="button"
           aria-label="사진 찍기"
@@ -196,9 +207,6 @@ function DisclosureCreateOverlay({ roomId }: DisclosureCreateOverlayProps) {
         >
           <ImageIcon className="text-grey-8" />
         </button>
-        <span className="ml-auto text-xs">
-          {images.length}/{DISCLOSURE_MAX_IMAGES}
-        </span>
         <input
           ref={cameraInputRef}
           type="file"

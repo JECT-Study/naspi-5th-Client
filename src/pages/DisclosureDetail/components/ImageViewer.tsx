@@ -16,6 +16,7 @@ interface ImageViewerProps {
 const SWIPE_THRESHOLD = 50;
 
 // 사진 한 장: 못 불러오면 그 자리에서 다시 시도 (공시 상세 3-2)
+// 시안 '이미지 확장 (조회 실패)': 사진 자리(화면 폭, 3:4)에 Grey/0 상자, 가운데 문구 Body1 Grey/7 → 18 → 다시 시도
 function Slide({ src }: { src: string }) {
   const [hasError, setHasError] = useState(false);
   // 다시 시도할 때 img를 새로 그려 다시 요청하게 한다
@@ -24,8 +25,8 @@ function Slide({ src }: { src: string }) {
   return (
     <div className="flex h-full w-full shrink-0 items-center justify-center">
       {hasError ? (
-        <div className="flex flex-col items-center gap-3 text-sm text-white">
-          <p>이미지를 불러오지 못했어요.</p>
+        <div className="flex aspect-3/4 max-h-full w-full flex-col items-center justify-center gap-4.5 bg-grey-0">
+          <p className="text-body1 text-grey-7">이미지를 불러오지 못했어요.</p>
           <RetryButton
             onClick={() => {
               setHasError(false);
@@ -47,7 +48,9 @@ function Slide({ src }: { src: string }) {
   );
 }
 
-// 이미지 확장 (공시 상세 3-1): 검은 화면에 사진을 크게, 위에는 {현재 번호}/{전체 수}
+// 이미지 확장 (공시 상세 3-1): Grey/8 화면에 사진을 크게, 위에는 {현재 번호}/{전체 수}
+// 시안 '이미지 뷰어 헤더': 높이 53, 좌우 12. 왼쪽 굵은 X 24 흰색, 가운데 "2/3" Title1 흰색
+// (시안 오른쪽 휴지통은 공시 쓰기의 첨부 사진 보기용으로 보여 상세에는 넣지 않음)
 // 왼쪽으로 밀면 다음 사진, 오른쪽으로 밀면 이전 사진. 미는 동안 손가락을 따라 움직인다
 // X 버튼(또는 ESC)을 누르면 닫히고 공시 상세로 돌아간다. PC에서는 ←/→ 키로도 넘긴다
 function ImageViewer({ images, initialIndex, onClose }: ImageViewerProps) {
@@ -99,13 +102,13 @@ function ImageViewer({ images, initialIndex, onClose }: ImageViewerProps) {
       aria-modal="true"
       aria-label="이미지 확대 보기"
       // 다른 덮개처럼 앱 틀 안을 꽉 채운다 (components/appFrame)
-      className="absolute inset-0 z-50 flex flex-col bg-black"
+      className="absolute inset-0 z-50 flex flex-col bg-grey-8"
     >
-      <header className="relative flex h-16 shrink-0 items-center justify-center text-sm text-white">
+      <header className="relative flex h-13.25 shrink-0 items-center justify-center text-title1 text-white">
         <button
           type="button"
           aria-label="닫기"
-          className="absolute top-1/2 left-6 -translate-y-1/2"
+          className="absolute top-1/2 left-3 -translate-y-1/2"
           onClick={onClose}
         >
           <CloseBoldIcon className="text-white" />

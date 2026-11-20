@@ -4,11 +4,11 @@ import { commentKeys, commentQueries } from '@/apis/domains/comment/comment.quer
 import { deleteComment } from '@/apis/domains/comment/comment.service';
 import type { Comment, CommentTargetType } from '@/apis/domains/comment/comment.types';
 import type { RoomId } from '@/apis/domains/room/room.types';
-import { formatRelativeTime } from '@/utils/date';
 import ConfirmModal from '@/components/overlay/ConfirmModal';
 import Dropdown from '@/components/ui/Dropdown';
-import { MoreIcon, ReplyIcon } from '@/components/ui/icons';
+import { MoreIcon } from '@/components/ui/icons';
 import LoadError from '@/components/status/LoadError';
+import CommentRow from './CommentRow';
 
 interface CommentSectionProps {
   roomId: RoomId;
@@ -36,36 +36,40 @@ function CommentSection({ roomId, targetType, targetId, onChanged }: CommentSect
     meta: { action: '삭제' },
   });
 
-  if (comments.isPending) return <div className="h-16 animate-pulse rounded-lg bg-gray-100" />;
+  if (comments.isPending) {
+    // 임시 자리 표시 (스켈레톤 시안 작업 중, 나오면 교체): 댓글 한 줄 자리
+    return (
+      <div className="px-3.75 py-3">
+        <div className="h-12 animate-pulse rounded-md bg-grey-0" />
+      </div>
+    );
+  }
   if (comments.isError) {
     return <LoadError size="inline" className="py-6" onRetry={() => comments.refetch()} />;
   }
 
+  // 시안: 댓글 줄(72)이 사이 없이 이어진다
   return (
     <section>
-      <ul className="flex flex-col gap-4">
+      <ul className="flex flex-col">
         {comments.data.map((comment) => (
-          <li key={comment.commentId} className="flex gap-2">
-            <ReplyIcon className="text-grey-4" />
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2 text-xs">
-                <span className="font-bold">{comment.authorName}</span>
-                <span className="ml-auto text-gray-400">
-                  {formatRelativeTime(new Date(comment.createdAt))}
-                </span>
-                {comment.isMine && (
+          <li key={comment.commentId}>
+            <CommentRow
+              authorName={comment.authorName}
+              createdAt={comment.createdAt}
+              content={comment.content}
+              menu={
+                comment.isMine && (
                   // 댓글 미트볼 → 드롭다운 '삭제하기' → 확인 모달 (공시 상세 6, 뉴스 상세 3)
                   <Dropdown
                     label="댓글 메뉴"
                     icon={<MoreIcon size={18} className="text-grey-6" />}
+                    buttonClassName="flex"
                     items={[{ label: '삭제하기', onSelect: () => setDeleteTarget(comment) }]}
                   />
-                )}
-              </div>
-              <p className="mt-0.5 text-sm wrap-break-word whitespace-pre-line text-gray-700">
-                {comment.content}
-              </p>
-            </div>
+                )
+              }
+            />
           </li>
         ))}
       </ul>
