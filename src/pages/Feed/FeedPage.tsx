@@ -35,9 +35,9 @@ function FeedPage() {
               </div>
             </div>
           }
-          // 가장 오래된 콘텐츠 아래 (리그 피드 4). 시안 '피드끝': 흰 카드(여백 12)에 Caption1 Grey/8 한 줄
+          // 가장 오래된 콘텐츠 아래 (리그 피드 4). 시안 '피드끝': 흰 카드(여백 12)에 Caption1 Grey/8, 가운데 정렬
           end={
-            <p className="bg-white p-3 text-caption1 text-grey-8">
+            <p className="bg-white p-3 text-center text-caption1 text-grey-8">
               모든 소식을 확인했어요. 친구들에게 새 소식을 전해보세요.
             </p>
           }
