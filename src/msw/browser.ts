@@ -15,5 +15,7 @@ export const startMsw = async () => {
     onUnhandledFrame: 'bypass',
     quiet: true,
   });
-  console.info(`[MSW] 시나리오: ${scenario} (끄려면 ?msw=off)`);
+  console.info(
+    `[MSW] 시나리오: ${scenario} (새로고침하면 꺼진다. 계속 쓰려면 주소에 ?msw=${scenario})`,
+  );
 };
