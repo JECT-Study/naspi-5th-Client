@@ -47,7 +47,7 @@ const formatExpiry = (days: number) => {
 // - 상단 메뉴(1): 모두에게 보인다. 방장은 리그 이름 수정·대기실 나가기·대기실 삭제(1-1), 참여자·대기자는 대기실 나가기(1-4)
 // - 내 종목 메뉴(4): 방장 본인 종목에만 (내 종목 수정하기). 참여자·대기자는 하단 버튼으로만 상장·수정한다
 // - 친구 메뉴(5): 방장만, 상장한 친구·대기 중인 친구 모두 (내보내기)
-// - 대기자는 내 종목 영역 없이 대기 중인 친구에 내 이름이 나온다 (메뉴 없음)
+// - 참여자 목록은 시안대로 한 상자에 상장 완료 → 상장 대기 순, 나는 내 상태 묶음 맨 앞 (대기자인 나는 메뉴 없음)
 // - 하단: 방장 리그 시작하기 (참여자 3명 이상일 때 활성화), 참여자 내 종목 수정하기, 대기자 내 종목 상장하기
 // - 리그 시작 전 삭제·나가기 문구에는 '대기실'을 쓴다 (설계서 v.1.5)
 function WaitingPage() {
@@ -141,8 +141,13 @@ function WaitingPage() {
   // 상장된 종목 현황: 방장·참여자·대기자를 합한 인원 중 상장을 마친 인원
   const listedCount = room.members.filter((member) => member.stock).length;
   const daysUntilExpiry = getDaysUntil(new Date(room.expiresAt));
-  // 대기자인 나는 대기 중인 친구 맨 앞에 나온다
-  const waitingMembers = me && !myStock ? [me, ...waitingFriends] : waitingFriends;
+  // 시안 순서: 상장 완료한 사람 → 상장 대기인 사람. 나는 내 상태 묶음의 맨 앞 (시안에 내 줄 표시가 없어 정함)
+  const orderedMembers = [
+    ...(me && myStock ? [me] : []),
+    ...listedFriends,
+    ...(me && !myStock ? [me] : []),
+    ...waitingFriends,
+  ];
 
   const leaveAction = { label: '대기실 나가기', onSelect: () => setModal({ type: 'leave' }) };
   // 상단 메뉴: 방장 리그 드롭다운(1-1) / 참여자·대기자 일반 리그 드롭다운(1-4)
@@ -154,7 +159,8 @@ function WaitingPage() {
       ]
     : [leaveAction];
   // 내 종목 메뉴(4-1): 방장 본인 종목에만. 방장은 하단에 종목 수정 버튼이 없어서 여기서 수정한다
-  const myStockActions = isHost ? [{ label: '내 종목 수정하기', onSelect: openListing }] : [];
+  const myStockActions =
+    isHost && myStock ? [{ label: '내 종목 수정하기', onSelect: openListing }] : [];
   // 친구 메뉴(5-1): 방장만 내보내기. 내 줄(대기자인 나)에는 메뉴가 없다
   const getMemberActions = (member: WaitingMember) =>
     isHost && !member.isMe
@@ -187,9 +193,10 @@ function WaitingPage() {
         // 상단 메뉴는 대기실 멤버 모두에게 보인다 (방장·참여자·대기자, 대기실 1)
         menu={me ? { label: '대기실 메뉴', items: headerMenu } : undefined}
       />
-      <main className="flex min-h-0 flex-1 flex-col gap-8 overflow-y-auto px-9 pt-4">
+      {/* 시안 대기실: 위 8, 만료 배너 → 초대 코드 영역 → 리그 참여자 영역 (영역마다 안쪽 여백) */}
+      <main className="flex min-h-0 flex-1 flex-col overflow-y-auto pt-2">
         {daysUntilExpiry <= EXPIRY_BANNER_DAYS && (
-          // 시안 대기실 만료 안내 배너: SubBuy2 바탕, 안에 오류 문구(Notice 18 + 빨간 글자)
+          // 시안 대기실 만료 안내 배너: 화면 폭 전체, SubBuy2 바탕, 여백 12·16, 안에 오류 문구(Notice 18 + 빨간 글자)
           <div className="bg-sub-buy-2 px-4 py-3">
             <FieldMessage>
               대기실이 {formatExpiry(daysUntilExpiry)} 사라져요. 그 전에 리그를 시작해 주세요.
@@ -199,49 +206,35 @@ function WaitingPage() {
 
         <InviteCodeSection inviteCode={room.inviteCode} />
 
-        <section>
-          <div className="flex items-center justify-between">
-            <h2 className="font-bold">상장된 종목</h2>
-            <span className="text-sm text-gray-500">
-              {listedCount}/{room.members.length}
-            </span>
+        {/* 시안 '리그 참여자 영역' (사용자 결정: 설계서의 내 종목·친구 종목·대기 중인 친구 대신 시안 구조)
+            - 여백 20·24·16, 안내와 목록 사이 16
+            - 안내: "리그 참여자" Title3 Grey/8 + 오른쪽 상장 현황 Title4 NSBlue, 4 띄우고 설명 Body2.5 Grey/6
+            - 목록: 흰색 + Grey/2 테두리 상자(모서리 10, 여백 12·8), 줄 사이 8 */}
+        <section className="flex flex-col gap-4 px-6 pt-5 pb-4">
+          <div className="flex flex-col gap-1">
+            <div className="flex items-center justify-between gap-1">
+              <h2 className="text-title3 text-grey-8">리그 참여자</h2>
+              {/* 상장된 종목 현황 (대기실 3) */}
+              <span className="text-title4 text-ns-blue">
+                {listedCount}/{room.members.length}
+              </span>
+            </div>
+            <p className="text-body2-5 text-grey-6">
+              모든 친구가 상장을 완료하면, 방장이 리그를 시작할 수 있어요.
+            </p>
           </div>
-          <p className="mt-1 text-xs text-gray-500">
-            모든 친구가 상장을 완료하면, 방장이 리그를 시작할 수 있어요.
-          </p>
-          {me?.stock && (
-            <div className="mt-4">
-              <h3 className="text-sm text-gray-500">내 종목</h3>
-              <MemberRow member={me} actions={myStockActions} />
-            </div>
-          )}
-          {listedFriends.length > 0 && (
-            <div className="mt-4">
-              <h3 className="text-sm text-gray-500">친구 종목</h3>
-              <ul>
-                {listedFriends.map((member) => (
-                  <li key={member.userId}>
-                    <MemberRow member={member} actions={getMemberActions(member)} />
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+          <ul className="flex flex-col gap-2 rounded-[10px] border border-grey-2 bg-white px-2 py-3">
+            {orderedMembers.map((member) => (
+              <li key={member.userId}>
+                <MemberRow
+                  member={member}
+                  actions={member.isMe ? myStockActions : getMemberActions(member)}
+                />
+              </li>
+            ))}
+          </ul>
         </section>
-
-        {waitingMembers.length > 0 && (
-          <section>
-            <h2 className="text-sm text-gray-500">대기 중인 친구</h2>
-            <ul>
-              {waitingMembers.map((member) => (
-                <li key={member.userId}>
-                  <MemberRow member={member} actions={getMemberActions(member)} />
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
-        <FloatingFooter>
+        <FloatingFooter className="px-4.5">
           {/* 방장 포함 참여자(상장 완료)가 3명 이상이어야 누를 수 있다 */}
           {isHost && (
             <Button
