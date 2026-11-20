@@ -14,7 +14,8 @@ function ToggleSwitch({ checked, onChange, label }: ToggleSwitchProps) {
       type="button"
       role="switch"
       aria-checked={checked}
-      className="flex items-center gap-1.5 text-xs text-gray-500"
+      // 시안 '호가 자세히 보기 설정': 문구 Body1 Grey/4(켜짐·꺼짐 같음), 스위치와 사이 4
+      className="flex items-center gap-1 text-body1 text-grey-4"
       onClick={() => onChange(!checked)}
     >
       {label}
