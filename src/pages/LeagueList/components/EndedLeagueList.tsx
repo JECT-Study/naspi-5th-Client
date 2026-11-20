@@ -1,6 +1,6 @@
 import type { EndedRoom } from '@/apis/domains/room/room.types';
 import { formatKstDate } from '@/utils/date';
-import LeagueCard from './LeagueCard';
+import LeagueCard, { OutlineBadge } from './LeagueCard';
 
 interface EndedLeagueListProps {
   ended: EndedRoom[];
@@ -19,15 +19,16 @@ function EndedLeagueList({ ended }: EndedLeagueListProps) {
     );
   }
 
-  // 종료된 리그 시안은 다음 섹션에서 적용 (지금은 진행 중 카드 틀만 빌려 씀)
+  // 시안 '종료된 리그': 묶음 제목 없이 카드 목록만 (위아래 16, 좌우 12, 카드 사이 8)
+  // 카드는 진행 중인 리그와 같은 모양, 배지에 최종 순위
   return (
-    <div className="flex flex-col gap-2 px-3 pt-4">
+    <div className="flex flex-col gap-2 px-3 py-4">
       {ended.map((room) => (
         <LeagueCard
           key={room.roomId}
           to={`/leagues/${room.roomId}/result`}
           name={room.name}
-          badge={<span className="shrink-0 text-title4 text-grey-6">{room.rank}위</span>}
+          badge={<OutlineBadge>{room.rank}위</OutlineBadge>}
           meta={`${room.participantCount}명`}
           date={`${formatKstDate(new Date(room.endedAt))} 종료`}
         />

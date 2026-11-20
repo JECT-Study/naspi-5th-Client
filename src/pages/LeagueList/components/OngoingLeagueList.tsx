@@ -4,7 +4,7 @@ import Button from '@/components/ui/Button';
 import ErrorIllustration from '@/components/ui/ErrorIllustration';
 import { useOpenLeagueEntry } from '@/hooks/useOpenLeagueEntry';
 import { formatDday, formatKstDate, getDaysUntil } from '@/utils/date';
-import LeagueCard, { DdayBadge, ListingBadge } from './LeagueCard';
+import LeagueCard, { ListingBadge, OutlineBadge } from './LeagueCard';
 
 interface OngoingLeagueListProps {
   ongoing: OngoingRoom[];
@@ -56,7 +56,7 @@ function OngoingLeagueList({ ongoing, waiting }: OngoingLeagueListProps) {
                 key={room.roomId}
                 to={`/leagues/${room.roomId}`}
                 name={room.name}
-                badge={<DdayBadge>{formatDday(getDaysUntil(endAt))}</DdayBadge>}
+                badge={<OutlineBadge>{formatDday(getDaysUntil(endAt))}</OutlineBadge>}
                 meta={`${room.participantCount}명`}
                 date={`${formatKstDate(endAt)} 종료 예정`}
               />

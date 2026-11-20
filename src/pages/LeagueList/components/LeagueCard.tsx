@@ -5,7 +5,7 @@ import { cn } from '@/utils/cn';
 interface LeagueCardProps {
   to: string;
   name: string;
-  /** 오른쪽 위 배지 (DdayBadge, ListingBadge 등) */
+  /** 오른쪽 위 배지 (OutlineBadge, ListingBadge) */
   badge: ReactNode;
   /** 아래 줄 왼쪽 */
   meta: string;
@@ -39,8 +39,8 @@ function LeagueCard({ to, name, badge, meta, date, tone = 'default' }: LeagueCar
   );
 }
 
-/** 진행 중인 리그 종료 디데이 배지: 64×26, NSBlue 테두리, Title4(t) NSBlue */
-export function DdayBadge({ children }: { children: ReactNode }) {
+/** NSBlue 테두리 배지: 64×26, Title4(t) NSBlue. 진행 중인 리그 종료 디데이(D-3), 종료된 리그 최종 순위(2위) */
+export function OutlineBadge({ children }: { children: ReactNode }) {
   return (
     <span className="flex h-6.5 w-16 shrink-0 items-center justify-center rounded-md border border-ns-blue bg-white">
       <span className="text-title4-t text-ns-blue">{children}</span>
