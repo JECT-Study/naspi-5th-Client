@@ -101,12 +101,12 @@ function MyNameField({ name }: MyNameFieldProps) {
           </div>
         </form>
       ) : (
-        // 이름 줄 (높이 22): 이름 Title2 NSBlue, 8 띄우고 Edit 18 아이콘 버튼. 불러오는 중이면 이름 자리만 흐리게
+        // 이름 줄 (높이 22): "{이름} 님" Title2 NSBlue, 8 띄우고 Edit 18 아이콘 버튼. 불러오는 중이면 이름 자리만 흐리게
         <div className="flex h-5.5 items-center gap-2">
           {name === undefined ? (
             <div className="h-5.5 w-14 animate-pulse rounded-md bg-grey-0" />
           ) : (
-            <span className="truncate text-title2 text-ns-blue">{name}</span>
+            <span className="truncate text-title2 text-ns-blue">{name} 님</span>
           )}
           <button
             type="button"

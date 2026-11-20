@@ -27,7 +27,7 @@ function MainHeader({ onEntrySelect }: MainHeaderProps) {
           items={[
             // 시안 ContextMenu/Main: 새 리그 만들기만 NSBlue로 강조
             { label: '새 리그 만들기', tone: 'primary', onSelect: () => onEntrySelect('create') },
-            { label: '코드로 참여', onSelect: () => onEntrySelect('join') },
+            { label: '코드로 참여하기', onSelect: () => onEntrySelect('join') },
           ]}
         />
         <GnbMenuButton />

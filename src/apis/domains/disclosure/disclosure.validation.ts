@@ -2,9 +2,6 @@
 export const DISCLOSURE_TITLE_MAX_LENGTH = 30;
 /** 공시 본문 최대 글자 수 (서비스 정책 3.1: 1~300자) */
 export const DISCLOSURE_CONTENT_MAX_LENGTH = 300;
-/** 글자 수를 보여주기 시작하는 글자 수 (화면설계서 공시 쓰기 3-1) */
-export const DISCLOSURE_TITLE_COUNTER_FROM = 20;
-export const DISCLOSURE_CONTENT_COUNTER_FROM = 290;
 /** 첨부 이미지 최대 개수 (서비스 정책 3.1) */
 export const DISCLOSURE_MAX_IMAGES = 4;
 /** 첨부할 수 있는 이미지 형식: JPEG(.jpg/.jpeg), PNG (서비스 정책 3.1) */

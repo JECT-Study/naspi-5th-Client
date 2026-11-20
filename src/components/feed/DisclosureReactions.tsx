@@ -16,21 +16,19 @@ interface DisclosureReactionsProps {
   bearishCount: number;
 }
 
-// 시안: 호재는 파랑(NSSell), 악재는 빨강(NSBuy). 눌린 상태는 시안에 없어 칩 바탕색(SubSell1·SubBuy1)을 임시로 쓴다
+// 안 누른 상태는 Grey/5 글자·아이콘, 누른 상태는 시안 색(호재 파랑 NSSell, 악재 빨강 NSBuy) (디자이너 확인)
 const REACTIONS = [
   {
     reaction: 'BULLISH',
     label: '호재',
     Icon: ThumbUpIcon,
-    colorClass: 'text-ns-sell',
-    pressedClass: 'bg-sub-sell-1',
+    pressedClass: 'text-ns-sell',
   },
   {
     reaction: 'BEARISH',
     label: '악재',
     Icon: ThumbDownIcon,
-    colorClass: 'text-ns-buy',
-    pressedClass: 'bg-sub-buy-1',
+    pressedClass: 'text-ns-buy',
   },
 ] as const;
 
@@ -94,7 +92,7 @@ function DisclosureReactions({
 
   return (
     <>
-      {REACTIONS.map(({ reaction, label, Icon, colorClass, pressedClass }) => (
+      {REACTIONS.map(({ reaction, label, Icon, pressedClass }) => (
         <button
           key={reaction}
           type="button"
@@ -102,8 +100,7 @@ function DisclosureReactions({
           className={cn(
             // 시안: 높이 30, 안쪽 여백 4·8, 모서리 6, Grey/1 바탕, 아이콘 18 + 간격 2 + Button3
             // touch-manipulation: 더블탭 확대를 기다리느라 탭이 늦어지지 않게 한다
-            'flex h-7.5 touch-manipulation items-center gap-0.5 rounded-md bg-grey-1 px-2 py-1 text-button3',
-            colorClass,
+            'flex h-7.5 touch-manipulation items-center gap-0.5 rounded-md bg-grey-1 px-2 py-1 text-button3 text-grey-5',
             shownReaction === reaction && pressedClass,
           )}
           onClick={() => handleClick(reaction)}

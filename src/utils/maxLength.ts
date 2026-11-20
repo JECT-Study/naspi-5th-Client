@@ -13,6 +13,10 @@ export type TextElement = HTMLInputElement | HTMLTextAreaElement;
 // 그래서 입력될 때마다(조합 중이어도) 넘친 글자를 바로 잘라 낸다. 조합이 끝날 때 한 번 더 자른다
 // (포커스를 뺐다 넣어 조합을 끝내는 방법은 iOS에서 키보드가 다시 올라오지 않을 수 있어 쓰지 않는다)
 
+/** 최대 글자 수에 닿았는지. 닿으면 글자 수와 입력칸 테두리를 붉게 한다 (디자이너 확인) */
+export const isAtMaxLength = (length: number, max: number | undefined): boolean =>
+  max !== undefined && length >= max;
+
 /** maxLength를 넘은 글자를 잘라 낸다. 잘랐으면 true */
 const trimOverflow = (element: TextElement): boolean => {
   const { maxLength, value } = element;
@@ -23,25 +27,21 @@ const trimOverflow = (element: TextElement): boolean => {
 
 /**
  * maxLength가 있는 입력칸에 붙이는 onChange·onCompositionEnd
- * 넘친 글자를 잘라 낸 값으로 원래 onChange를 부른다. 잘라 냈으면 onOverflow도 부른다 (넘겨 입력하려 한 것)
+ * 넘친 글자를 잘라 낸 값으로 원래 onChange를 부른다
  * @example <input maxLength={5} {...maxLengthHandlers((event) => setName(event.target.value))} />
  */
 export const maxLengthHandlers = <T extends TextElement>(
   onChange?: ChangeEventHandler<T>,
   onCompositionEnd?: CompositionEventHandler<T>,
-  onOverflow?: () => void,
 ) => ({
   onChange: (event: ChangeEvent<T>) => {
-    if (trimOverflow(event.currentTarget)) onOverflow?.();
+    trimOverflow(event.currentTarget);
     onChange?.(event);
   },
   onCompositionEnd: (event: CompositionEvent<T>) => {
     onCompositionEnd?.(event);
     // 브라우저에 따라 조합이 끝난 뒤 입력 이벤트가 다시 오지 않으므로, 잘랐으면 여기서 바뀐 값을 알린다
     // 받는 쪽은 event.target.value만 읽으므로 같은 입력칸의 이벤트를 그대로 넘긴다
-    if (trimOverflow(event.currentTarget)) {
-      onOverflow?.();
-      onChange?.(event as unknown as ChangeEvent<T>);
-    }
+    if (trimOverflow(event.currentTarget)) onChange?.(event as unknown as ChangeEvent<T>);
   },
 });

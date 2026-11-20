@@ -168,7 +168,7 @@ function GnbDrawer() {
                 {(
                   [
                     ['leagueCreate', '새 리그 만들기', 'text-ns-blue'],
-                    ['leagueJoin', '코드로 참여', 'text-grey-8'],
+                    ['leagueJoin', '코드로 참여하기', 'text-grey-8'],
                   ] as const
                 ).map(([type, label, color]) => (
                   <button

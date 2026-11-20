@@ -21,8 +21,8 @@ interface DropdownProps {
 // 아이콘 버튼 + 아래로 펼쳐지는 메뉴 (메인 + 버튼, 대기실·공시·댓글 점 3개 메뉴)
 // 화면설계서 공통: 옵션을 고르거나 바깥 영역을 누르면 닫힌다
 // 시안 ContextMenu: 폭 160, 항목 높이 40·좌우 여백 16, Button2 Grey/6 왼쪽 정렬, 모서리 6, ModalShadow
-// - 바깥 테두리 Grey/2, 항목 사이 선 Grey/1 (시안 컴포넌트마다 Grey/0·Grey/1·Grey/2로 달라 하나로 맞춤)
-// - 메뉴 위치(버튼과의 간격)는 시안에 없어 임시로 버튼 아래 8, 오른쪽 끝 맞춤 (프로토타입 때 정하기로 함)
+// - 바깥 테두리·항목 사이 선 모두 Grey/1 (시안 컴포넌트마다 달랐는데 디자이너와 Grey/1로 통일하기로 함)
+// - 메뉴 위치: 버튼 아래 8, 오른쪽 끝 맞춤 (시안에 없어 정한 값, 디자이너 확인)
 function Dropdown({ label, icon, items, className, buttonClassName }: DropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -65,7 +65,7 @@ function Dropdown({ label, icon, items, className, buttonClassName }: DropdownPr
           role="menu"
           // 바깥 테두리는 시안처럼 안쪽 선으로 그려 높이에 더하지 않는다 (항목 2개 = 80)
           // ring은 그림자(box-shadow)와 같은 속성이라 shadow-modal과 겹쳐 보여서, 안쪽으로 들인 outline으로 그린다
-          className="absolute top-full right-0 z-30 mt-2 flex w-40 flex-col divide-y divide-grey-1 overflow-hidden rounded-md bg-white shadow-modal outline -outline-offset-1 outline-grey-2"
+          className="absolute top-full right-0 z-30 mt-2 flex w-40 flex-col divide-y divide-grey-1 overflow-hidden rounded-md bg-white shadow-modal outline -outline-offset-1 outline-grey-1"
         >
           {items.map((item) => (
             <button

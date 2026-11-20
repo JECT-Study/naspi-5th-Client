@@ -1,8 +1,8 @@
 import type { ListStockRequest } from '@/apis/domains/stock/stock.types';
 import type { StockFormErrors } from '@/apis/domains/stock/stock.validation';
 import {
-  STOCK_DESCRIPTION_COUNTER_FROM,
   STOCK_DESCRIPTION_MAX_LENGTH,
+  STOCK_NAME_MAX_LENGTH,
   normalizeStockName,
 } from '@/apis/domains/stock/stock.validation';
 import { cn } from '@/utils/cn';
@@ -53,6 +53,7 @@ function StockListingFields({ value, onChange, errors = {} }: StockListingFields
         label="종목 이름"
         placeholder="종목 이름을 입력해 주세요."
         value={value.name}
+        maxLength={STOCK_NAME_MAX_LENGTH}
         error={errors.name}
         onChange={(event) => onChange({ ...value, name: normalizeStockName(event.target.value) })}
       />
@@ -61,7 +62,6 @@ function StockListingFields({ value, onChange, errors = {} }: StockListingFields
         placeholder="종목 소개를 입력해 주세요."
         value={value.description}
         maxLength={STOCK_DESCRIPTION_MAX_LENGTH}
-        counterFrom={STOCK_DESCRIPTION_COUNTER_FROM}
         error={errors.description}
         onChange={(event) => onChange({ ...value, description: event.target.value })}
       />

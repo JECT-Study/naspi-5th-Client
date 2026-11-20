@@ -1,25 +1,20 @@
 import { cn } from '@/utils/cn';
+import { isAtMaxLength } from '@/utils/maxLength';
 
 interface CharCounterProps {
   length: number;
   max: number;
-  /** 이 글자 수부터 보여준다 (화면설계서: 종목 소개 40, 공시 제목 20, 공시 내용 290, 댓글 90) */
-  showFrom: number;
-  /** 최대를 넘겨 입력하려 했는지 (hooks/useMaxLengthInput). 최대에 닿아 있으면 이미 붉다 */
-  isOverLimit?: boolean;
   className?: string;
 }
 
-// 글자 수 "(n/최대)" (시안: Caption1, 입력칸 안 오른쪽 12·아래 6)
-// 최대보다 적으면 NSBlue, 최대에 닿으면 NSBuy (화면설계서 "100자 입력 시 붉게 표시", 시안 50자 변형)
-// 입력칸 테두리는 최대를 넘겨 입력하려 할 때 붉게 한다 (부르는 쪽, isOverLimit)
-function CharCounter({ length, max, showFrom, isOverLimit = false, className }: CharCounterProps) {
-  if (length < showFrom) return null;
+// 글자 수 "(n/최대)" Caption1. 최대보다 적으면 Grey/5, 최대에 닿으면 NSBuy (디자이너 확인)
+// 입력받는 칸은 모두 처음부터 보여 준다 (디자이너 확인). 놓는 자리는 칸마다 부르는 쪽에서 정한다
+function CharCounter({ length, max, className }: CharCounterProps) {
   return (
     <span
       className={cn(
-        'pointer-events-none absolute right-3 bottom-1.5 text-caption1',
-        length >= max || isOverLimit ? 'text-ns-buy' : 'text-ns-blue',
+        'shrink-0 text-caption1',
+        isAtMaxLength(length, max) ? 'text-ns-buy' : 'text-grey-5',
         className,
       )}
     >

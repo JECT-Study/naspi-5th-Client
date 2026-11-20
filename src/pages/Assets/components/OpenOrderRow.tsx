@@ -9,9 +9,9 @@ interface OpenOrderRowProps {
 }
 
 // 시안 대기중주문: 높이 54, 좌우 4, 양 끝 정렬, 모서리 4
-// - 왼쪽(사이 8): 종목 프로필 36 / 종목 이름 Title4 Grey/8, 3 띄우고 "{매수/매도} {수량}주 / 주당 {단가}원" Body3 Grey/6
+// - 왼쪽(사이 8): 종목 프로필 36 / 종목 이름 Title4 Grey/8, 3 띄우고 "{수량}주 {매수/매도}/주당 {단가}원" Body3 Grey/6
 // - 오른쪽(오른쪽 정렬, 사이 1): "취소" 버튼(47×22, 흰색 + Grey/5 테두리, 모서리 6, Body2 Grey/5) / 주문 일시 Body3 Grey/5
-// 문구는 설계서 (시안 "100,000주 매수/주당 22,222원", "11.04 19:49")
+// 주문 문구는 시안대로 ("100,000주 매수/주당 22,222원"), 일시는 설계서 공통 형식 (시안 "11.04 19:49")
 function OpenOrderRow({ order, onCancel }: OpenOrderRowProps) {
   return (
     <div className="flex h-13.5 items-center justify-between gap-2 rounded px-1">
@@ -20,7 +20,7 @@ function OpenOrderRow({ order, onCancel }: OpenOrderRowProps) {
         <div className="flex min-w-0 flex-1 flex-col gap-0.75">
           <p className="truncate text-title4 text-grey-8">{order.stockName}</p>
           <p className="truncate text-body3 text-grey-6">
-            {order.side === 'BUY' ? '매수' : '매도'} {formatNumber(order.quantity)}주 / 주당{' '}
+            {formatNumber(order.quantity)}주 {order.side === 'BUY' ? '매수' : '매도'}/주당{' '}
             {formatNumber(order.price)}원
           </p>
         </div>

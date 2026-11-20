@@ -62,9 +62,7 @@ function WithdrawModal({ onClose }: WithdrawModalProps) {
         />
         안내를 확인했고, 탈퇴를 되돌릴 수 없다는 점을 이해했어요.
       </label>
-      {isError && (
-        <FieldMessage>탈퇴 중 문제가 발생했어요. 잠시 후 다시 시도해 주세요.</FieldMessage>
-      )}
+      {isError && <FieldMessage>탈퇴 중 문제가 발생했어요. 다시 시도해 주세요.</FieldMessage>}
     </ConfirmModal>
   );
 }

@@ -318,7 +318,6 @@ function OrderForm({ roomId, side, stock, assets }: OrderFormProps) {
               unit="원"
               value={limitPrice}
               error={getError('price')}
-              isActive={keypadTarget === 'price'}
               onActivate={() => selectField('price')}
               onChange={changeLimitPrice}
               addon={
@@ -357,7 +356,6 @@ function OrderForm({ roomId, side, stock, assets }: OrderFormProps) {
             unit="주"
             value={quantity}
             error={getError('quantity')}
-            isActive={keypadTarget === 'quantity'}
             onActivate={() => selectField('quantity')}
             onChange={changeQuantity}
             hint={

@@ -79,13 +79,13 @@ function LeagueJoinOverlay() {
           title={isChecking ? '초대 코드를 확인 중이에요...' : '초대 코드를 입력해 주세요.'}
           description="공유받은 초대 코드로 대기실에 입장하세요."
         >
-          {/* 시안: 오류 문구는 코드 칸 바로 위 (사이 4) */}
-          <div className="flex flex-col gap-1">
+          {/* 시안: 오류 문구는 코드 칸 바로 위 (사이 4). 칸 묶음(폭 312 고정)과 오류 문구를 함께 가운데에 두고, 문구는 칸 왼쪽 끝에 맞춘다 */}
+          <div className="flex flex-col gap-1 self-center">
             {hasCheckError && (
               <FieldMessage>
                 {isInvalidCode
-                  ? '유효하지 않은 초대 코드예요. 코드를 다시 확인해 주세요.'
-                  : '대기실 정보를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.'}
+                  ? '유효하지 않은 코드예요. 코드를 다시 확인해 주세요.'
+                  : '대기실 정보를 불러오지 못했어요. 다시 시도해 주세요.'}
               </FieldMessage>
             )}
             <CodeInput
@@ -125,7 +125,7 @@ function LeagueJoinOverlay() {
             </span>
           </div>
           <p className="flex h-7.5 items-center text-body2 text-grey-5">
-            {preview.data.listedCount}명 상장 완료
+            상장 완료 {preview.data.listedCount}명
           </p>
         </div>
         {/* 시안: 왼쪽 정렬 "←" + 4 + 문구, Body2 Grey/5 */}
@@ -145,7 +145,7 @@ function LeagueJoinOverlay() {
 
   return (
     <>
-      <TaskHeader title="코드로 참여" />
+      <TaskHeader title="코드로 참여하기" />
       {/* 시안 'Join League Content': 위 8. 섹션 → "또는 새 리그 만들기"(떠 있지 않음) → 떠 있는 입장 버튼 */}
       <main className="flex min-h-0 flex-1 flex-col overflow-y-auto pt-2">
         {isConfirmStep ? renderConfirmStep() : renderCodeStep()}
