@@ -48,13 +48,13 @@ function FeedList({ roomId, query, empty, end, variant }: FeedListProps) {
   const items = data.pages.flatMap((page) => page.items);
   if (items.length === 0) return <>{empty}</>;
 
-  // 시안 '공시': Grey/0 바탕 위에 흰 카드(여백 12)를 8씩 띄워 쌓는다. 화면 좌우 여백 없음
+  // 시안 '공시': Grey/0 바탕 위에 흰 카드를 8씩 띄워 쌓는다. 화면 좌우 여백 없음 (카드 안 여백은 FeedCard)
   // 추가 조회 중·실패·피드 끝 안내도 같은 틀 안에 카드처럼 이어 붙인다
   return (
     <div className="flex flex-col gap-2 bg-grey-0">
       <ul className="flex flex-col gap-2">
         {items.map((item) => (
-          <li key={getItemKey(item)} className="bg-white p-3">
+          <li key={getItemKey(item)} className="bg-white">
             <FeedCard roomId={roomId} item={item} to={getItemPath(item)} variant={variant} />
           </li>
         ))}
