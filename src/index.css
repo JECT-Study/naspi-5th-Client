@@ -54,12 +54,12 @@
   --color-ns-blue-light: #81d8ff;
   --color-sub-blue-1: #def5ff;
   --color-sub-blue-2: #f7fdff;
-  --color-ns-sell: #d74955; /* 매도 */
-  --color-sub-sell-1: #f7dcde; /* Figma 변수 이름은 SubSelll1 (오타) */
-  --color-sub-sell-2: #fdf6f6;
-  --color-ns-buy: #5478fa; /* 매수 */
-  --color-sub-buy-1: #dee5fe;
-  --color-sub-buy-2: #f6f8ff;
+  --color-ns-buy: #d74955; /* 매수·상승, 오류 문구 */
+  --color-sub-buy-1: #f7dcde;
+  --color-sub-buy-2: #fdf6f6;
+  --color-ns-sell: #5478fa; /* 매도·하락 */
+  --color-sub-sell-1: #dee5fe;
+  --color-sub-sell-2: #f6f8ff;
   --color-grey-0: #f8f9fa;
   --color-grey-1: #f1f3f5;
   --color-grey-2: #e9edf0;

@@ -155,13 +155,13 @@ function LeagueJoinOverlay() {
               </Button>
             )}
             {/* 작업형 화면끼리 전환: 오버레이 내용만 바꾼다 (기록은 그대로) */}
-            <button
-              type="button"
-              className="text-xs text-gray-500 underline"
+            <Button
+              variant="link"
+              className="w-full"
               onClick={() => openOverlay({ type: 'leagueCreate' })}
             >
               또는 새 리그 만들기
-            </button>
+            </Button>
           </div>
         </FloatingFooter>
       </main>

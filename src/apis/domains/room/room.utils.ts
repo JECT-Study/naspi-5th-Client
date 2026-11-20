@@ -3,7 +3,8 @@ import type { MyRoomsResponse, RoomId, WaitingMember } from './room.types';
 /** 동시에 참여할 수 있는 리그 수 (대기실 + 진행 중) */
 export const MAX_ACTIVE_ROOMS = 5;
 /** 리그 개수 제한 토스트 (메인 1-1). 메인 +, 새 리그, 코드로 참여에서 같이 쓴다 */
-export const ACTIVE_ROOM_LIMIT_MESSAGE = `대기실을 포함해 최대 ${MAX_ACTIVE_ROOMS}개의 리그에 동시에 참여할 수 있어요.`;
+// 기획 변경 (2026-11-20 공유, 설계서 다음 버전에 반영 예정): "동시에" 위치 이동
+export const ACTIVE_ROOM_LIMIT_MESSAGE = `대기실을 포함해 동시에 최대 ${MAX_ACTIVE_ROOMS}개의 리그에 참여할 수 있어요.`;
 /** 리그를 시작할 수 있는 최소 참여자 수 (서비스 정책 2.2) */
 export const MIN_MEMBERS_TO_START = 3;
 

@@ -15,7 +15,7 @@ import { formatNumber } from '@/utils/format';
 import AssetHistoryChart from './components/AssetHistoryChart';
 import ParticipantAssetsSheet from './components/ParticipantAssetsSheet';
 
-// 리그 결과 (Depth 2, 배지 '종료'): 내 순위·수익률, 내 자산 추이, 최종 순위
+// 리그 결과 (Depth 2 상단바): 내 순위·수익률, 내 자산 추이, 최종 순위
 // 참여자를 누르면 그 사람의 최종 자산을 바텀시트로 보여준다 (서비스 정책 2.5: 참여자별 자산 공개)
 function LeagueResultPage() {
   const roomId = useRoomId();
@@ -86,12 +86,16 @@ function LeagueResultPage() {
 
   return (
     <>
-      <LeagueHeader leagueName={result.data?.name ?? ''} badge="종료" />
+      <LeagueHeader leagueName={result.data?.name ?? ''} />
       <main className="flex min-h-0 flex-1 flex-col gap-8 overflow-y-auto px-9 pt-4">
         {renderContent()}
         {/* 화면설계서 v1.4: 리그 결과의 '새 리그 만들기'는 플로팅이 아닌 일반 버튼 */}
         <div className="mt-auto pt-4 pb-6">
-          <Button className="w-full" onClick={() => openLeagueEntry('leagueCreate')}>
+          <Button
+            variant="secondary"
+            className="w-full"
+            onClick={() => openLeagueEntry('leagueCreate')}
+          >
             새 리그 만들기
           </Button>
         </div>
