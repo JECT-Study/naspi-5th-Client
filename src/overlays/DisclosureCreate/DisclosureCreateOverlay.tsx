@@ -22,8 +22,12 @@ import TaskHeader from '@/components/header/TaskHeader';
 import { useAutoHeight } from '@/hooks/useAutoHeight';
 import { isForcedNavigation } from '@/hooks/useOverlay';
 import { notify } from '@/libs/notify';
+import { cn } from '@/utils/cn';
 import { maxLengthHandlers } from '@/utils/maxLength';
 import ImageAttachments from './components/ImageAttachments';
+
+// 시안 TitleInput·BodyInput 글자 수: 칸 오른쪽 12, 아래 6 (글 아래 비워 둔 32 안)
+const COUNTER_POSITION_CLASS = 'pointer-events-none absolute right-3 bottom-1.5';
 
 interface DisclosureCreateOverlayProps {
   roomId: RoomId;
@@ -117,8 +121,8 @@ function DisclosureCreateOverlay({ roomId }: DisclosureCreateOverlayProps) {
           <div className="flex flex-col gap-1">
             <span className="text-body1-5 text-grey-7">{myStock?.name}</span>
             {/* 시안 TitleInput: Heading3 Grey/8 (안내 문구도 Grey/8). 길면 줄바꿈된다
-                글자 수는 처음부터 제목 오른쪽 끝(마지막 줄 높이)에 둔다. 제목은 글자 수 앞에서 줄바꿈 (테두리 없는 칸이라 자리는 정함) */}
-            <div className="flex items-end gap-2">
+                입력을 시작하면 아래 32를 비우고 오른쪽 12·아래 6에 글자 수 (Caption1 Grey/5) */}
+            <div className="relative">
               <textarea
                 ref={titleRef}
                 aria-label="제목"
@@ -126,7 +130,10 @@ function DisclosureCreateOverlay({ roomId }: DisclosureCreateOverlayProps) {
                 rows={1}
                 maxLength={DISCLOSURE_TITLE_MAX_LENGTH}
                 value={title}
-                className="block min-w-0 flex-1 resize-none text-heading3 text-grey-8 outline-none placeholder:text-grey-8"
+                className={cn(
+                  'block w-full resize-none text-heading3 text-grey-8 outline-none placeholder:text-grey-8',
+                  title.length > 0 && 'pb-8',
+                )}
                 // 제목은 한 줄 글이라 Enter로 줄을 바꾸지 않는다 (화면에서만 길면 줄바꿈)
                 onKeyDown={(event) => {
                   if (event.key === 'Enter') event.preventDefault();
@@ -136,12 +143,16 @@ function DisclosureCreateOverlay({ roomId }: DisclosureCreateOverlayProps) {
                   setTitle(event.target.value.replace(/\n/g, ' ')),
                 )}
               />
-              <CharCounter length={title.length} max={DISCLOSURE_TITLE_MAX_LENGTH} />
+              <CharCounter
+                length={title.length}
+                max={DISCLOSURE_TITLE_MAX_LENGTH}
+                className={COUNTER_POSITION_CLASS}
+              />
             </div>
           </div>
           {/* 시안 BodyInput: Body1.5 (안내 문구 Grey/6, 입력값 Grey/8). 처음엔 안내 두 줄 높이, 쓰는 만큼 늘어난다
-              글자 수는 처음부터 본문 바로 아래 오른쪽 (사이 4) */}
-          <div className="flex flex-col items-end gap-1">
+              입력을 시작하면 제목과 같이 아래 32를 비우고 글자 수 */}
+          <div className="relative">
             <textarea
               ref={contentRef}
               aria-label="내용"
@@ -151,10 +162,17 @@ function DisclosureCreateOverlay({ roomId }: DisclosureCreateOverlayProps) {
               rows={2}
               maxLength={DISCLOSURE_CONTENT_MAX_LENGTH}
               value={content}
-              className="block w-full resize-none text-body1-5 text-grey-8 outline-none placeholder:text-grey-6"
+              className={cn(
+                'block w-full resize-none text-body1-5 text-grey-8 outline-none placeholder:text-grey-6',
+                content.length > 0 && 'pb-8',
+              )}
               {...maxLengthHandlers<HTMLTextAreaElement>((event) => setContent(event.target.value))}
             />
-            <CharCounter length={content.length} max={DISCLOSURE_CONTENT_MAX_LENGTH} />
+            <CharCounter
+              length={content.length}
+              max={DISCLOSURE_CONTENT_MAX_LENGTH}
+              className={COUNTER_POSITION_CLASS}
+            />
           </div>
           <ImageAttachments
             images={images}
