@@ -31,12 +31,35 @@ export interface StockResponse {
   description: string;
 }
 
+// GET /api/leagues/{leagueId}/stocks (상장 순), GET .../stocks/{stockId}
+// 시세 필드는 리그 시작 전(대기실)에는 모두 null, 종료된 리그는 마지막 거래일 값
+export interface MemberStockResponse {
+  stockId: StockId;
+  name: string;
+  description: string;
+  /** 상장자 이름. 시작된 리그에서 탈퇴한 상장자면 '탈퇴한 사용자' */
+  listerName: string;
+  /** 내가 상장한 종목인지 */
+  mine: boolean;
+  currentPrice: number | null;
+  /** 직전 거래일 종가 (첫 거래일은 시초가) */
+  basePrice: number | null;
+  upperLimitPrice: number | null;
+  lowerLimitPrice: number | null;
+  /** 기준가 대비 등락액 */
+  changeAmount: number | null;
+  /** 등락률 (%, 소수점 첫째 자리) */
+  changeRate: number | null;
+  /** 현재 거래일 거래량 */
+  volume: number | null;
+}
+
 // 종목 소개 수정 (리그 진행 중, 내 종목)
 export interface UpdateStockDescriptionRequest {
   description: string;
 }
 
-// 리그 종목 목록 조회 (시장 탭)
+// 리그 종목 목록 조회 (시장 탭). 서버가 상장 순으로 준다
 export interface Stock {
   stockId: StockId;
   name: string;
@@ -45,8 +68,6 @@ export interface Stock {
   ownerName: string;
   /** 내가 상장한 종목인지 */
   isMine: boolean;
-  /** 상장 완료 시각 (ISO 8601, UTC). 종목 정렬 기준 */
-  listedAt: string;
   /** 현재가 = 직전 체결가 */
   price: number;
   /** 기준가 대비 금액 */

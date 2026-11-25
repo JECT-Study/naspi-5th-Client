@@ -4,7 +4,7 @@ import { Link } from 'react-router';
 import { assetQueries } from '@/apis/domains/asset/asset.queries';
 import { orderQueries } from '@/apis/domains/order/order.queries';
 import type { OpenOrder } from '@/apis/domains/order/order.types';
-import { splitAndSortStocks } from '@/apis/domains/stock/stock.utils';
+import { splitMyStock } from '@/apis/domains/stock/stock.utils';
 import HoldingRow from '@/components/stock/HoldingRow';
 import { CaretDownIcon, CaretUpIcon, ChevronRightIcon } from '@/components/ui/icons';
 import LoadError from '@/components/status/LoadError';
@@ -49,7 +49,7 @@ function AssetsPage() {
     // (설계서 문구에는 "{이름}님의 자산"이 있으나 시안을 따르기로 함)
     if (assets.isError) return <LoadError onRetry={() => assets.refetch()} />;
 
-    const { myStock, otherStocks } = splitAndSortStocks(assets.data.holdings);
+    const { myStock, otherStocks } = splitMyStock(assets.data.holdings);
     const holdings = myStock ? [myStock, ...otherStocks] : otherStocks;
 
     return (

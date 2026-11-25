@@ -1,5 +1,5 @@
 import type { Ranking } from '@/apis/domains/league/league.types';
-import { splitAndSortStocks } from '@/apis/domains/stock/stock.utils';
+import { splitMyStock } from '@/apis/domains/stock/stock.utils';
 import BottomSheet from '@/components/overlay/BottomSheet';
 import AssetSummary from '@/components/stock/AssetSummary';
 import HoldingRow from '@/components/stock/HoldingRow';
@@ -14,7 +14,7 @@ interface ParticipantAssetsSheetProps {
 // 보유 주식은 그 참여자가 상장한 종목(자사주)을 먼저, 나머지는 상장이 이른 순 (공통 화면 정책)
 // 시안: 내 자산과 같은 자산 요약(제목은 시트 제목) → 18 → 보유 주식(제목 → 8 → 테두리 상자)
 function ParticipantAssetsSheet({ participant, onClose }: ParticipantAssetsSheetProps) {
-  const { myStock, otherStocks } = splitAndSortStocks(participant.holdings);
+  const { myStock, otherStocks } = splitMyStock(participant.holdings);
   const holdings = myStock ? [myStock, ...otherStocks] : otherStocks;
 
   return (

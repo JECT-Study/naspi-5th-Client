@@ -33,7 +33,7 @@ const listedAtOfStock = (stockName: string) =>
   leagueMembersMock.find((member) => member.stockName === stockName)?.listedAt ??
   new Date(LISTED_BASE_MS).toISOString();
 
-// 참여자의 최종 보유 주식: 자기 종목 1,000주 + 친구 종목 두 개 (자기 종목과 겹치면 뺀다)
+// 참여자의 최종 보유 주식: 자기 종목 1,000주 + 친구 종목 두 개 (자기 종목과 겹치면 뺀다). 서버처럼 상장 순
 const buildHoldings = (ownStockName: string): FinalHolding[] =>
   [
     { stockId: 1, stockName: ownStockName, isMine: true, quantity: 1_000, price: 10_000 },
@@ -41,12 +41,14 @@ const buildHoldings = (ownStockName: string): FinalHolding[] =>
     { stockId: 3, stockName: '세영바이오', isMine: false, quantity: 170, price: 1_116 },
   ]
     .filter((holding, index) => index === 0 || holding.stockName !== ownStockName)
+    .sort(
+      (a, b) => Date.parse(listedAtOfStock(a.stockName)) - Date.parse(listedAtOfStock(b.stockName)),
+    )
     .map(({ price, ...holding }) => {
       const evaluationAmount = price * holding.quantity;
       const cost = 10_000 * holding.quantity;
       return {
         ...holding,
-        listedAt: listedAtOfStock(holding.stockName),
         evaluationAmount,
         profit: evaluationAmount - cost,
         profitRate: roundRate(((evaluationAmount - cost) / cost) * 100),

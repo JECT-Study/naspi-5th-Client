@@ -6,10 +6,14 @@ import type {
   JoinRoomRequest,
   UpdateRoomNameRequest,
 } from '@/apis/domains/room/room.types';
-import type { ListStockRequest } from '@/apis/domains/stock/stock.types';
+import type {
+  ListStockRequest,
+  UpdateStockDescriptionRequest,
+} from '@/apis/domains/stock/stock.types';
 import type { UpdateMyNameRequest } from '@/apis/domains/user/user.types';
 import type { ApiResponse } from '@/apis/types';
 import { delay as mockDelay } from '@/mocks/delay';
+import { mockStockServer } from '@/mocks/market.mock';
 import { mockRoomServer } from '@/mocks/room.mock';
 import type { MswScenario } from './scenario';
 
@@ -181,6 +185,20 @@ export const createHandlers = (scenario: MswScenario) => {
 
     http.post('*/api/leagues/:leagueId/start', ({ params }) =>
       requireLogin(() => fromMock(600, () => mockRoomServer.startLeague(Number(params.leagueId)))),
+    ),
+
+    // 종목 목록(시세 포함, 상장 순)·소개 수정 (mocks/market.mock, 리그마다 같은 종목)
+    http.get('*/api/leagues/:leagueId/stocks', () =>
+      requireLogin(() => fromMock(300, () => mockStockServer.getStocks())),
+    ),
+
+    http.post('*/api/leagues/:leagueId/stocks/:stockId/description', ({ params, request }) =>
+      requireLogin(async () => {
+        const { description } = (await request.json()) as UpdateStockDescriptionRequest;
+        return fromMock(300, () =>
+          mockStockServer.updateDescription(Number(params.stockId), description),
+        );
+      }),
     ),
 
     // 종목 상장·대기실 종목 수정
