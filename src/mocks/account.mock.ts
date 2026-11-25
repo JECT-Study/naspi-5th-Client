@@ -127,8 +127,12 @@ const fill = (orderId: OrderId, price: number) => {
 
 export const mockAccountServer = {
   getMyAssets: (): MyAssets => {
+    // 서버처럼 상장 순 (시장 mock 순서)
+    const listingOrder = (stockId: StockId) =>
+      marketMock.findIndex(({ detail }) => detail.stockId === stockId);
     const rows: Holding[] = holdings
       .filter((holding) => holding.quantity > 0)
+      .sort((a, b) => listingOrder(a.stockId) - listingOrder(b.stockId))
       .map((holding) => {
         const stock = findStock(holding.stockId);
         const evaluationAmount = stock.price * holding.quantity;
@@ -138,7 +142,6 @@ export const mockAccountServer = {
           stockId: holding.stockId,
           stockName: stock.name,
           isMine: stock.isMine,
-          listedAt: stock.listedAt,
           quantity: holding.quantity,
           averagePrice: holding.averagePrice,
           sellingQuantity: sellingQuantity(holding.stockId),

@@ -4,12 +4,19 @@ import type {
   StockEvent,
   TickersEvent,
 } from '@/apis/domains/market/market.types';
-import type { Orderbook, StockDetail } from '@/apis/domains/stock/stock.types';
+import type {
+  MemberStockResponse,
+  Orderbook,
+  StockDetail,
+  StockResponse,
+} from '@/apis/domains/stock/stock.types';
 import { leagueMembersMock } from './members.mock';
+import { createMockApiError } from './mockError';
 import { meMock } from './user.mock';
 
 // 시장 mock: 종목 상태를 메모리에 두고, 실시간 mock이 돌 때마다 가격을 조금씩 움직인다
-// REST mock(종목, 봉)과 실시간 mock이 같은 상태를 보므로 다시 조회해도 값이 이어진다
+// 종목 목록·소개 수정은 msw 핸들러가 서버 응답 모양으로(mockStockServer), 종목 상세·봉은 아직 service가 직접 쓴다
+// REST mock과 실시간 mock이 같은 상태를 보므로 다시 조회해도 값이 이어진다
 
 interface MockStock {
   detail: StockDetail;
@@ -90,7 +97,7 @@ const trade = (stock: MockStock, time = nowSeconds()) => {
 };
 
 const createStock = (
-  seed: Pick<StockDetail, 'stockId' | 'name' | 'description' | 'ownerName' | 'isMine' | 'listedAt'>,
+  seed: Pick<StockDetail, 'stockId' | 'name' | 'description' | 'ownerName' | 'isMine'>,
   basePrice: number,
 ): MockStock => {
   const limit = Math.floor((basePrice * 0.3) / PRICE_TICK) * PRICE_TICK;
@@ -113,25 +120,50 @@ const createStock = (
   return stock;
 };
 
-// 리그 참여자 7명이 상장한 종목 (members.mock)
-export const marketMock: MockStock[] = leagueMembersMock.map((member) =>
-  createStock(
-    {
-      stockId: member.stockId,
-      name: member.stockName,
-      description: member.description,
-      ownerName: member.name,
-      isMine: member.userId === meMock.userId,
-      listedAt: member.listedAt,
-    },
-    member.basePrice,
-  ),
-);
+// 리그 참여자 7명이 상장한 종목 (members.mock). 서버처럼 상장 순으로 둔다
+export const marketMock: MockStock[] = [...leagueMembersMock]
+  .sort((a, b) => Date.parse(a.listedAt) - Date.parse(b.listedAt))
+  .map((member) =>
+    createStock(
+      {
+        stockId: member.stockId,
+        name: member.stockName,
+        description: member.description,
+        ownerName: member.name,
+        isMine: member.userId === meMock.userId,
+      },
+      member.basePrice,
+    ),
+  );
 
-// 종목 정보에서 내 종목 소개 수정
-export const updateMockStockDescription = (stockId: number, description: string) => {
-  const stock = marketMock.find(({ detail }) => detail.stockId === stockId);
-  if (stock) stock.detail.description = description;
+const toMemberStock = ({ detail, bars }: MockStock): MemberStockResponse => ({
+  stockId: detail.stockId,
+  name: detail.name,
+  description: detail.description,
+  listerName: detail.ownerName,
+  mine: detail.isMine,
+  currentPrice: detail.price,
+  basePrice: detail.basePrice,
+  upperLimitPrice: detail.upperLimit,
+  lowerLimitPrice: detail.lowerLimit,
+  changeAmount: detail.change,
+  changeRate: detail.changeRate,
+  // 오늘 일봉의 거래량
+  volume: bars['1d'].at(-1)?.volume ?? 0,
+});
+
+// msw 핸들러가 부르는 서버 응답 모양 (상장 순)
+export const mockStockServer = {
+  // GET /api/leagues/{leagueId}/stocks
+  getStocks: (): MemberStockResponse[] => marketMock.map(toMemberStock),
+
+  // POST /api/leagues/{leagueId}/stocks/{stockId}/description (내 종목만, 서버 305)
+  updateDescription: (stockId: number, description: string): StockResponse => {
+    const stock = marketMock.find(({ detail }) => detail.stockId === stockId);
+    if (!stock?.detail.isMine) throw createMockApiError('305', '본인의 종목이 아닙니다.', 200);
+    stock.detail.description = description;
+    return { stockId, name: stock.detail.name, description };
+  },
 };
 
 // 리그 시세: 3초마다 아무 종목이나 체결시키고 전 종목 시세를 보낸다

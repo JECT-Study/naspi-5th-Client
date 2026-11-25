@@ -9,8 +9,6 @@ export interface Holding {
   stockName: string;
   /** 내가 상장한 종목(자사주)인지 */
   isMine: boolean;
-  /** 종목 상장 완료 시각. 종목 정렬 기준 */
-  listedAt: string;
   /** 보유 수량 */
   quantity: number;
   /** 평균 매입가 (차트에 선으로 표시) */

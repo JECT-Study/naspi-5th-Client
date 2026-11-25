@@ -1,7 +1,20 @@
+import type { AxiosError } from 'axios';
 import { http, HttpResponse } from 'msw';
 import type { SignupRequest } from '@/apis/domains/auth/auth.types';
+import type {
+  CreateLeagueRequest,
+  JoinRoomRequest,
+  UpdateRoomNameRequest,
+} from '@/apis/domains/room/room.types';
+import type {
+  ListStockRequest,
+  UpdateStockDescriptionRequest,
+} from '@/apis/domains/stock/stock.types';
 import type { UpdateMyNameRequest } from '@/apis/domains/user/user.types';
 import type { ApiResponse } from '@/apis/types';
+import { delay as mockDelay } from '@/mocks/delay';
+import { mockStockServer } from '@/mocks/market.mock';
+import { mockRoomServer } from '@/mocks/room.mock';
 import type { MswScenario } from './scenario';
 
 // 실제 API와 같은 응답을 만든다 (백엔드 Result: { code, message, data }, 비즈니스 실패도 HTTP 200)
@@ -11,6 +24,21 @@ const success = (data: unknown = null): MockResponse =>
   HttpResponse.json<ApiResponse<unknown>>({ code: '000', message: '', data });
 const failure = (code: string, message: string, status = 200): MockResponse =>
   HttpResponse.json<ApiResponse<unknown>>({ code, message, data: null }, { status });
+
+/**
+ * mocks/의 mock 서버로 응답을 만든다 (아직 service가 직접 쓰는 mock과 같은 상태를 본다)
+ * ms만큼 늦게 응답하고(?mock=error면 서버 오류), mock이 던진 실패는 서버 응답 그대로 돌려준다
+ */
+const fromMock = async (ms: number, run: () => unknown): Promise<MockResponse> => {
+  try {
+    await mockDelay(ms);
+    return success(run());
+  } catch (error) {
+    const response = (error as AxiosError<ApiResponse<unknown>>).response;
+    if (response?.data) return failure(response.data.code, response.data.message, response.status);
+    throw error;
+  }
+};
 
 // 백엔드 ErrorCode 문구 그대로
 const unauthorized = () => failure('003', '인증이 필요합니다.', 401);
@@ -92,6 +120,101 @@ export const createHandlers = (scenario: MswScenario) => {
         if (scenario === 'withdraw-error') return serverError();
         me.isLoggedIn = false;
         return success();
+      }),
+    ),
+
+    // 리그 (mocks/room.mock). ?mock=empty면 내 리그 없이 시작한다
+    http.get('*/api/leagues/me', () =>
+      requireLogin(() => fromMock(300, () => mockRoomServer.getMyLeagues())),
+    ),
+
+    http.post('*/api/leagues', ({ request }) =>
+      requireLogin(async () => {
+        const body = (await request.json()) as CreateLeagueRequest;
+        return fromMock(600, () => mockRoomServer.createLeague(body));
+      }),
+    ),
+
+    // 초대 코드는 대소문자를 가리지 않고 앞뒤 공백을 무시한다 (서버와 같게)
+    http.get('*/api/leagues/invite-codes/:inviteCode', ({ params }) =>
+      requireLogin(() =>
+        fromMock(600, () =>
+          mockRoomServer.getLeagueInfo(String(params.inviteCode).trim().toUpperCase()),
+        ),
+      ),
+    ),
+
+    http.post('*/api/leagues/join', ({ request }) =>
+      requireLogin(async () => {
+        const { inviteCode } = (await request.json()) as JoinRoomRequest;
+        return fromMock(600, () =>
+          mockRoomServer.joinLeague({ inviteCode: inviteCode.trim().toUpperCase() }),
+        );
+      }),
+    ),
+
+    // 리그 상세·대기실 관리 (:leagueId는 숫자)
+    http.get('*/api/leagues/:leagueId/detail', ({ params }) =>
+      requireLogin(() =>
+        fromMock(300, () => mockRoomServer.getLeagueDetail(Number(params.leagueId))),
+      ),
+    ),
+
+    http.post('*/api/leagues/:leagueId/name', ({ params, request }) =>
+      requireLogin(async () => {
+        const body = (await request.json()) as UpdateRoomNameRequest;
+        return fromMock(300, () => mockRoomServer.renameLeague(Number(params.leagueId), body));
+      }),
+    ),
+
+    http.post('*/api/leagues/:leagueId/delete', ({ params }) =>
+      requireLogin(() => fromMock(300, () => mockRoomServer.deleteLeague(Number(params.leagueId)))),
+    ),
+
+    http.post('*/api/leagues/:leagueId/leave', ({ params }) =>
+      requireLogin(() => fromMock(300, () => mockRoomServer.leaveLeague(Number(params.leagueId)))),
+    ),
+
+    http.post('*/api/leagues/:leagueId/players/:playerId/kick', ({ params }) =>
+      requireLogin(() =>
+        fromMock(300, () =>
+          mockRoomServer.kickPlayer(Number(params.leagueId), Number(params.playerId)),
+        ),
+      ),
+    ),
+
+    http.post('*/api/leagues/:leagueId/start', ({ params }) =>
+      requireLogin(() => fromMock(600, () => mockRoomServer.startLeague(Number(params.leagueId)))),
+    ),
+
+    // 종목 목록(시세 포함, 상장 순)·소개 수정 (mocks/market.mock, 리그마다 같은 종목)
+    http.get('*/api/leagues/:leagueId/stocks', () =>
+      requireLogin(() => fromMock(300, () => mockStockServer.getStocks())),
+    ),
+
+    http.post('*/api/leagues/:leagueId/stocks/:stockId/description', ({ params, request }) =>
+      requireLogin(async () => {
+        const { description } = (await request.json()) as UpdateStockDescriptionRequest;
+        return fromMock(300, () =>
+          mockStockServer.updateDescription(Number(params.stockId), description),
+        );
+      }),
+    ),
+
+    // 종목 상장·대기실 종목 수정
+    http.post('*/api/leagues/:leagueId/stocks', ({ params, request }) =>
+      requireLogin(async () => {
+        const body = (await request.json()) as ListStockRequest;
+        return fromMock(600, () => mockRoomServer.listStock(Number(params.leagueId), body));
+      }),
+    ),
+
+    http.post('*/api/leagues/:leagueId/stocks/:stockId/edit', ({ params, request }) =>
+      requireLogin(async () => {
+        const body = (await request.json()) as ListStockRequest;
+        return fromMock(600, () =>
+          mockRoomServer.editStock(Number(params.leagueId), Number(params.stockId), body),
+        );
       }),
     ),
   ];

@@ -6,17 +6,10 @@ import type { RoomId } from '@/apis/domains/room/room.types';
 import type { UserId } from '@/apis/domains/user/user.types';
 
 // 참여자 최종 자산의 보유 주식 (바텀시트)
-// isMine은 "바텀시트 주인(그 참여자)이 상장한 종목"인지. listedAt으로 나머지를 상장 이른 순 정렬 (TODO(API): 요청 필드)
+// isMine은 "바텀시트 주인(그 참여자)이 상장한 종목"인지. 나머지는 상장 이른 순으로 받는다 (TODO(API): 요청 사항)
 export type FinalHolding = Pick<
   Holding,
-  | 'stockId'
-  | 'stockName'
-  | 'isMine'
-  | 'listedAt'
-  | 'quantity'
-  | 'evaluationAmount'
-  | 'profit'
-  | 'profitRate'
+  'stockId' | 'stockName' | 'isMine' | 'quantity' | 'evaluationAmount' | 'profit' | 'profitRate'
 >;
 
 // 리그 결과 조회: 순위표의 각 참여자에 최종 자산(현금·보유 주식)까지 함께 받는다

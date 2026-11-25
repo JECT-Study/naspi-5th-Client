@@ -14,7 +14,7 @@ function EndedLeagueList({ ended }: EndedLeagueListProps) {
   }
 
   // 시안 '종료된 리그': 묶음 제목 없이 카드 목록만 (위아래 16, 좌우 12, 카드 사이 8)
-  // 카드는 진행 중인 리그와 같은 모양, 배지에 최종 순위
+  // 카드는 진행 중인 리그와 같은 모양, 배지에 최종 순위 (서버가 아직 순위를 주지 않으면 배지 없음)
   return (
     <div className="flex flex-col gap-2 px-3 py-4">
       {ended.map((room) => (
@@ -22,7 +22,7 @@ function EndedLeagueList({ ended }: EndedLeagueListProps) {
           key={room.roomId}
           to={`/leagues/${room.roomId}/result`}
           name={room.name}
-          badge={<OutlineBadge>{room.rank}위</OutlineBadge>}
+          badge={room.rank !== null && <OutlineBadge>{room.rank}위</OutlineBadge>}
           meta={`인원 ${room.participantCount}명`}
           date={`${formatKstDate(new Date(room.endedAt))} 종료`}
         />

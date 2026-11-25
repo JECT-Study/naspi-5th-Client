@@ -1,19 +1,26 @@
 import type {
-  CreateRoomRequest,
-  CreateRoomResponse,
-  InvitePreview,
+  CreateLeagueRequest,
+  CreateLeagueResponse,
+  JoinLeagueResponse,
   JoinRoomRequest,
-  JoinRoomResponse,
+  LeagueDetailResponse,
+  LeagueInfoResponse,
+  LeaveLeagueResponse,
   ListedStock,
-  MyRoomsResponse,
-  RoomDetail,
+  MyLeagueResponse,
   RoomErrorCode,
   RoomId,
   RoomStatus,
+  TradingDayResponse,
   UpdateRoomNameRequest,
-  WaitingRoomDetail,
 } from '@/apis/domains/room/room.types';
-import type { ListStockRequest, StockErrorCode } from '@/apis/domains/stock/stock.types';
+import type {
+  ListStockRequest,
+  ListStockResponse,
+  StockErrorCode,
+  StockId,
+  StockResponse,
+} from '@/apis/domains/stock/stock.types';
 import type { UserId } from '@/apis/domains/user/user.types';
 import { findMemberMock, leagueMembersMock } from './members.mock';
 import { startsWithNoRooms } from './delay';
@@ -22,6 +29,8 @@ import { meMock } from './user.mock';
 
 // 리그 mock: 리그를 메모리에 두고 내 리그 목록·리그 상세·대기실 응답을 여기서 만든다
 // 리그 생성·입장·나가기 같은 변경도 이 상태를 고쳐서, 다시 조회하면 바뀐 결과가 나온다
+// 실제 API로 옮긴 것(내 리그 목록·상세, 생성, 초대 코드, 입장, 대기실 관리, 종목 상장·수정)은
+// msw 핸들러가 부르고 서버 응답 모양(league)으로 돌려준다
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const MAX_MEMBERS = 10;
@@ -54,7 +63,7 @@ interface MockRoom {
   endAt: string | null;
   day: number;
   members: MockMember[];
-  /** 종료된 리그의 내 순위 */
+  /** 종료된 리그의 내 순위 (리그 결과 mock용. 서버 내 리그 목록은 아직 순위를 주지 않는다) */
   myRank?: number;
 }
 
@@ -135,9 +144,11 @@ const rooms: MockRoom[] = [
     startedAt: null,
     endAt: null,
     day: 0,
+    // 상장 3명 + 대기 1명: 대기 중인 친구를 내보내면 리그를 시작할 수 있다
     members: [
       me(true, listed('진영케미칼', '실험실에서 하루를 보내는 종목', daysFromToday(-6))),
       member(2, 5),
+      member(4, 4),
       member(6),
     ],
   },
@@ -174,7 +185,9 @@ const rooms: MockRoom[] = [
     ],
     myRank: room.rank,
   })),
-  // 아래는 코드로 참여 확인용 (내가 아직 없는 리그). 코드: KKKK123 정상, FULL001 정원 초과, STRT001 이미 시작
+  // 아래는 코드로 참여 확인용 (내가 아직 없는 리그). 코드: KKKK123 정상, FULL001 정원 초과,
+  // STRT001 이미 시작 (208), DELE001 확인 뒤 삭제됨 (입장 때 폐기된 코드 201), FAIL500 서버 오류
+  // 이미 입장한 대기실 코드(DONG003)로 입장하면 202 → 그 대기실로 간다
   {
     roomId: 8,
     name: '새로운 리그',
@@ -215,13 +228,20 @@ const DELETED_ON_JOIN_CODE = 'DELE001';
 // 대기실 정보 조회 실패(서버 오류) 확인용
 const SERVER_ERROR_CODE = 'FAIL500';
 
-const fail = (code: RoomErrorCode | StockErrorCode, status = 400): never => {
-  throw createMockApiError(code, code, status);
+// 화면에서 따로 다루지 않아 상수로 두지 않은 서버 코드: 207 방장이 아님, 210 없는 플레이어, 303 이미 상장함, 305 내 종목이 아님
+type UnhandledErrorCode = '207' | '210' | '303' | '305';
+
+// 서버처럼 비즈니스 실패도 HTTP 200 + code (백엔드 ErrorCode)
+const fail = (code: RoomErrorCode | StockErrorCode | UnhandledErrorCode): never => {
+  throw createMockApiError(code, code, 200);
+};
+const serverError = (): never => {
+  throw createMockApiError('999', '서버 내부 오류가 발생했습니다.', 500);
 };
 
 const isMe = (member: MockMember) => member.userId === ME_ID;
 const findRoom = (roomId: RoomId) => rooms.find((room) => room.roomId === roomId);
-const getRoomOrFail = (roomId: RoomId) => findRoom(roomId) ?? fail('ROOM_DELETED', 404);
+const getRoomOrFail = (roomId: RoomId) => findRoom(roomId) ?? fail('204');
 const myRooms = () => rooms.filter((room) => room.members.some(isMe));
 const countListed = (room: MockRoom) => room.members.filter((member) => member.stock).length;
 const expiresAtOf = (room: MockRoom) =>
@@ -248,162 +268,231 @@ const removeRoom = (roomId: RoomId) => {
 if (startsWithNoRooms) {
   for (const room of myRooms()) removeRoom(room.roomId);
 }
-const findMyMember = (room: MockRoom) => room.members.find(isMe) ?? fail('ROOM_DELETED', 404);
+const findMyMember = (room: MockRoom) => room.members.find(isMe) ?? fail('204');
 const assertUniqueStockName = (room: MockRoom, name: string) => {
   if (room.members.some((member) => !isMe(member) && member.stock?.name === name)) {
-    fail('STOCK_NAME_DUPLICATED');
+    fail('302');
   }
+};
+// 서버 상태 이름: 진행 중은 STARTED
+const toLeagueStatus = (status: RoomStatus) => (status === 'ONGOING' ? 'STARTED' : status);
+// 시작된 리그의 거래일 (대기실이면 null). 거래일은 매일 09:00(= 00:00 UTC)에 끝난다
+const tradingDayOf = (room: MockRoom): TradingDayResponse | null =>
+  room.startedAt && room.endAt
+    ? {
+        dayNumber: room.day,
+        totalDays: LEAGUE_DAYS,
+        dayEndsAt: room.status === 'ENDED' ? room.endAt : daysFromToday(1),
+        startedAt: room.startedAt,
+        endsAt: room.endAt,
+      }
+    : null;
+// 방장만, 시작 전에만 (서버 207 방장이 아님, 208 이미 시작된 리그)
+const assertWaitingHost = (room: MockRoom) => {
+  if (room.status !== 'WAITING') fail('208');
+  if (!findMyMember(room).isHost) fail('207');
 };
 
 export const mockRoomServer = {
-  getMyRooms: (): MyRoomsResponse => {
-    const mine = myRooms();
-    return {
-      ongoing: mine
-        .filter((room) => room.status === 'ONGOING')
-        .map((room) => ({
-          roomId: room.roomId,
-          name: room.name,
-          participantCount: room.members.length,
-          startedAt: room.startedAt ?? room.createdAt,
-          endAt: room.endAt ?? room.createdAt,
-        })),
-      waiting: mine
-        .filter((room) => room.status === 'WAITING')
-        .map((room) => ({
-          roomId: room.roomId,
-          name: room.name,
-          listedCount: countListed(room),
-          isListed: Boolean(findMyMember(room).stock),
-          createdAt: room.createdAt,
-          expiresAt: expiresAtOf(room),
-        })),
-      ended: mine
-        .filter((room) => room.status === 'ENDED')
-        .map((room) => ({
-          roomId: room.roomId,
-          name: room.name,
-          participantCount: room.members.length,
-          endedAt: room.endAt ?? room.createdAt,
-          rank: room.myRank ?? 1,
-        })),
-    };
-  },
+  // ---- 서버 응답 모양 (msw 핸들러가 부른다) ----
 
-  getRoom: (roomId: RoomId): RoomDetail => {
-    const room = getRoomOrFail(roomId);
-    return {
-      roomId: room.roomId,
+  // GET /api/leagues/me (서버처럼 상태가 섞인 한 목록. 종료된 리그의 내 순위는 서버도 아직 주지 않는다)
+  getMyLeagues: (): MyLeagueResponse[] =>
+    myRooms().map((room) => ({
+      leagueId: room.roomId,
       name: room.name,
-      status: room.status,
-      day: room.day,
-      endAt: room.endAt,
-    };
-  },
+      status: toLeagueStatus(room.status),
+      playerCount: room.members.length,
+      // 시작된 리그는 모두 상장한 참여자다 (mock 참여자는 상장 정보 없이 들어 있어 전체 인원으로 센다)
+      participantCount: room.status === 'WAITING' ? countListed(room) : room.members.length,
+      host: findMyMember(room).isHost,
+      listed: Boolean(findMyMember(room).stock),
+      joinedAt: room.createdAt,
+      createdAt: room.createdAt,
+      waitingRoomExpiresAt: room.status === 'WAITING' ? expiresAtOf(room) : null,
+      startedAt: room.startedAt,
+      endsAt: room.endAt,
+      tradingDay: room.status === 'ONGOING' ? tradingDayOf(room) : null,
+    })),
 
-  getWaitingRoom: (roomId: RoomId): WaitingRoomDetail => {
-    const room = getRoomOrFail(roomId);
-    return structuredClone({
-      roomId: room.roomId,
-      name: room.name,
-      inviteCode: room.inviteCode,
-      expiresAt: expiresAtOf(room),
-      members: room.members.map((member) => ({
-        ...member,
-        name: isMe(member) ? meMock.name : member.name,
-        isMe: isMe(member),
-      })),
-    });
-  },
-
-  createRoom: (request: CreateRoomRequest): CreateRoomResponse => {
-    if (activeRoomCount() >= MAX_ACTIVE_ROOMS) fail('ACTIVE_ROOM_LIMIT_EXCEEDED');
+  // POST /api/leagues
+  createLeague: (request: CreateLeagueRequest): CreateLeagueResponse => {
+    if (activeRoomCount() >= MAX_ACTIVE_ROOMS) fail('205');
     const roomId = Math.max(...rooms.map((room) => room.roomId)) + 1;
     const now = new Date().toISOString();
+    const inviteCode = randomInviteCode();
     rooms.push({
       roomId,
-      name: request.name,
+      name: request.leagueName,
       status: 'WAITING',
-      inviteCode: randomInviteCode(),
+      inviteCode,
       createdAt: now,
       startedAt: null,
       endAt: null,
       day: 0,
-      members: [me(true, listed(request.stock.name, request.stock.description, now))],
+      members: [me(true, listed(request.stockName, request.stockDescription, now))],
     });
-    return { roomId };
+    return { leagueId: roomId, inviteCode };
   },
 
-  getInvitePreview: (inviteCode: string): InvitePreview => {
-    if (inviteCode === SERVER_ERROR_CODE)
-      throw createMockApiError('INTERNAL_SERVER_ERROR', '', 500);
+  // GET /api/leagues/invite-codes/{inviteCode}: 없는 코드 201, 이미 시작·종료된 리그 208
+  getLeagueInfo: (inviteCode: string): LeagueInfoResponse => {
+    if (inviteCode === SERVER_ERROR_CODE) return serverError();
     if (inviteCode === DELETED_ON_JOIN_CODE) {
-      return { roomId: 999, name: '곧 사라질 리그', listedCount: 3 };
+      return {
+        leagueId: 999,
+        name: '곧 사라질 리그',
+        status: 'WAITING',
+        playerCount: 3,
+        participantCount: 3,
+      };
     }
     const room = rooms.find((item) => item.inviteCode === inviteCode);
-    if (!room) return fail('INVALID_INVITE_CODE');
-    return { roomId: room.roomId, name: room.name, listedCount: countListed(room) };
+    if (!room) return fail('201');
+    if (room.status !== 'WAITING') return fail('208');
+    return {
+      leagueId: room.roomId,
+      name: room.name,
+      status: toLeagueStatus(room.status),
+      playerCount: room.members.length,
+      participantCount: countListed(room),
+    };
   },
 
-  joinRoom: ({ inviteCode }: JoinRoomRequest): JoinRoomResponse => {
-    if (inviteCode === DELETED_ON_JOIN_CODE) fail('ROOM_DELETED');
-    const room =
-      rooms.find((item) => item.inviteCode === inviteCode) ?? fail('INVALID_INVITE_CODE');
-    if (room.members.some(isMe)) return { roomId: room.roomId };
-    if (room.status !== 'WAITING') fail('ROOM_ALREADY_STARTED');
-    if (room.members.length >= MAX_MEMBERS) fail('ROOM_FULL');
-    if (activeRoomCount() >= MAX_ACTIVE_ROOMS) fail('ACTIVE_ROOM_LIMIT_EXCEEDED');
+  // POST /api/leagues/join: 삭제된 대기실은 초대 코드가 폐기되어 201, 이미 시작·종료된 리그 208
+  joinLeague: ({ inviteCode }: JoinRoomRequest): JoinLeagueResponse => {
+    if (inviteCode === DELETED_ON_JOIN_CODE) fail('201');
+    const room = rooms.find((item) => item.inviteCode === inviteCode) ?? fail('201');
+    if (room.members.some(isMe)) fail('202');
+    if (room.status !== 'WAITING') fail('208');
+    if (room.members.length >= MAX_MEMBERS) fail('203');
+    if (activeRoomCount() >= MAX_ACTIVE_ROOMS) fail('205');
     room.members.push(me(false, null));
-    return { roomId: room.roomId };
+    return { leagueId: room.roomId };
   },
 
-  updateRoomName: (roomId: RoomId, { name }: UpdateRoomNameRequest) => {
-    getRoomOrFail(roomId).name = name;
+  // ---- 화면 모양 (아직 API로 옮기지 않은 service가 부른다) ----
+
+  /** 리그 결과 mock이 쓰는 종료된 리그의 참여자 수·내 순위. 종료된 리그가 아니면 undefined */
+  getEndedRoomSeed: (roomId: RoomId) => {
+    const room = findRoom(roomId);
+    if (room?.status !== 'ENDED') return undefined;
+    return { participantCount: room.members.length, myRank: room.myRank ?? 1 };
   },
 
-  deleteRoom: (roomId: RoomId) => {
-    removeRoom(roomId);
-  },
-
-  // 방장이 나가면 상장을 가장 먼저 한 친구가 방장이 되고, 남은 참여자가 없으면 대기실이 사라진다 (서비스 정책 2.2)
-  leaveRoom: (roomId: RoomId) => {
+  /** 리그 결과 mock이 쓰는 리그 이름·종료 시각 */
+  getRoomSummary: (roomId: RoomId) => {
     const room = getRoomOrFail(roomId);
+    return { name: room.name, endAt: room.endAt };
+  },
+
+  // GET /api/leagues/{leagueId}/detail (참여 일시 순. mock은 들어 있는 순서)
+  getLeagueDetail: (roomId: RoomId): LeagueDetailResponse => {
+    const room = getRoomOrFail(roomId);
+    findMyMember(room);
+    const isWaiting = room.status === 'WAITING';
+    return structuredClone({
+      leagueId: room.roomId,
+      name: room.name,
+      inviteCode: isWaiting ? room.inviteCode : null,
+      waitingRoomExpiresAt: isWaiting ? expiresAtOf(room) : null,
+      startable:
+        room.members.length >= MIN_MEMBERS_TO_START && room.members.every((member) => member.stock),
+      tradingDay: tradingDayOf(room),
+      players: room.members.map((member) => ({
+        playerId: member.userId,
+        name: isMe(member) ? meMock.name : member.name,
+        me: isMe(member),
+        host: member.isHost,
+        listed: Boolean(member.stock),
+        joinedAt: room.createdAt,
+        listedAt: member.stock?.listedAt ?? null,
+        stock: member.stock
+          ? {
+              stockId: member.stock.stockId,
+              name: member.stock.name,
+              description: member.stock.description,
+            }
+          : null,
+      })),
+    });
+  },
+
+  // POST /api/leagues/{leagueId}/name
+  renameLeague: (roomId: RoomId, { name }: UpdateRoomNameRequest) => {
+    const room = getRoomOrFail(roomId);
+    assertWaitingHost(room);
+    room.name = name;
+    return { leagueId: roomId, name };
+  },
+
+  // POST /api/leagues/{leagueId}/delete
+  deleteLeague: (roomId: RoomId) => {
+    assertWaitingHost(getRoomOrFail(roomId));
+    removeRoom(roomId);
+    return null;
+  },
+
+  // POST /api/leagues/{leagueId}/leave
+  // 방장이 나가면 상장을 가장 먼저 한 친구가 방장이 되고, 남은 참여자가 없으면 대기실이 사라진다 (서비스 정책 2.2)
+  leaveLeague: (roomId: RoomId): LeaveLeagueResponse => {
+    const room = getRoomOrFail(roomId);
+    if (room.status !== 'WAITING') fail('208');
     const wasHost = findMyMember(room).isHost;
     room.members = room.members.filter((member) => !isMe(member));
-    if (!wasHost) return;
+    if (!wasHost) return { leagueId: roomId, waitingRoomDeleted: false };
     const nextHost = room.members
       .filter((member) => member.stock)
       .sort((a, b) => Date.parse(a.stock?.listedAt ?? '') - Date.parse(b.stock?.listedAt ?? ''))[0];
     if (nextHost) nextHost.isHost = true;
     else removeRoom(roomId);
+    return { leagueId: roomId, waitingRoomDeleted: !nextHost };
   },
 
-  kickMember: (roomId: RoomId, userId: UserId) => {
+  // POST /api/leagues/{leagueId}/players/{playerId}/kick (mock은 playerId = userId)
+  kickPlayer: (roomId: RoomId, playerId: number) => {
     const room = getRoomOrFail(roomId);
-    room.members = room.members.filter((member) => member.userId !== userId);
+    assertWaitingHost(room);
+    if (!room.members.some((member) => member.userId === playerId)) fail('210');
+    room.members = room.members.filter((member) => member.userId !== playerId);
+    return null;
   },
 
-  startRoom: (roomId: RoomId) => {
+  // POST /api/leagues/{leagueId}/start
+  startLeague: (roomId: RoomId) => {
     const room = getRoomOrFail(roomId);
-    if (room.members.some((member) => !member.stock)) fail('WAITING_MEMBER_EXISTS');
-    if (room.members.length < MIN_MEMBERS_TO_START) fail('NOT_ENOUGH_MEMBERS');
+    assertWaitingHost(room);
+    // 서버는 대기자가 있는 것과 3명 미만을 같은 206으로 준다
+    if (room.members.some((member) => !member.stock)) fail('206');
+    if (room.members.length < MIN_MEMBERS_TO_START) fail('206');
     const now = new Date();
     room.status = 'ONGOING';
     room.startedAt = now.toISOString();
     room.endAt = getLeagueEndAt(now);
     room.day = 1;
+    return { leagueId: roomId, startedAt: room.startedAt, endsAt: room.endAt };
   },
 
-  listMyStock: (roomId: RoomId, request: ListStockRequest) => {
+  // POST /api/leagues/{leagueId}/stocks
+  listStock: (roomId: RoomId, request: ListStockRequest): ListStockResponse => {
     const room = getRoomOrFail(roomId);
-    assertUniqueStockName(room, request.name);
-    findMyMember(room).stock = listed(request.name, request.description, new Date().toISOString());
-  },
-
-  updateMyStock: (roomId: RoomId, request: ListStockRequest) => {
-    const room = getRoomOrFail(roomId);
-    assertUniqueStockName(room, request.name);
+    if (room.status !== 'WAITING') fail('208');
     const member = findMyMember(room);
-    if (member.stock) member.stock = { ...member.stock, ...request };
+    if (member.stock) fail('303');
+    assertUniqueStockName(room, request.name);
+    member.stock = listed(request.name, request.description, new Date().toISOString());
+    return { stockId: member.stock.stockId };
+  },
+
+  // POST /api/leagues/{leagueId}/stocks/{stockId}/edit
+  editStock: (roomId: RoomId, stockId: StockId, request: ListStockRequest): StockResponse => {
+    const room = getRoomOrFail(roomId);
+    if (room.status !== 'WAITING') fail('208');
+    const member = findMyMember(room);
+    const { stock } = member;
+    if (stock?.stockId !== stockId) return fail('305');
+    assertUniqueStockName(room, request.name);
+    member.stock = { ...stock, ...request };
+    return { stockId, name: request.name, description: request.description };
   },
 };

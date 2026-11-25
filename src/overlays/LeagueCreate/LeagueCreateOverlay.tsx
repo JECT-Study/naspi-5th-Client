@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router';
 import { roomKeys } from '@/apis/domains/room/room.queries';
 import { createRoom } from '@/apis/domains/room/room.service';
-import type { RoomErrorCode } from '@/apis/domains/room/room.types';
+import { ROOM_ERROR_CODE } from '@/apis/domains/room/room.types';
 import { ACTIVE_ROOM_LIMIT_MESSAGE } from '@/apis/domains/room/room.utils';
 import { ROOM_NAME_MAX_LENGTH } from '@/apis/domains/room/room.validation';
 import type { ListStockRequest } from '@/apis/domains/stock/stock.types';
@@ -43,10 +43,10 @@ function LeagueCreateOverlay() {
     // 리그 수 제한은 전용 문구로, 그 밖의 실패는 공통 토스트 (libs/queryClient)
     meta: {
       action: '생성',
-      handledErrors: ['ACTIVE_ROOM_LIMIT_EXCEEDED'] satisfies RoomErrorCode[],
+      handledErrors: [ROOM_ERROR_CODE.ACTIVE_ROOM_LIMIT_EXCEEDED],
     },
     onError: (error) => {
-      if ((getApiErrorCode(error) as RoomErrorCode | undefined) === 'ACTIVE_ROOM_LIMIT_EXCEEDED') {
+      if (getApiErrorCode(error) === ROOM_ERROR_CODE.ACTIVE_ROOM_LIMIT_EXCEEDED) {
         notify.error(ACTIVE_ROOM_LIMIT_MESSAGE);
       }
     },

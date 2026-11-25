@@ -33,7 +33,7 @@ const listedAtOfStock = (stockName: string) =>
   leagueMembersMock.find((member) => member.stockName === stockName)?.listedAt ??
   new Date(LISTED_BASE_MS).toISOString();
 
-// 참여자의 최종 보유 주식: 자기 종목 1,000주 + 친구 종목 두 개 (자기 종목과 겹치면 뺀다)
+// 참여자의 최종 보유 주식: 자기 종목 1,000주 + 친구 종목 두 개 (자기 종목과 겹치면 뺀다). 서버처럼 상장 순
 const buildHoldings = (ownStockName: string): FinalHolding[] =>
   [
     { stockId: 1, stockName: ownStockName, isMine: true, quantity: 1_000, price: 10_000 },
@@ -41,12 +41,14 @@ const buildHoldings = (ownStockName: string): FinalHolding[] =>
     { stockId: 3, stockName: '세영바이오', isMine: false, quantity: 170, price: 1_116 },
   ]
     .filter((holding, index) => index === 0 || holding.stockName !== ownStockName)
+    .sort(
+      (a, b) => Date.parse(listedAtOfStock(a.stockName)) - Date.parse(listedAtOfStock(b.stockName)),
+    )
     .map(({ price, ...holding }) => {
       const evaluationAmount = price * holding.quantity;
       const cost = 10_000 * holding.quantity;
       return {
         ...holding,
-        listedAt: listedAtOfStock(holding.stockName),
         evaluationAmount,
         profit: evaluationAmount - cost,
         profitRate: roundRate(((evaluationAmount - cost) / cost) * 100),
@@ -54,9 +56,9 @@ const buildHoldings = (ownStockName: string): FinalHolding[] =>
     });
 
 const buildRankings = (roomId: RoomId): Ranking[] => {
-  const ended = mockRoomServer.getMyRooms().ended.find((room) => room.roomId === roomId);
+  const ended = mockRoomServer.getEndedRoomSeed(roomId);
   const count = Math.max(ended?.participantCount ?? 4, 2);
-  const myRank = Math.min(ended?.rank ?? 1, count);
+  const myRank = Math.min(ended?.myRank ?? 1, count);
   // 위에서부터 500만 원씩 차이. 마지막 두 명은 같은 금액이라 공동 순위
   const assets = Array.from({ length: count }, (_, i) => 120_000_000 - i * 5_000_000);
   if (count >= 3) assets[count - 1] = assets[count - 2];
@@ -89,9 +91,9 @@ const buildRankings = (roomId: RoomId): Ranking[] => {
 
 export const mockLeagueServer = {
   getResult: (roomId: RoomId): LeagueResult => {
-    const room = mockRoomServer.getRoom(roomId);
     const rankings = buildRankings(roomId);
     const me = rankings.find((ranking) => ranking.isMe) ?? rankings[0];
+    const room = mockRoomServer.getRoomSummary(roomId);
     const endedAt = room.endAt ?? new Date().toISOString();
     const endSeconds = Math.floor(Date.parse(endedAt) / 1000);
     // 1억에서 시작해 마지막 날 최종 자산으로 끝나는 일차별 추이 (현금 + 보유 주식 평가금액 = 총자산)

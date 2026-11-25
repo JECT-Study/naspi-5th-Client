@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { stockQueries } from '@/apis/domains/stock/stock.queries';
-import { splitAndSortStocks } from '@/apis/domains/stock/stock.utils';
+import { splitMyStock } from '@/apis/domains/stock/stock.utils';
 import LoadError from '@/components/status/LoadError';
 import ListBox from '@/components/ui/ListBox';
 import { useRoomId } from '@/hooks/useRoomId';
@@ -36,7 +36,7 @@ function MarketPage() {
     }
     if (isError) return <LoadError onRetry={() => refetch()} />;
 
-    const { myStock, otherStocks: friendStocks } = splitAndSortStocks(stocks);
+    const { myStock, otherStocks: friendStocks } = splitMyStock(stocks);
 
     // 시안 '시장 종목 섹션': 여백 20·24·16, 내 종목과 친구 종목 사이 32
     return (
