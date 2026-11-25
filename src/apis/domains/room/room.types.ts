@@ -4,8 +4,7 @@
 // - 그 밖의 타입은 화면에서 쓰는 모양. room.mapper가 서버 응답을 이 모양으로 바꾼다
 //   (아직 API로 옮기지 않은 대기실·리그 상세 등은 화면설계서 기준 그대로)
 
-import type { ListStockRequest, StockId } from '@/apis/domains/stock/stock.types';
-import type { UserId } from '@/apis/domains/user/user.types';
+import type { ListStockRequest, StockId, StockResponse } from '@/apis/domains/stock/stock.types';
 
 export type RoomId = number;
 
@@ -41,6 +40,9 @@ export interface TradingDayResponse {
   totalDays: number;
   /** 현재 거래일이 끝나는 일시 (다음 09:00) */
   dayEndsAt: string;
+  /** 리그 시작·종료 일시 */
+  startedAt: string;
+  endsAt: string;
 }
 
 // GET /api/leagues/me
@@ -93,6 +95,48 @@ export interface LeagueInfoResponse {
 // POST /api/leagues/join
 export interface JoinLeagueResponse {
   leagueId: RoomId;
+}
+
+/** 리그 안 플레이어 ID (대기실 내보내기에 쓴다. 회원 ID와 다르다) */
+export type PlayerId = number;
+
+export interface PlayerResponse {
+  playerId: PlayerId;
+  /** 회원 이름. 탈퇴한 회원이면 null */
+  name: string | null;
+  /** 조회한 회원 본인인지 (목록에서 정확히 1명) */
+  me: boolean;
+  host: boolean;
+  /** 상장 완료 여부 (false면 대기자) */
+  listed: boolean;
+  joinedAt: string;
+  /** 대기자는 null */
+  listedAt: string | null;
+  /** 상장한 종목. 대기자는 null */
+  stock: StockResponse | null;
+}
+
+// GET /api/leagues/{leagueId}/detail (대기실·리그 화면 공통)
+export interface LeagueDetailResponse {
+  leagueId: RoomId;
+  name: string;
+  /** 대기실 초대 코드. 리그가 시작되었거나 대기실이 만료되었으면 null */
+  inviteCode: string | null;
+  /** 대기실이 아니면 null */
+  waitingRoomExpiresAt: string | null;
+  /** 리그 시작 가능 여부 (참여자 3명 이상, 대기자 0명) */
+  startable: boolean;
+  /** 시작된 리그면 현재 거래일. 대기실이면 null */
+  tradingDay: TradingDayResponse | null;
+  /** 참여일시 순 */
+  players: PlayerResponse[];
+}
+
+// POST /api/leagues/{leagueId}/leave
+export interface LeaveLeagueResponse {
+  leagueId: RoomId;
+  /** 방장이 나갔는데 넘겨받을 참여자가 없어 대기실이 삭제됐는지 */
+  waitingRoomDeleted: boolean;
 }
 
 // ---- 화면에서 쓰는 모양 ----
@@ -190,7 +234,7 @@ export interface ListedStock {
 }
 
 export interface WaitingMember {
-  userId: UserId;
+  playerId: PlayerId;
   name: string;
   isMe: boolean;
   /** 방장인지 */
@@ -202,10 +246,19 @@ export interface WaitingMember {
 export interface WaitingRoomDetail {
   roomId: RoomId;
   name: string;
+  /** 이미 시작된 리그인지 (대기실 주소로 들어왔으면 리그 화면으로 보낸다) */
+  isStarted: boolean;
+  /** 초대 코드. 시작된 리그면 빈 문자열 */
   inviteCode: string;
-  /** 대기실 만료 시각 (생성 + 7일) */
+  /** 대기실 만료 시각 (생성 + 7일). 시작된 리그면 빈 문자열 */
   expiresAt: string;
   members: WaitingMember[];
+}
+
+/** 대기실 나가기 결과 */
+export interface LeaveRoomResponse {
+  /** 방장이 나가 대기실이 사라졌는지 (완료 문구가 다르다) */
+  isRoomDeleted: boolean;
 }
 
 // 리그 이름 수정

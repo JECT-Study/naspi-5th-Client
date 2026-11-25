@@ -89,9 +89,9 @@ const buildRankings = (roomId: RoomId): Ranking[] => {
 
 export const mockLeagueServer = {
   getResult: (roomId: RoomId): LeagueResult => {
-    const room = mockRoomServer.getRoom(roomId);
     const rankings = buildRankings(roomId);
     const me = rankings.find((ranking) => ranking.isMe) ?? rankings[0];
+    const room = mockRoomServer.getRoomSummary(roomId);
     const endedAt = room.endAt ?? new Date().toISOString();
     const endSeconds = Math.floor(Date.parse(endedAt) / 1000);
     // 1억에서 시작해 마지막 날 최종 자산으로 끝나는 일차별 추이 (현금 + 보유 주식 평가금액 = 총자산)

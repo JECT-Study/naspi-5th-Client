@@ -1,8 +1,5 @@
 import { apiClient, unwrap } from '@/apis/client';
 import type { ApiResponse } from '@/apis/types';
-import type { UserId } from '@/apis/domains/user/user.types';
-import { delay } from '@/mocks/delay';
-import { mockRoomServer } from '@/mocks/room.mock';
 import { toCreateLeagueRequest, toInvitePreview, toMyRooms } from './room.mapper';
 import type {
   CreateLeagueResponse,
@@ -12,31 +9,28 @@ import type {
   JoinLeagueResponse,
   JoinRoomRequest,
   JoinRoomResponse,
+  LeagueDetailResponse,
   LeagueInfoResponse,
+  LeaveLeagueResponse,
+  LeaveRoomResponse,
   MyLeagueResponse,
   MyRoomsResponse,
-  RoomDetail,
+  PlayerId,
   RoomId,
   UpdateRoomNameRequest,
-  WaitingRoomDetail,
 } from './room.types';
 
-// 실제 API: 내 리그 목록, 리그 생성, 초대 코드 조회, 입장 (개발 중 화면 확인은 ?msw=logged-in, msw/handlers)
-// TODO: 나머지도 API로 옮긴다. 아래 mock은 실제 요청처럼 0.3초 뒤에 응답하고, 서버 에러는 같은 모양(AxiosError)으로 던진다
+// 리그(서버 league) API. 개발 중 화면 확인은 ?msw=logged-in (msw/handlers가 서버와 같은 모양으로 응답)
+// 공통 실패 코드: 004 리그에 입장하지 않은 회원, 204 없는 리그·만료·삭제된 대기실,
+// 207 방장이 아님, 208 이미 시작된 리그 (그 밖의 코드는 함수마다 적는다)
 
 /** 내 리그 목록. 서버는 한 목록으로 주고, 진행 중·대기실·종료로 나눠 돌려준다 */
 export const getMyRooms = (): Promise<MyRoomsResponse> =>
   apiClient.get<ApiResponse<MyLeagueResponse[]>>('/api/leagues/me').then(unwrap).then(toMyRooms);
 
-export const getRoom = async (roomId: RoomId): Promise<RoomDetail> => {
-  await delay(300);
-  return mockRoomServer.getRoom(roomId);
-};
-
-export const getWaitingRoom = async (roomId: RoomId): Promise<WaitingRoomDetail> => {
-  await delay(300);
-  return mockRoomServer.getWaitingRoom(roomId);
-};
+/** 리그 상세 (대기실 참여자·초대 코드, 리그 화면 이름·일차). 화면 모양은 room.queries의 select로 바꾼다 */
+export const getLeagueDetail = (roomId: RoomId): Promise<LeagueDetailResponse> =>
+  apiClient.get<ApiResponse<LeagueDetailResponse>>(`/api/leagues/${roomId}/detail`).then(unwrap);
 
 /**
  * 리그 생성 (방장 종목 상장까지 한 번에). 실패 코드: 205 리그 5개 참여 중,
@@ -67,30 +61,32 @@ export const joinRoom = (request: JoinRoomRequest): Promise<JoinRoomResponse> =>
     .then(unwrap)
     .then(({ leagueId }) => ({ roomId: leagueId }));
 
+/** 리그 이름 수정 (방장, 대기실). 실패 코드: 200 이름 규칙 위반 */
 export const updateRoomName = async (
   roomId: RoomId,
   request: UpdateRoomNameRequest,
 ): Promise<void> => {
-  await delay(300);
-  mockRoomServer.updateRoomName(roomId, request);
+  await apiClient.post(`/api/leagues/${roomId}/name`, request);
 };
 
+/** 대기실 삭제 (방장) */
 export const deleteRoom = async (roomId: RoomId): Promise<void> => {
-  await delay(300);
-  mockRoomServer.deleteRoom(roomId);
+  await apiClient.post(`/api/leagues/${roomId}/delete`);
 };
 
-export const leaveRoom = async (roomId: RoomId): Promise<void> => {
-  await delay(300);
-  mockRoomServer.leaveRoom(roomId);
+/** 대기실 나가기. 방장이 나갔는데 넘겨받을 참여자(상장 완료)가 없으면 대기실이 사라진다 */
+export const leaveRoom = (roomId: RoomId): Promise<LeaveRoomResponse> =>
+  apiClient
+    .post<ApiResponse<LeaveLeagueResponse>>(`/api/leagues/${roomId}/leave`)
+    .then(unwrap)
+    .then(({ waitingRoomDeleted }) => ({ isRoomDeleted: waitingRoomDeleted }));
+
+/** 플레이어 내보내기 (방장, 대기실). 실패 코드: 209 방장 자신, 210 이미 나갔거나 내보낸 플레이어 */
+export const kickMember = async (roomId: RoomId, playerId: PlayerId): Promise<void> => {
+  await apiClient.post(`/api/leagues/${roomId}/players/${playerId}/kick`);
 };
 
-export const kickMember = async (roomId: RoomId, userId: UserId): Promise<void> => {
-  await delay(300);
-  mockRoomServer.kickMember(roomId, userId);
-};
-
+/** 리그 시작 (방장). 실패 코드: 206 참여자 3명 미만이거나 대기자가 있음 */
 export const startRoom = async (roomId: RoomId): Promise<void> => {
-  await delay(600);
-  mockRoomServer.startRoom(roomId);
+  await apiClient.post(`/api/leagues/${roomId}/start`);
 };

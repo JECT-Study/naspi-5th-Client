@@ -28,7 +28,6 @@ interface StockListingFormProps extends StockListingOverlayProps {
 function StockListingForm({ roomId, listedStock }: StockListingFormProps) {
   const queryClient = useQueryClient();
   const closeOverlay = useCloseOverlay();
-  const isEdit = listedStock !== null;
   const [stock, setStock] = useState<ListStockRequest>({
     name: listedStock?.name ?? '',
     description: listedStock?.description ?? '',
@@ -37,9 +36,11 @@ function StockListingForm({ roomId, listedStock }: StockListingFormProps) {
 
   const { mutate, isPending } = useMutation({
     mutationFn: (request: ListStockRequest) =>
-      isEdit ? updateMyStock(roomId, request) : listMyStock(roomId, request),
+      listedStock
+        ? updateMyStock(roomId, listedStock.stockId, request)
+        : listMyStock(roomId, request),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: roomKeys.waiting(roomId) });
+      queryClient.invalidateQueries({ queryKey: roomKeys.detail(roomId) });
       queryClient.invalidateQueries({ queryKey: roomKeys.mine() });
       closeOverlay();
     },

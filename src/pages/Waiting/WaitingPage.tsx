@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useNavigate } from 'react-router';
+import { Navigate, useNavigate } from 'react-router';
 import { roomKeys, roomQueries } from '@/apis/domains/room/room.queries';
 import { deleteRoom, kickMember, leaveRoom, startRoom } from '@/apis/domains/room/room.service';
 import { ROOM_ERROR_CODE, type WaitingMember } from '@/apis/domains/room/room.types';
@@ -86,14 +86,15 @@ function WaitingPage() {
     onSuccess: () => exitToMain(ROOM_DELETED_MESSAGE),
     meta: { action: '삭제' },
   });
-  // 방장이 혼자 나가면 대기실이 사라지므로 완료 문구가 다르다. 누를 때 문구를 넘겨받는다
+  // 방장이 나갔는데 넘겨받을 참여자가 없으면 대기실이 사라지므로 완료 문구가 다르다 (서버가 알려 준다)
   const leaveMutation = useMutation({
-    mutationFn: (_successMessage: string) => leaveRoom(roomId),
-    onSuccess: (_data, successMessage) => exitToMain(successMessage),
+    mutationFn: () => leaveRoom(roomId),
+    onSuccess: ({ isRoomDeleted }) =>
+      exitToMain(isRoomDeleted ? ROOM_DELETED_MESSAGE : '대기실에서 나왔어요.'),
     meta: { action: '퇴장' },
   });
   const kickMutation = useMutation({
-    mutationFn: (member: WaitingMember) => kickMember(roomId, member.userId),
+    mutationFn: (member: WaitingMember) => kickMember(roomId, member.playerId),
     onSuccess: () => {
       invalidateRoom();
       closeModal();
@@ -141,6 +142,9 @@ function WaitingPage() {
     );
   }
 
+  // 이미 시작된 리그의 대기실 주소로 들어오면(새로고침·링크, 실시간 알림 전) 리그 화면으로 보낸다
+  if (room.isStarted) return <Navigate to={`/leagues/${roomId}`} replace />;
+
   const { me, listedFriends, waitingFriends } = groupWaitingMembers(room.members);
   const isHost = me?.isHost ?? false;
   const myStock = me?.stock ?? null;
@@ -173,7 +177,7 @@ function WaitingPage() {
       ? [{ label: '내보내기', onSelect: () => setModal({ type: 'kick', member }) }]
       : [];
 
-  // 방장이 나가는데 상장한 친구가 없으면 대기실이 사라진다 (대기실 1-1-3)
+  // 방장이 나가는데 상장한 친구가 없으면 대기실이 사라진다 (대기실 1-1-3). 나가기 전 안내 문구에 쓴다
   const isLeaveDeletingRoom = isHost && listedFriends.length === 0;
 
   // 방장 퇴장(1-1-1 인계O, 1-1-3 인계X), 참여자·대기자 퇴장(1-4-1, 같은 문구)
@@ -231,7 +235,7 @@ function WaitingPage() {
           </div>
           <ul className="flex flex-col gap-2 rounded-[10px] border border-grey-2 bg-white px-2 py-3">
             {orderedMembers.map((member) => (
-              <li key={member.userId}>
+              <li key={member.playerId}>
                 <MemberRow
                   member={member}
                   actions={member.isMe ? myStockActions : getMemberActions(member)}
@@ -283,11 +287,7 @@ function WaitingPage() {
           description={getLeaveDescription()}
           confirmLabel="나가기"
           isPending={leaveMutation.isPending}
-          onConfirm={() =>
-            leaveMutation.mutate(
-              isLeaveDeletingRoom ? ROOM_DELETED_MESSAGE : '대기실에서 나왔어요.',
-            )
-          }
+          onConfirm={() => leaveMutation.mutate()}
           onCancel={closeModal}
         />
       )}

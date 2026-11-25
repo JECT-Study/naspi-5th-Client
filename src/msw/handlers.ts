@@ -1,7 +1,12 @@
 import type { AxiosError } from 'axios';
 import { http, HttpResponse } from 'msw';
 import type { SignupRequest } from '@/apis/domains/auth/auth.types';
-import type { CreateLeagueRequest, JoinRoomRequest } from '@/apis/domains/room/room.types';
+import type {
+  CreateLeagueRequest,
+  JoinRoomRequest,
+  UpdateRoomNameRequest,
+} from '@/apis/domains/room/room.types';
+import type { ListStockRequest } from '@/apis/domains/stock/stock.types';
 import type { UpdateMyNameRequest } from '@/apis/domains/user/user.types';
 import type { ApiResponse } from '@/apis/types';
 import { delay as mockDelay } from '@/mocks/delay';
@@ -140,6 +145,57 @@ export const createHandlers = (scenario: MswScenario) => {
         const { inviteCode } = (await request.json()) as JoinRoomRequest;
         return fromMock(600, () =>
           mockRoomServer.joinLeague({ inviteCode: inviteCode.trim().toUpperCase() }),
+        );
+      }),
+    ),
+
+    // 리그 상세·대기실 관리 (:leagueId는 숫자)
+    http.get('*/api/leagues/:leagueId/detail', ({ params }) =>
+      requireLogin(() =>
+        fromMock(300, () => mockRoomServer.getLeagueDetail(Number(params.leagueId))),
+      ),
+    ),
+
+    http.post('*/api/leagues/:leagueId/name', ({ params, request }) =>
+      requireLogin(async () => {
+        const body = (await request.json()) as UpdateRoomNameRequest;
+        return fromMock(300, () => mockRoomServer.renameLeague(Number(params.leagueId), body));
+      }),
+    ),
+
+    http.post('*/api/leagues/:leagueId/delete', ({ params }) =>
+      requireLogin(() => fromMock(300, () => mockRoomServer.deleteLeague(Number(params.leagueId)))),
+    ),
+
+    http.post('*/api/leagues/:leagueId/leave', ({ params }) =>
+      requireLogin(() => fromMock(300, () => mockRoomServer.leaveLeague(Number(params.leagueId)))),
+    ),
+
+    http.post('*/api/leagues/:leagueId/players/:playerId/kick', ({ params }) =>
+      requireLogin(() =>
+        fromMock(300, () =>
+          mockRoomServer.kickPlayer(Number(params.leagueId), Number(params.playerId)),
+        ),
+      ),
+    ),
+
+    http.post('*/api/leagues/:leagueId/start', ({ params }) =>
+      requireLogin(() => fromMock(600, () => mockRoomServer.startLeague(Number(params.leagueId)))),
+    ),
+
+    // 종목 상장·대기실 종목 수정
+    http.post('*/api/leagues/:leagueId/stocks', ({ params, request }) =>
+      requireLogin(async () => {
+        const body = (await request.json()) as ListStockRequest;
+        return fromMock(600, () => mockRoomServer.listStock(Number(params.leagueId), body));
+      }),
+    ),
+
+    http.post('*/api/leagues/:leagueId/stocks/:stockId/edit', ({ params, request }) =>
+      requireLogin(async () => {
+        const body = (await request.json()) as ListStockRequest;
+        return fromMock(600, () =>
+          mockRoomServer.editStock(Number(params.leagueId), Number(params.stockId), body),
         );
       }),
     ),

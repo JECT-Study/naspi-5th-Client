@@ -11,8 +11,22 @@ export const STOCK_ERROR_CODE = {
 
 export type StockErrorCode = (typeof STOCK_ERROR_CODE)[keyof typeof STOCK_ERROR_CODE];
 
-// 종목 상장·수정 (대기실)
+// 종목 상장·수정 (대기실). POST /api/leagues/{leagueId}/stocks, POST .../stocks/{stockId}/edit 요청
 export interface ListStockRequest {
+  name: string;
+  description: string;
+}
+
+// ---- 서버 응답 (Swagger) ----
+
+// POST /api/leagues/{leagueId}/stocks
+export interface ListStockResponse {
+  stockId: StockId;
+}
+
+// 종목 수정 응답, 리그 상세 참여자의 상장 종목
+export interface StockResponse {
+  stockId: StockId;
   name: string;
   description: string;
 }
