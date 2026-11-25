@@ -1,5 +1,6 @@
-import { useId, type ComponentProps } from 'react';
+import { useId, type ChangeEvent, type ComponentProps } from 'react';
 import { cn } from '@/utils/cn';
+import { pasteWithoutLeadingSpace, stripLeadingSpace } from '@/utils/leadingSpace';
 import { maxLengthHandlers } from '@/utils/maxLength';
 import CharCounter from './CharCounter';
 import FieldMessage from './FieldMessage';
@@ -28,6 +29,8 @@ type CounterInset = 8 | 10 | 12;
 // 테두리·여백은 입력값과 글자 수를 함께 담는 상자에 준다
 // (시안 글자 수는 바깥 테두리에서 오른쪽 12·10·8, 세로 가운데 → 테두리 1을 뺀 만큼 오른쪽 여백)
 // maxLength를 넘는 한글(조합 중인 글자)은 조합이 끝나면 잘라 낸다 (utils/maxLength)
+// 맨 앞 공백은 들어가지 않는다. 붙여넣기도 앞 공백을 걷은 뒤 최대 글자 수만큼 채운다 (utils/leadingSpace)
+// (이름·리그 이름·종목 이름 모두 앞뒤 공백 없는 값을 쓴다. 뒤 공백은 치는 도중이라 막지 않고 보낼 때 다듬는다)
 const BOX_SIZE_CLASS = {
   md: 'h-8.5 py-1.5 pl-2',
   sm: 'h-5.5 py-0.5 pl-2',
@@ -56,11 +59,21 @@ function TextField({
   maxLength,
   onChange,
   onCompositionEnd,
+  onPaste,
   ...props
 }: TextFieldProps) {
   const generatedId = useId();
   const inputId = id ?? generatedId;
   const errorId = `${inputId}-error`;
+
+  // 한글 조합 중이 아닐 때만 앞 공백을 지운다 (조합 중인 글자는 건드리지 않는다)
+  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const { nativeEvent } = event;
+    if (!(nativeEvent instanceof InputEvent && nativeEvent.isComposing)) {
+      stripLeadingSpace(event.currentTarget);
+    }
+    onChange?.(event);
+  };
 
   return (
     <div className={cn('flex flex-col gap-1', className)}>
@@ -89,7 +102,11 @@ function TextField({
             INPUT_SIZE_CLASS[size],
           )}
           {...props}
-          {...maxLengthHandlers(onChange, onCompositionEnd)}
+          onPaste={(event) => {
+            onPaste?.(event);
+            if (!event.defaultPrevented) pasteWithoutLeadingSpace(event);
+          }}
+          {...maxLengthHandlers(handleChange, onCompositionEnd)}
         />
         {/* 작은 칸(sm, 본문 16)은 글자 수 줄 높이를 16으로 줄여 넣는다 */}
         {maxLength !== undefined && (
