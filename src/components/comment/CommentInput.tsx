@@ -55,9 +55,9 @@ function CommentInput({ roomId, targetType, targetId, onChanged }: CommentInputP
       onSubmit={handleSubmit}
     >
       {/* 입력 여백 14·16, Title4.5 (안내 문구 Grey/4, 입력값 Grey/8)
-          글자 수는 처음부터 입력 오른쪽 끝(마지막 줄 높이)에 둔다. 한 줄일 때 높이 54가 그대로 유지된다 (자리는 정함)
-          높이는 5줄(100) + 위아래 14까지만 늘고, 줄바꿈을 더 하면 칸 안에서 스크롤한다 */}
-      <div className="flex min-w-0 flex-1 items-end gap-2 self-center py-3.5 pr-3 pl-4">
+          입력을 시작하면 아래 32를 비우고 오른쪽 12·아래 6에 글자 수 (시안 TextField 댓글 입력 상태)
+          높이는 5줄(100) + 위 14 + 아래(글자 수 있으면 32, 없으면 14)까지만 늘고, 줄바꿈을 더 하면 칸 안에서 스크롤한다 */}
+      <div className="relative flex min-w-0 flex-1 items-center">
         <textarea
           ref={ref}
           aria-label="댓글"
@@ -65,10 +65,17 @@ function CommentInput({ roomId, targetType, targetId, onChanged }: CommentInputP
           rows={1}
           maxLength={COMMENT_MAX_LENGTH}
           value={content}
-          className="block max-h-25 min-w-0 flex-1 resize-none bg-transparent text-title4-5 text-grey-8 outline-none placeholder:text-grey-4"
+          className={cn(
+            'block w-full resize-none bg-transparent px-4 pt-3.5 text-title4-5 text-grey-8 outline-none placeholder:text-grey-4',
+            content.length > 0 ? 'max-h-36.5 pb-8' : 'max-h-32 pb-3.5',
+          )}
           {...maxLengthHandlers<HTMLTextAreaElement>((event) => setContent(event.target.value))}
         />
-        <CharCounter length={content.length} max={COMMENT_MAX_LENGTH} />
+        <CharCounter
+          length={content.length}
+          max={COMMENT_MAX_LENGTH}
+          className="pointer-events-none absolute right-3 bottom-1.5"
+        />
       </div>
       {/* 폭 52 보내기 칸에 흰 Send 24 (여백 15·14). 칸이 높아져도 아이콘은 세로 가운데 (시안 정렬 MAX/CENTER)
           입력이 없으면 Grey/4, 있으면 NSBlue 바탕 */}

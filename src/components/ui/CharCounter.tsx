@@ -1,5 +1,4 @@
 import { cn } from '@/utils/cn';
-import { isAtMaxLength } from '@/utils/maxLength';
 
 interface CharCounterProps {
   length: number;
@@ -7,17 +6,14 @@ interface CharCounterProps {
   className?: string;
 }
 
-// 글자 수 "(n/최대)" Caption1. 최대보다 적으면 Grey/5, 최대에 닿으면 NSBuy (디자이너 확인)
-// 입력받는 칸은 모두 처음부터 보여 준다 (디자이너 확인). 놓는 자리는 칸마다 부르는 쪽에서 정한다
+// 글자 수 "(n/최대)" Caption1 Grey/5 (시안 Character Count)
+// - 입력을 시작하면 보여 주고, 비어 있으면 숨긴다
+// - 최대에 닿거나 넘겨 치려 해도 색은 그대로 (시안 댓글 (50/50)도 Grey/5)
+// 놓는 자리는 칸마다 부르는 쪽에서 정한다
 function CharCounter({ length, max, className }: CharCounterProps) {
+  if (length === 0) return null;
   return (
-    <span
-      className={cn(
-        'shrink-0 text-caption1',
-        isAtMaxLength(length, max) ? 'text-ns-buy' : 'text-grey-5',
-        className,
-      )}
-    >
+    <span className={cn('shrink-0 text-caption1 text-grey-5', className)}>
       ({length}/{max})
     </span>
   );

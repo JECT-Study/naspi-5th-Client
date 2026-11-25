@@ -13,10 +13,6 @@ export type TextElement = HTMLInputElement | HTMLTextAreaElement;
 // 그래서 입력될 때마다(조합 중이어도) 넘친 글자를 바로 잘라 낸다. 조합이 끝날 때 한 번 더 자른다
 // (포커스를 뺐다 넣어 조합을 끝내는 방법은 iOS에서 키보드가 다시 올라오지 않을 수 있어 쓰지 않는다)
 
-/** 최대 글자 수에 닿았는지. 닿으면 글자 수와 입력칸 테두리를 붉게 한다 (디자이너 확인) */
-export const isAtMaxLength = (length: number, max: number | undefined): boolean =>
-  max !== undefined && length >= max;
-
 /** maxLength를 넘은 글자를 잘라 낸다. 잘랐으면 true */
 const trimOverflow = (element: TextElement): boolean => {
   const { maxLength, value } = element;

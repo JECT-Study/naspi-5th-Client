@@ -71,6 +71,8 @@ function MyNameField({ name }: MyNameFieldProps) {
           <TextField
             aria-label="이름"
             size="sm"
+            // 시안: 드로어 이름 칸은 글자 수 오른쪽 8
+            counterInset={8}
             className="min-w-0 flex-1"
             value={draft}
             maxLength={NAME_MAX_LENGTH}
