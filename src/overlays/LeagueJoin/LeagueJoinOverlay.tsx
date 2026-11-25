@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router';
 import { roomKeys, roomQueries } from '@/apis/domains/room/room.queries';
 import { joinRoom } from '@/apis/domains/room/room.service';
-import type { RoomErrorCode } from '@/apis/domains/room/room.types';
+import { ROOM_ERROR_CODE, type RoomErrorCode } from '@/apis/domains/room/room.types';
 import { ACTIVE_ROOM_LIMIT_MESSAGE } from '@/apis/domains/room/room.utils';
 import { isInviteCodeComplete } from '@/apis/domains/room/room.validation';
 import Button from '@/components/ui/Button';
@@ -18,11 +18,23 @@ import { getApiErrorCode } from '@/libs/apiError';
 import { notify } from '@/libs/notify';
 import CodeInput from './components/CodeInput';
 
+// 초대 코드 오류 문구 (코드 확인·입장 공통)
+// 삭제·만료·종료로 폐기된 코드는 서버가 없는 코드(201)로 준다 → '유효하지 않은 코드'로 안내 (시안의 '삭제된 대기실이에요.'는 쓰지 않음, 팀 결정)
+const INVALID_CODE_MESSAGE = '유효하지 않은 코드예요. 코드를 다시 확인해 주세요.';
+const ALREADY_STARTED_MESSAGE = '이미 시작된 리그예요. 다른 초대 코드를 입력해 주세요.';
+
+// 코드 확인 단계에서 다른 코드를 넣어야 하는 실패. 입력칸을 비우고 첫 칸부터 다시 입력
+const CODE_ERROR_MESSAGES: Partial<Record<RoomErrorCode, string>> = {
+  [ROOM_ERROR_CODE.INVALID_INVITE_CODE]: INVALID_CODE_MESSAGE,
+  [ROOM_ERROR_CODE.ALREADY_STARTED]: ALREADY_STARTED_MESSAGE,
+};
+
 // 입장 단계에서 입력창 위에 보여주는 실패 안내. 이 경우 다른 코드를 넣어야 하므로 입장 버튼을 막는다
+// (확인 뒤 그사이 리그가 시작됐거나(208) 대기실이 삭제·만료됐거나(201) 정원이 찬 경우(203))
 const JOIN_ERROR_MESSAGES: Partial<Record<RoomErrorCode, string>> = {
-  ROOM_FULL: '정원이 가득 찼어요. 다른 초대 코드를 입력해 주세요.',
-  ROOM_ALREADY_STARTED: '이미 시작된 리그예요. 다른 초대 코드를 입력해 주세요.',
-  ROOM_DELETED: '삭제된 대기실이에요. 다른 초대 코드를 입력해 주세요.',
+  [ROOM_ERROR_CODE.ROOM_FULL]: '정원이 가득 찼어요. 다른 초대 코드를 입력해 주세요.',
+  [ROOM_ERROR_CODE.ALREADY_STARTED]: ALREADY_STARTED_MESSAGE,
+  [ROOM_ERROR_CODE.INVALID_INVITE_CODE]: INVALID_CODE_MESSAGE,
 };
 
 // 코드로 참여 (오버레이): 코드 7자리 입력 → 자동 확인 → "이 대기실에 입장할까요?" → 대기실
@@ -36,25 +48,33 @@ function LeagueJoinOverlay() {
   const preview = useQuery({ ...roomQueries.invite(inviteCode), enabled: isCodeComplete });
   const previewErrorCode = getApiErrorCode(preview.error) as RoomErrorCode | undefined;
 
+  // 오버레이 기록을 대기실로 바꿔치기한다 (오버레이는 닫히고, 뒤로 가기를 누르면 열기 전 화면)
+  const goToWaitingRoom = (roomId: number) => {
+    queryClient.invalidateQueries({ queryKey: roomKeys.mine() });
+    navigate(`/leagues/${roomId}/waiting`, { replace: true });
+  };
+
   const join = useMutation({
     mutationFn: joinRoom,
-    onSuccess: ({ roomId }) => {
-      queryClient.invalidateQueries({ queryKey: roomKeys.mine() });
-      navigate(`/leagues/${roomId}/waiting`, { replace: true });
-    },
-    // 정원·시작·삭제는 입력창 위 문구(JOIN_ERROR_MESSAGES), 리그 수 제한은 전용 토스트, 그 밖은 공통 토스트
+    onSuccess: ({ roomId }) => goToWaitingRoom(roomId),
+    // 정원·시작·폐기된 코드는 입력창 위 문구(JOIN_ERROR_MESSAGES), 리그 수 제한은 전용 토스트, 그 밖은 공통 토스트
+    // 이미 입장한 리그(202)는 실패로 보지 않고 그 대기실로 간다 (API 문서 "해당 리그 대기실로 이동")
     meta: {
       action: '입장',
       handledErrors: [
-        'ROOM_FULL',
-        'ROOM_ALREADY_STARTED',
-        'ROOM_DELETED',
-        'ACTIVE_ROOM_LIMIT_EXCEEDED',
-      ] satisfies RoomErrorCode[],
+        ROOM_ERROR_CODE.ROOM_FULL,
+        ROOM_ERROR_CODE.ALREADY_STARTED,
+        ROOM_ERROR_CODE.INVALID_INVITE_CODE,
+        ROOM_ERROR_CODE.ACTIVE_ROOM_LIMIT_EXCEEDED,
+        ROOM_ERROR_CODE.ALREADY_JOINED,
+      ],
     },
     onError: (error) => {
-      if ((getApiErrorCode(error) as RoomErrorCode | undefined) === 'ACTIVE_ROOM_LIMIT_EXCEEDED') {
+      const code = getApiErrorCode(error);
+      if (code === ROOM_ERROR_CODE.ACTIVE_ROOM_LIMIT_EXCEEDED)
         notify.error(ACTIVE_ROOM_LIMIT_MESSAGE);
+      if (code === ROOM_ERROR_CODE.ALREADY_JOINED && preview.data) {
+        goToWaitingRoom(preview.data.roomId);
       }
     },
   });
@@ -67,12 +87,14 @@ function LeagueJoinOverlay() {
   };
 
   // 코드 확인 결과 (코드로 참여 1)
-  // - 없는 코드: 입력칸을 비우고 첫 칸부터 다시 입력. 오류 문구는 새로 입력을 시작하면 사라진다
+  // - 없는 코드(201)·이미 시작된 리그(208): 입력칸을 비우고 첫 칸부터 다시 입력. 오류 문구는 새로 입력을 시작하면 사라진다
   // - 확인할 수 없음(서버 오류 등): 입력한 코드를 그대로 두고 다시 시도
   const renderCodeStep = () => {
     const isChecking = isCodeComplete && preview.isFetching;
     const hasCheckError = isCodeComplete && !isChecking && preview.isError;
-    const isInvalidCode = hasCheckError && previewErrorCode === 'INVALID_INVITE_CODE';
+    const rejectedMessage =
+      hasCheckError && previewErrorCode && CODE_ERROR_MESSAGES[previewErrorCode];
+    const isCodeRejected = Boolean(rejectedMessage);
     return (
       <>
         <FormSection
@@ -83,14 +105,12 @@ function LeagueJoinOverlay() {
           <div className="flex flex-col gap-1 self-center">
             {hasCheckError && (
               <FieldMessage>
-                {isInvalidCode
-                  ? '유효하지 않은 코드예요. 코드를 다시 확인해 주세요.'
-                  : '대기실 정보를 불러오지 못했어요. 다시 시도해 주세요.'}
+                {rejectedMessage || '대기실 정보를 불러오지 못했어요. 다시 시도해 주세요.'}
               </FieldMessage>
             )}
             <CodeInput
               // 없는 코드면 칸을 비워 보여 준다. 한 글자를 넣으면 그 글자부터 새 코드가 된다
-              value={isInvalidCode ? '' : inviteCode}
+              value={isCodeRejected ? '' : inviteCode}
               disabled={isChecking}
               hasError={hasCheckError}
               onChange={handleCodeChange}
@@ -100,7 +120,7 @@ function LeagueJoinOverlay() {
           {isChecking && <SpinnerIcon className="mx-auto mt-6 size-12 text-grey-4" />}
         </FormSection>
         {/* 시안 '대기실 조회 실패': 섹션 바로 아래 가운데, 아래 8 띄우고 "또는 새 리그 만들기" */}
-        {hasCheckError && !isInvalidCode && (
+        {hasCheckError && !isCodeRejected && (
           <RetryButton className="mx-auto mb-2" onClick={() => preview.refetch()} />
         )}
       </>

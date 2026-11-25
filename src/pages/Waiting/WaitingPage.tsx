@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router';
 import { roomKeys, roomQueries } from '@/apis/domains/room/room.queries';
 import { deleteRoom, kickMember, leaveRoom, startRoom } from '@/apis/domains/room/room.service';
-import type { RoomErrorCode, WaitingMember } from '@/apis/domains/room/room.types';
+import { ROOM_ERROR_CODE, type WaitingMember } from '@/apis/domains/room/room.types';
 import {
   MIN_MEMBERS_TO_START,
   getLeagueEndAt,
@@ -111,11 +111,12 @@ function WaitingPage() {
     },
     meta: {
       action: '리그 시작',
-      handledErrors: ['WAITING_MEMBER_EXISTS'] satisfies RoomErrorCode[],
+      handledErrors: [ROOM_ERROR_CODE.CANNOT_START],
     },
     onError: (error) => {
-      // 확인하는 사이 다른 친구가 들어온 경우
-      if ((getApiErrorCode(error) as RoomErrorCode | undefined) === 'WAITING_MEMBER_EXISTS') {
+      // 확인하는 사이 다른 친구가 들어온 경우 (서버는 3명 미만도 같은 206으로 준다.
+      // 시작 버튼은 3명 이상일 때만 눌리므로 206이면 대기자가 생긴 것으로 본다)
+      if (getApiErrorCode(error) === ROOM_ERROR_CODE.CANNOT_START) {
         notifyWaitingMembers();
         invalidateRoom();
       }
@@ -182,7 +183,7 @@ function WaitingPage() {
     return '이 리그의 참여가 취소돼요.';
   };
 
-  // 시작하기를 눌렀을 때 대기자가 있으면 시작하지 않는다. 서버도 한 번 더 확인한다 (WAITING_MEMBER_EXISTS)
+  // 시작하기를 눌렀을 때 대기자가 있으면 시작하지 않는다. 서버도 한 번 더 확인한다 (206)
   const handleStartConfirm = () => {
     if (waitingFriends.length > 0) {
       notifyWaitingMembers();

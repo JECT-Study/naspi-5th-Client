@@ -1,6 +1,17 @@
 const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
+// 끝에 시간대(Z, +09:00, +0900)가 붙어 있는지
+const TIME_ZONE_SUFFIX = /(?:Z|[+-]\d{2}:?\d{2})$/i;
+
+/**
+ * 시간대 표시가 없는 KST 일시 문자열에 +09:00을 붙인다 ('2026-11-22T09:00:00' → '2026-11-22T09:00:00+09:00')
+ * 서버가 일시를 KST로 주는데 시간대 표시가 없으면, 브라우저가 기기 시간대로 읽어 해외 기기에서 시각이 어긋난다
+ * 이미 시간대가 있으면 그대로 둔다
+ */
+export const withKstOffset = (value: string): string =>
+  TIME_ZONE_SUFFIX.test(value) ? value : `${value}+09:00`;
+
 // KST 기준 날짜 번호 (1970-01-01부터 며칠째인지)
 const toKstDayNumber = (date: Date) => Math.floor((date.getTime() + KST_OFFSET_MS) / DAY_MS);
 

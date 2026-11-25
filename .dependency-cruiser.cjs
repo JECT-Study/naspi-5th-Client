@@ -173,13 +173,18 @@ module.exports = {
     },
 
     // mocks: API 준비 전 임시 데이터. service·socket만 바꾸면 실제 API로 전환되도록 사용처를 제한한다
+    // 실제 API로 옮긴 기능은 msw 핸들러가 같은 mock 상태로 응답한다 (아직 안 옮긴 service mock과 데이터를 같이 쓴다)
     {
       name: 'mocks-only-from-service',
-      comment: 'mocks/는 apis/domains의 service, socket 파일에서만 import한다',
+      comment: 'mocks/는 apis/domains의 service, socket 파일과 msw/에서만 import한다',
       severity: 'error',
       from: {
         path: '^src/',
-        pathNot: ['^src/mocks/', '^src/apis/domains/[^/]+/[^/]+\\.(service|socket)\\.ts$'],
+        pathNot: [
+          '^src/mocks/',
+          '^src/msw/',
+          '^src/apis/domains/[^/]+/[^/]+\\.(service|socket)\\.ts$',
+        ],
       },
       to: { path: '^src/mocks/' },
     },
@@ -201,10 +206,15 @@ module.exports = {
     },
     {
       name: 'msw-type-only',
-      comment: 'msw/는 프로젝트 내부에서 타입만 import한다 (응답 모양을 API 타입에 맞춘다)',
+      comment:
+        'msw/는 mocks/ 말고는 프로젝트 내부에서 타입만 import한다 (응답 모양을 API 타입에 맞춘다)',
       severity: 'error',
       from: { path: '^src/msw/' },
-      to: { path: '^src/', pathNot: '^src/msw/', dependencyTypesNot: ['type-only'] },
+      to: {
+        path: '^src/',
+        pathNot: ['^src/msw/', '^src/mocks/'],
+        dependencyTypesNot: ['type-only'],
+      },
     },
 
     {

@@ -54,9 +54,9 @@ const buildHoldings = (ownStockName: string): FinalHolding[] =>
     });
 
 const buildRankings = (roomId: RoomId): Ranking[] => {
-  const ended = mockRoomServer.getMyRooms().ended.find((room) => room.roomId === roomId);
+  const ended = mockRoomServer.getEndedRoomSeed(roomId);
   const count = Math.max(ended?.participantCount ?? 4, 2);
-  const myRank = Math.min(ended?.rank ?? 1, count);
+  const myRank = Math.min(ended?.myRank ?? 1, count);
   // 위에서부터 500만 원씩 차이. 마지막 두 명은 같은 금액이라 공동 순위
   const assets = Array.from({ length: count }, (_, i) => 120_000_000 - i * 5_000_000);
   if (count >= 3) assets[count - 1] = assets[count - 2];

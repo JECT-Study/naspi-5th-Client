@@ -3,8 +3,13 @@
 
 export type StockId = number;
 
-/** 화면에서 문구를 나눠 보여주는 서버 에러 코드. TODO: BE와 코드 이름 맞추기 */
-export type StockErrorCode = 'STOCK_NAME_DUPLICATED';
+/** 화면에서 문구를 나눠 보여주는 서버 에러 코드 (백엔드 ErrorCode) */
+export const STOCK_ERROR_CODE = {
+  /** 같은 리그에 같은 이름의 종목이 있음 */
+  NAME_DUPLICATED: '302',
+} as const;
+
+export type StockErrorCode = (typeof STOCK_ERROR_CODE)[keyof typeof STOCK_ERROR_CODE];
 
 // 종목 상장·수정 (대기실)
 export interface ListStockRequest {

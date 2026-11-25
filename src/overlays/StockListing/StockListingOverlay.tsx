@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { roomKeys, roomQueries } from '@/apis/domains/room/room.queries';
 import type { ListedStock, RoomId } from '@/apis/domains/room/room.types';
 import { listMyStock, updateMyStock } from '@/apis/domains/stock/stock.service';
-import type { ListStockRequest, StockErrorCode } from '@/apis/domains/stock/stock.types';
+import { STOCK_ERROR_CODE, type ListStockRequest } from '@/apis/domains/stock/stock.types';
 import {
   isStockFormFilled,
   validateStockForm,
@@ -46,10 +46,10 @@ function StockListingForm({ roomId, listedStock }: StockListingFormProps) {
     // 이름 중복은 입력칸 위에 안내하고, 그 밖의 실패는 공통 토스트 "생성" (종목 상장 2, 수정일 때도 같음)
     meta: {
       action: '생성',
-      handledErrors: ['STOCK_NAME_DUPLICATED'] satisfies StockErrorCode[],
+      handledErrors: [STOCK_ERROR_CODE.NAME_DUPLICATED],
     },
     onError: (error) => {
-      if ((getApiErrorCode(error) as StockErrorCode | undefined) === 'STOCK_NAME_DUPLICATED') {
+      if (getApiErrorCode(error) === STOCK_ERROR_CODE.NAME_DUPLICATED) {
         setErrors({ name: '이미 존재하는 종목 이름이에요.' });
       }
     },
