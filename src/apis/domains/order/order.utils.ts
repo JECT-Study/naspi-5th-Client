@@ -27,7 +27,9 @@ export const getOrderResultMessages = (
     messages.push(`${stockSide} 주문이 체결됐어요.`);
   } else if (status === 'CANCELED') {
     messages.push(
-      remainingQuantity < quantity ? `${stockSide} 주문이 일부 체결됐어요.` : ORDER_CANCELED_MESSAGE,
+      remainingQuantity < quantity
+        ? `${stockSide} 주문이 일부 체결됐어요.`
+        : ORDER_CANCELED_MESSAGE,
     );
   }
   return messages;

@@ -72,7 +72,8 @@ function NumberField({
               if (event.key !== 'Backspace' && event.key !== 'Delete') return;
               event.preventDefault();
               const { selectionStart, selectionEnd, value: text } = event.currentTarget;
-              const isAllSelected = text.length > 0 && selectionStart === 0 && selectionEnd === text.length;
+              const isAllSelected =
+                text.length > 0 && selectionStart === 0 && selectionEnd === text.length;
               onChange(isAllSelected ? 0 : applyKeypadKey(value, 'delete'));
             }}
             onChange={(event) => {
