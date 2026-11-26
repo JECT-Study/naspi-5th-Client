@@ -26,10 +26,13 @@ function OrderCancelModal({ roomId, order, onClose }: OrderCancelModalProps) {
     queryClient.invalidateQueries({ queryKey: orderKeys.room(roomId) });
   };
 
+  // 주문 취소·취소 실패 토스트의 확인하기 → 해당 종목 [종목 - 내 주식] (설계서 v1.10 공통 5-7·5-8)
+  const toastLink = { label: '확인하기', to: `/leagues/${roomId}/stocks/${order.stockId}/mine` };
+
   const { mutate, isPending } = useMutation({
     mutationFn: () => cancelOrder(roomId, order.orderId),
     onSuccess: () => {
-      notify.success('주문을 취소했어요.');
+      notify.success('주문을 취소했어요.', { link: toastLink });
       refreshOrders();
       onClose();
     },
@@ -38,7 +41,7 @@ function OrderCancelModal({ roomId, order, onClose }: OrderCancelModalProps) {
       const code = getApiErrorCode(error);
       // 그사이 체결·취소·만료됨(502): 주문 취소 실패 토스트 후 닫는다
       if (code === ORDER_ERROR_CODE.NOT_CANCELABLE) {
-        notify.error('주문이 이미 체결되어 취소할 수 없어요.');
+        notify.error('주문이 이미 체결되어 취소할 수 없어요.', { link: toastLink });
         refreshOrders();
         onClose();
       }
