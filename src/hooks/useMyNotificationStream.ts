@@ -43,7 +43,7 @@ export const useMyNotificationStream = (roomId: RoomId) => {
           refetchAccount();
           const { stockId, side } = event.data;
           const stockName = findStockName(stockId);
-          // 공통 5-6: {종목 이름} {매매 구분} 주문이 체결됐어요. + 확인하기 → 종목 - 내 주식
+          // 주문 체결 토스트 (v1.9 공통 5-3, 이전 5-6): {종목 이름} {매매 구분} 주문이 체결됐어요. + 확인하기 → 종목 - 내 주식
           notify.success(
             `${stockName ? `${stockName} ` : ''}${side === 'BUY' ? '매수' : '매도'} 주문이 체결됐어요.`,
             { link: { label: '확인하기', to: `/leagues/${roomId}/stocks/${stockId}/mine` } },
@@ -54,10 +54,17 @@ export const useMyNotificationStream = (roomId: RoomId) => {
           refetchAccount();
           break;
         case 'DAY_CHANGED':
-          // 공통 5-2. 새 기준가·상한가·하한가와 "어제보다" 문구를 다시 받는다
+          // 새 기준가·상한가·하한가와 "어제보다" 문구를 다시 받는다
           queryClient.invalidateQueries({ queryKey: roomKeys.room(roomId) });
           queryClient.invalidateQueries({ queryKey: stockKeys.room(roomId) });
-          notify.announce('새 거래일이 시작돼 기준가가 바뀌었어요.');
+          // 설계서 v1.9 공통 5-1: 대기 중이던 주문이 만료된 사용자 / 5-2: 만료된 주문이 없는 사용자
+          // 만료된 주문은 내 자산·대기 주문에서 빠지므로 다시 받는다. 만료로 인한 취소는 주문 취소 토스트를 띄우지 않는다
+          if (event.data.hasExpiredOrders) {
+            refetchAccount();
+            notify.announce('새 거래일이 시작돼 대기 중인 주문이 만료됐어요.');
+          } else {
+            notify.announce('새 거래일이 시작됐어요.');
+          }
           break;
         // 리그 시작·종료는 무엇을 하던 중이든 바로 옮긴다 (작성 중 확인도 건너뛰고, 열린 오버레이는 닫힌다)
         case 'LEAGUE_STARTED':

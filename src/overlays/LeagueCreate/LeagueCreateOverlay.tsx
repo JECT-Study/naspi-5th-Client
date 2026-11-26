@@ -89,6 +89,7 @@ function LeagueCreateOverlay() {
             placeholder="리그 이름을 입력해 주세요."
             value={leagueName}
             maxLength={ROOM_NAME_MAX_LENGTH}
+            blockEmoji
             autoFocus
             onChange={(event) => setLeagueName(event.target.value)}
             onBlur={showListing}

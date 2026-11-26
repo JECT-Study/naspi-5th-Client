@@ -76,6 +76,9 @@ function MyNameField({ name }: MyNameFieldProps) {
             className="min-w-0 flex-1"
             value={draft}
             maxLength={NAME_MAX_LENGTH}
+            // 설계서 v1.9: 이름은 공백·이모지 입력 불가
+            blockSpace
+            blockEmoji
             error={error}
             autoFocus
             onChange={(event) => {

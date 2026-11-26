@@ -1,3 +1,5 @@
+import { sliceGraphemes } from '@/utils/graphemes';
+
 interface StockFormData {
   name: string;
   description: string;
@@ -20,7 +22,7 @@ const SPECIAL_CHAR_ONLY_REGEX = /^[^\p{L}\p{N}]+$/u;
 
 /** 입력 중인 종목 이름: 앞 공백을 지우고 최대 글자 수까지만 남긴다 */
 export const normalizeStockName = (value: string): string =>
-  Array.from(value.trimStart()).slice(0, STOCK_NAME_MAX_LENGTH).join('');
+  sliceGraphemes(value.trimStart(), STOCK_NAME_MAX_LENGTH);
 
 /** 둘 다 입력했는지 (상장 버튼 활성화 조건) */
 export const isStockFormFilled = (data: StockFormData): boolean =>

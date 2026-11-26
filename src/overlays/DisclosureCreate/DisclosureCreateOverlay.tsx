@@ -23,6 +23,7 @@ import { useAutoHeight } from '@/hooks/useAutoHeight';
 import { isForcedNavigation } from '@/hooks/useOverlay';
 import { notify } from '@/libs/notify';
 import { cn } from '@/utils/cn';
+import { countGraphemes } from '@/utils/graphemes';
 import { maxLengthHandlers } from '@/utils/maxLength';
 import ImageAttachments from './components/ImageAttachments';
 
@@ -128,7 +129,6 @@ function DisclosureCreateOverlay({ roomId }: DisclosureCreateOverlayProps) {
                 aria-label="제목"
                 placeholder="제목을 입력해 주세요."
                 rows={1}
-                maxLength={DISCLOSURE_TITLE_MAX_LENGTH}
                 value={title}
                 className={cn(
                   'block w-full resize-none text-heading3 text-grey-8 outline-none placeholder:text-grey-8',
@@ -138,13 +138,14 @@ function DisclosureCreateOverlay({ roomId }: DisclosureCreateOverlayProps) {
                 onKeyDown={(event) => {
                   if (event.key === 'Enter') event.preventDefault();
                 }}
-                {...maxLengthHandlers<HTMLTextAreaElement>((event) =>
+                // 글자 수는 보이는 글자 단위 (이모지도 1자, utils/maxLength)
+                {...maxLengthHandlers<HTMLTextAreaElement>(DISCLOSURE_TITLE_MAX_LENGTH, (event) =>
                   // 붙여넣은 줄바꿈도 빼서 제목을 한 줄 글로 둔다
                   setTitle(event.target.value.replace(/\n/g, ' ')),
                 )}
               />
               <CharCounter
-                length={title.length}
+                length={countGraphemes(title)}
                 max={DISCLOSURE_TITLE_MAX_LENGTH}
                 className={COUNTER_POSITION_CLASS}
               />
@@ -160,16 +161,17 @@ function DisclosureCreateOverlay({ roomId }: DisclosureCreateOverlayProps) {
                 '오늘 있었던 일을 친구들과 공유해 주세요.\n작성한 소식을 바탕으로 AI 공시브리핑이 발행돼요.'
               }
               rows={2}
-              maxLength={DISCLOSURE_CONTENT_MAX_LENGTH}
               value={content}
               className={cn(
                 'block w-full resize-none text-body1-5 text-grey-8 outline-none placeholder:text-grey-6',
                 content.length > 0 && 'pb-8',
               )}
-              {...maxLengthHandlers<HTMLTextAreaElement>((event) => setContent(event.target.value))}
+              {...maxLengthHandlers<HTMLTextAreaElement>(DISCLOSURE_CONTENT_MAX_LENGTH, (event) =>
+                setContent(event.target.value),
+              )}
             />
             <CharCounter
-              length={content.length}
+              length={countGraphemes(content)}
               max={DISCLOSURE_CONTENT_MAX_LENGTH}
               className={COUNTER_POSITION_CLASS}
             />

@@ -50,6 +50,7 @@ function RoomNameEditModal({ roomId, currentName, onClose }: RoomNameEditModalPr
           placeholder="리그 이름을 입력해 주세요."
           value={name}
           maxLength={ROOM_NAME_MAX_LENGTH}
+          blockEmoji
           // 시안: 모달 입력칸은 글자 수 오른쪽 10
           counterInset={10}
           autoFocus
