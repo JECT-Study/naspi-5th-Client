@@ -102,6 +102,9 @@ function OrderForm({ roomId, side, stock, assets }: OrderFormProps) {
   const correctionTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   // 숫자 키패드가 고치는 칸. 처음에는 수량 (시장가는 고칠 칸이 수량뿐, 지정가 가격은 현재가로 채워져 있다)
   const [activeField, setActiveField] = useState<OrderField>('quantity');
+  // 사용자가 수량 칸을 직접 누르거나 입력한 적이 있는지. 처음에 키패드가 수량을 가리키는 것만으로는 포커스로 보지 않는다
+  // (열자마자 가격 칸을 누르면 "수량을 입력해 주세요."가 뜨지 않게)
+  const hasTouchedQuantityRef = useRef(false);
 
   // 1초 뒤 되돌릴 "현재가"는 그때의 실시간 현재가
   const latestPriceRef = useRef(stock.price);
@@ -163,6 +166,7 @@ function OrderForm({ roomId, side, stock, assets }: OrderFormProps) {
   };
 
   const changeQuantity = (next: number) => {
+    hasTouchedQuantityRef.current = true;
     cancelCorrection();
     setQuantity(next);
     setFieldErrors((prev) => ({ ...prev, quantity: undefined }));
@@ -206,10 +210,11 @@ function OrderForm({ roomId, side, stock, assets }: OrderFormProps) {
       }
       return;
     }
-    checkQuantity(ceilToTick(limitPrice), { requireQuantity: true });
+    checkQuantity(ceilToTick(limitPrice), { requireQuantity: hasTouchedQuantityRef.current });
   };
 
   const selectField = (field: OrderField) => {
+    if (field === 'quantity') hasTouchedQuantityRef.current = true;
     if (field === keypadTarget) return;
     leaveField(keypadTarget);
     setActiveField(field);
@@ -219,6 +224,7 @@ function OrderForm({ roomId, side, stock, assets }: OrderFormProps) {
   const changeOrderType = (type: OrderType) => {
     cancelCorrection();
     setFieldErrors({});
+    hasTouchedQuantityRef.current = false;
     setActiveField('quantity');
     setOrderType(type);
   };

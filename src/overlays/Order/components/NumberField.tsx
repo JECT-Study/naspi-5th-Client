@@ -2,6 +2,7 @@ import { useId, type ReactNode } from 'react';
 import FieldMessage from '@/components/ui/FieldMessage';
 import { cn } from '@/utils/cn';
 import { formatNumber } from '@/utils/format';
+import { applyKeypadKey } from './keypad';
 
 interface NumberFieldProps {
   label: string;
@@ -65,6 +66,15 @@ function NumberField({
             placeholder={`0${unit}`}
             value={value > 0 ? `${formatNumber(value)}${unit}` : ''}
             onFocus={onActivate}
+            // 웹 키보드의 지우기는 화면 키패드의 지우기와 같게 맨 끝 숫자를 지운다
+            // (기본 동작이면 맨 끝의 단위 글자 "원"·"주"가 지워져 숫자가 그대로 남는다). 전체를 선택했으면 모두 지운다
+            onKeyDown={(event) => {
+              if (event.key !== 'Backspace' && event.key !== 'Delete') return;
+              event.preventDefault();
+              const { selectionStart, selectionEnd, value: text } = event.currentTarget;
+              const isAllSelected = text.length > 0 && selectionStart === 0 && selectionEnd === text.length;
+              onChange(isAllSelected ? 0 : applyKeypadKey(value, 'delete'));
+            }}
             onChange={(event) => {
               const digits = event.target.value.replace(/\D/g, '').slice(0, MAX_DIGITS);
               onChange(Number(digits));
