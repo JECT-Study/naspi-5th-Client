@@ -1,10 +1,13 @@
+import { apiClient, unwrap } from '@/apis/client';
 import type { RoomId } from '@/apis/domains/room/room.types';
-import { mockContentServer } from '@/mocks/content.mock';
-import { delay } from '@/mocks/delay';
-import type { NewsDetail, NewsId } from './news.types';
+import type { StockId } from '@/apis/domains/stock/stock.types';
+import type { ApiResponse } from '@/apis/types';
+import { toNewsDetail } from './news.mapper';
+import type { NewsDetail, NewsDetailResponse, NewsId } from './news.types';
 
-// TODO: API가 준비되면 apiClient 호출로 바꾼다 (ApiResponse<T>로 받고 data만 반환)
-export const getNews = async (_roomId: RoomId, newsId: NewsId): Promise<NewsDetail> => {
-  await delay(300);
-  return mockContentServer.getNews(newsId);
-};
+/** 뉴스 상세 (댓글 전체·원본 공시 포함). 실패: 610 뉴스가 없거나 발행 안 됨 */
+export const getNews = (roomId: RoomId, stockId: StockId, newsId: NewsId): Promise<NewsDetail> =>
+  apiClient
+    .get<ApiResponse<NewsDetailResponse>>(`/api/leagues/${roomId}/stocks/${stockId}/news/${newsId}`)
+    .then(unwrap)
+    .then(toNewsDetail);

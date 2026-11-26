@@ -1,30 +1,41 @@
+import { apiClient, unwrap } from '@/apis/client';
 import type { RoomId } from '@/apis/domains/room/room.types';
-import { mockContentServer } from '@/mocks/content.mock';
-import { delay } from '@/mocks/delay';
-import type { Comment, CommentId, CommentTargetType, CreateCommentRequest } from './comment.types';
+import type { ApiResponse } from '@/apis/types';
+import { toComment } from './comment.mapper';
+import type {
+  Comment,
+  CommentId,
+  CommentResponse,
+  CommentTarget,
+  CreateCommentRequest,
+} from './comment.types';
 
-// TODO: API가 준비되면 각 함수 안쪽을 apiClient 호출로 바꾼다 (ApiResponse<T>로 받고 data만 반환)
+// 공시 댓글·뉴스 댓글 API (주소만 다르고 모양은 같다)
+// .../stocks/{stockId}/disclosures/{disclosureId}/comments, .../stocks/{stockId}/news/{newsId}/comments
+const commentsPath = (roomId: RoomId, { type, stockId, id }: CommentTarget) =>
+  `/api/leagues/${roomId}/stocks/${stockId}/${type === 'DISCLOSURE' ? 'disclosures' : 'news'}/${id}/comments`;
 
-export const getComments = async (
-  _roomId: RoomId,
-  targetType: CommentTargetType,
-  targetId: number,
-): Promise<Comment[]> => {
-  await delay(300);
-  return mockContentServer.getComments(targetType, targetId);
-};
+/** 댓글 전체 (오래된 순, 페이징 없음). 상세에도 같은 목록이 오고, 작성·삭제 뒤 다시 불러올 때 쓴다 */
+export const getComments = (roomId: RoomId, target: CommentTarget): Promise<Comment[]> =>
+  apiClient
+    .get<ApiResponse<CommentResponse[]>>(commentsPath(roomId, target))
+    .then(unwrap)
+    .then((comments) => comments.map(toComment));
 
+/** 실패: 615 비었거나 100자 초과, 616 진행 중인 리그 아님, 607 공시 없음, 610 뉴스 없음 */
 export const createComment = async (
-  _roomId: RoomId,
-  targetType: CommentTargetType,
-  targetId: number,
+  roomId: RoomId,
+  target: CommentTarget,
   request: CreateCommentRequest,
 ): Promise<void> => {
-  await delay(300);
-  mockContentServer.addComment(targetType, targetId, request.content);
+  await apiClient.post(commentsPath(roomId, target), request);
 };
 
-export const deleteComment = async (_roomId: RoomId, commentId: CommentId): Promise<void> => {
-  await delay(300);
-  mockContentServer.deleteComment(commentId);
+/** 실패: 617 댓글 없음, 618 작성자 아님 */
+export const deleteComment = async (
+  roomId: RoomId,
+  target: CommentTarget,
+  commentId: CommentId,
+): Promise<void> => {
+  await apiClient.post(`${commentsPath(roomId, target)}/${commentId}/delete`);
 };

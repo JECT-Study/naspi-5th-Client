@@ -1,5 +1,6 @@
 import { queryOptions } from '@tanstack/react-query';
 import type { RoomId } from '@/apis/domains/room/room.types';
+import type { StockId } from '@/apis/domains/stock/stock.types';
 import { getNews } from './news.service';
 import type { NewsId } from './news.types';
 
@@ -9,9 +10,9 @@ export const newsKeys = {
 };
 
 export const newsQueries = {
-  detail: (roomId: RoomId, newsId: NewsId) =>
+  detail: (roomId: RoomId, stockId: StockId, newsId: NewsId) =>
     queryOptions({
       queryKey: newsKeys.detail(roomId, newsId),
-      queryFn: () => getNews(roomId, newsId),
+      queryFn: () => getNews(roomId, stockId, newsId),
     }),
 };

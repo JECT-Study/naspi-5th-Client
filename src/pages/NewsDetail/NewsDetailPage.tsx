@@ -1,7 +1,9 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useParams } from 'react-router';
+import type { Comment } from '@/apis/domains/comment/comment.types';
 import { feedKeys } from '@/apis/domains/feed/feed.queries';
 import { newsKeys, newsQueries } from '@/apis/domains/news/news.queries';
+import { NEWS_ERROR_CODE, type NewsDetail } from '@/apis/domains/news/news.types';
 import Chip from '@/components/ui/Chip';
 import CommentInput from '@/components/comment/CommentInput';
 import CommentSection from '@/components/comment/CommentSection';
@@ -11,20 +13,28 @@ import { ChatIcon } from '@/components/ui/icons';
 import LoadError from '@/components/status/LoadError';
 import PageHeader from '@/components/header/PageHeader';
 import { useRoomId } from '@/hooks/useRoomId';
+import { useStockId } from '@/hooks/useStockId';
+import { getApiErrorCode } from '@/libs/apiError';
 import { cn } from '@/utils/cn';
 import { formatRelativeTime } from '@/utils/date';
 
 // 뉴스 상세 (Depth 3): AI 공시브리핑·호재/악재, 제목·시간, 내용, 관련 공시(원문 삭제 안내), 댓글
 function NewsDetailPage() {
   const roomId = useRoomId();
+  const stockId = useStockId();
   const newsId = Number(useParams().newsId);
   const queryClient = useQueryClient();
   const feedPath = `/leagues/${roomId}`;
-  const news = useQuery(newsQueries.detail(roomId, newsId));
+  const news = useQuery(newsQueries.detail(roomId, stockId, newsId));
+  const commentTarget = { type: 'NEWS', stockId, id: newsId } as const;
 
-  const refreshContent = () => {
-    queryClient.invalidateQueries({ queryKey: newsKeys.detail(roomId, newsId) });
-    queryClient.invalidateQueries({ queryKey: feedKeys.room(roomId) });
+  // 댓글을 쓰거나 지운 뒤: 상세의 댓글 수를 새 목록에 맞추고, 피드(댓글 수·첫 댓글)는 다음에 볼 때 새로 받는다
+  const handleCommentsChanged = (comments: Comment[]) => {
+    queryClient.setQueryData<NewsDetail>(
+      newsKeys.detail(roomId, newsId),
+      (detail) => detail && { ...detail, comments, commentCount: comments.length },
+    );
+    void queryClient.invalidateQueries({ queryKey: feedKeys.room(roomId) });
   };
 
   const renderContent = () => {
@@ -36,14 +46,23 @@ function NewsDetailPage() {
         </div>
       );
     }
-    if (news.isError) return <LoadError onRetry={() => news.refetch()} />;
+    if (news.isError) {
+      // 없거나 발행되지 않은 뉴스(610): 설계서에 문구가 없어 공시 상세의 삭제 안내와 같은 모양으로 둔다
+      return getApiErrorCode(news.error) === NEWS_ERROR_CODE.NOT_FOUND ? (
+        <p className="flex flex-1 items-center justify-center text-body1 text-grey-7">
+          뉴스를 찾을 수 없어요.
+        </p>
+      ) : (
+        <LoadError onRetry={() => news.refetch()} />
+      );
+    }
 
     const item = news.data;
     // 관련 공시 (뉴스 상세 2): 있으면 모두에게, 누르면 공시 상세로 / 원문이 삭제됐으면 모두에게 안내 (2-1)
     const relatedDisclosure = item.sourceDisclosure ? (
       <RelatedLinkCard
         label="관련 공시"
-        to={`/leagues/${roomId}/disclosures/${item.sourceDisclosure.disclosureId}`}
+        to={`/leagues/${roomId}/stocks/${stockId}/disclosures/${item.sourceDisclosure.disclosureId}`}
         title={item.sourceDisclosure.title}
       />
     ) : item.isSourceDeleted ? (
@@ -85,9 +104,9 @@ function NewsDetailPage() {
 
         <CommentSection
           roomId={roomId}
-          targetType="NEWS"
-          targetId={newsId}
-          onChanged={refreshContent}
+          target={commentTarget}
+          initialComments={item.comments}
+          onChanged={handleCommentsChanged}
         />
       </>
     );
@@ -99,12 +118,7 @@ function NewsDetailPage() {
       {/* 시안 '뉴스 상세 콘텐츠 영역': 위아래 8, 뉴스 카드 → 관련 공시 카드 → 댓글이 사이 없이 이어진다 */}
       <main className="flex min-h-0 flex-1 flex-col overflow-y-auto py-2">{renderContent()}</main>
       {news.isSuccess && (
-        <CommentInput
-          roomId={roomId}
-          targetType="NEWS"
-          targetId={newsId}
-          onChanged={refreshContent}
-        />
+        <CommentInput roomId={roomId} target={commentTarget} onChanged={handleCommentsChanged} />
       )}
     </>
   );

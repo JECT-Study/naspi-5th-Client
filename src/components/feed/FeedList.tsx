@@ -39,8 +39,8 @@ function FeedList({ roomId, query, empty, end, variant }: FeedListProps) {
 
   const getItemPath = (item: FeedItem) =>
     item.type === 'NEWS'
-      ? `/leagues/${roomId}/news/${item.newsId}`
-      : `/leagues/${roomId}/disclosures/${item.disclosureId}`;
+      ? `/leagues/${roomId}/stocks/${item.stockId}/news/${item.newsId}`
+      : `/leagues/${roomId}/stocks/${item.stockId}/disclosures/${item.disclosureId}`;
 
   if (isPending) return <FeedSkeleton count={3} />;
   // 첫 조회가 실패하면 데이터가 없다

@@ -7,11 +7,11 @@ import {
   type DisclosureId,
   type Reaction,
 } from '@/apis/domains/disclosure/disclosure.types';
-import { feedKeys } from '@/apis/domains/feed/feed.queries';
 import {
   toggleDisclosureReaction,
   type DisclosureReactionResult,
-} from '@/apis/domains/feed/feed.service';
+} from '@/apis/domains/disclosure/disclosure.service';
+import { feedKeys } from '@/apis/domains/feed/feed.queries';
 import type { FeedResponse } from '@/apis/domains/feed/feed.types';
 import type { RoomId } from '@/apis/domains/room/room.types';
 import type { StockId } from '@/apis/domains/stock/stock.types';

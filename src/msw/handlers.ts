@@ -1,7 +1,8 @@
 import type { AxiosError } from 'axios';
 import { http, HttpResponse } from 'msw';
 import type { SignupRequest } from '@/apis/domains/auth/auth.types';
-import type { ReactToDisclosureRequest } from '@/apis/domains/feed/feed.types';
+import type { CreateCommentRequest } from '@/apis/domains/comment/comment.types';
+import type { ReactToDisclosureRequest } from '@/apis/domains/disclosure/disclosure.types';
 import type {
   CreateLeagueRequest,
   JoinRoomRequest,
@@ -253,6 +254,82 @@ export const createHandlers = (scenario: MswScenario) => {
         }),
       ),
     ),
+
+    // 공시 상세·작성(multipart)·삭제·뉴스 다시 생성
+    http.get('*/api/leagues/:leagueId/stocks/:stockId/disclosures/:disclosureId', ({ params }) =>
+      requireLogin(() =>
+        fromMock(300, () => mockContentServer.getDisclosureDetail(Number(params.disclosureId))),
+      ),
+    ),
+
+    http.post('*/api/leagues/:leagueId/stocks/:stockId/disclosures', ({ params, request }) =>
+      requireLogin(async () => {
+        const form = await request.formData();
+        return fromMock(800, () =>
+          mockContentServer.publishDisclosure(
+            Number(params.stockId),
+            String(form.get('title') ?? ''),
+            String(form.get('body') ?? ''),
+            form.getAll('images').length,
+          ),
+        );
+      }),
+    ),
+
+    http.post(
+      '*/api/leagues/:leagueId/stocks/:stockId/disclosures/:disclosureId/delete',
+      ({ params }) =>
+        requireLogin(() =>
+          fromMock(300, () => mockContentServer.deleteDisclosure(Number(params.disclosureId))),
+        ),
+    ),
+
+    http.post(
+      '*/api/leagues/:leagueId/stocks/:stockId/disclosures/:disclosureId/news/regenerate',
+      ({ params }) =>
+        requireLogin(() =>
+          fromMock(300, () => mockContentServer.regenerateNews(Number(params.disclosureId))),
+        ),
+    ),
+
+    // 뉴스 상세
+    http.get('*/api/leagues/:leagueId/stocks/:stockId/news/:newsId', ({ params }) =>
+      requireLogin(() =>
+        fromMock(300, () => mockContentServer.getNewsDetail(Number(params.newsId))),
+      ),
+    ),
+
+    // 공시 댓글·뉴스 댓글 (목록·작성·삭제)
+    ...(['disclosures', 'news'] as const).flatMap((path) => {
+      const targetType = path === 'disclosures' ? 'DISCLOSURE' : 'NEWS';
+      const commentsPath = `*/api/leagues/:leagueId/stocks/:stockId/${path}/:targetId/comments`;
+      return [
+        http.get(commentsPath, ({ params }) =>
+          requireLogin(() =>
+            fromMock(300, () => mockContentServer.getComments(targetType, Number(params.targetId))),
+          ),
+        ),
+        http.post(commentsPath, ({ params, request }) =>
+          requireLogin(async () => {
+            const { content } = (await request.json()) as CreateCommentRequest;
+            return fromMock(300, () =>
+              mockContentServer.writeComment(targetType, Number(params.targetId), content),
+            );
+          }),
+        ),
+        http.post(`${commentsPath}/:commentId/delete`, ({ params }) =>
+          requireLogin(() =>
+            fromMock(300, () =>
+              mockContentServer.deleteComment(
+                targetType,
+                Number(params.targetId),
+                Number(params.commentId),
+              ),
+            ),
+          ),
+        ),
+      ];
+    }),
 
     // 공시 반응 토글 (누른 버튼 LIKE·DISLIKE)
     http.post(

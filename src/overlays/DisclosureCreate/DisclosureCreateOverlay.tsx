@@ -2,6 +2,7 @@ import { useRef, useState, type ChangeEvent } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useBlocker, useNavigate } from 'react-router';
 import { createDisclosure } from '@/apis/domains/disclosure/disclosure.service';
+import { DISCLOSURE_ERROR_CODE } from '@/apis/domains/disclosure/disclosure.types';
 import {
   DISCLOSURE_CONTENT_MAX_LENGTH,
   DISCLOSURE_IMAGE_MAX_MB,
@@ -15,17 +16,26 @@ import {
 import { feedKeys } from '@/apis/domains/feed/feed.queries';
 import type { RoomId } from '@/apis/domains/room/room.types';
 import { stockQueries } from '@/apis/domains/stock/stock.queries';
+import type { StockId } from '@/apis/domains/stock/stock.types';
 import CharCounter from '@/components/ui/CharCounter';
 import ConfirmModal from '@/components/overlay/ConfirmModal';
 import { CameraIcon, ImageIcon } from '@/components/ui/icons';
 import TaskHeader from '@/components/header/TaskHeader';
 import { useAutoHeight } from '@/hooks/useAutoHeight';
 import { isForcedNavigation } from '@/hooks/useOverlay';
+import { getApiErrorCode } from '@/libs/apiError';
 import { notify } from '@/libs/notify';
 import { cn } from '@/utils/cn';
 import { countGraphemes } from '@/utils/graphemes';
 import { maxLengthHandlers } from '@/utils/maxLength';
 import ImageAttachments from './components/ImageAttachments';
+
+// 서버가 사진을 받지 않은 경우 (600 형식, 601 빈 파일·50MB 초과, 602 5장 이상)
+const IMAGE_ERROR_CODES: readonly string[] = [
+  DISCLOSURE_ERROR_CODE.INVALID_IMAGE_TYPE,
+  DISCLOSURE_ERROR_CODE.INVALID_IMAGE_SIZE,
+  DISCLOSURE_ERROR_CODE.TOO_MANY_IMAGES,
+];
 
 // 시안 TitleInput·BodyInput 글자 수: 칸 오른쪽 12, 아래 6 (글 아래 비워 둔 32 안)
 const COUNTER_POSITION_CLASS = 'pointer-events-none absolute right-3 bottom-1.5';
@@ -61,17 +71,29 @@ function DisclosureCreateOverlay({ roomId }: DisclosureCreateOverlayProps) {
   );
 
   const { mutate, isPending } = useMutation({
-    mutationFn: () =>
-      createDisclosure(roomId, { title: title.trim(), content: content.trim(), images }),
+    mutationFn: (stockId: StockId) =>
+      createDisclosure(roomId, stockId, {
+        title: title.trim(),
+        content: content.trim(),
+        images,
+      }),
     // 게시하면 그 공시 상세로 간다 (공시 쓰기 2). 오버레이 기록을 상세로 바꿔서, 상세에서 뒤로 가면 원래 화면
-    onSuccess: ({ disclosureId }) => {
+    onSuccess: ({ disclosureId }, stockId) => {
       isPublishedRef.current = true;
       queryClient.invalidateQueries({ queryKey: feedKeys.room(roomId) });
       notify.success('공시가 게시되었어요.');
-      navigate(`/leagues/${roomId}/disclosures/${disclosureId}`, { replace: true });
+      navigate(`/leagues/${roomId}/stocks/${stockId}/disclosures/${disclosureId}`, {
+        replace: true,
+      });
     },
-    // 실패하면 작성한 내용을 그대로 두고 공통 토스트 (libs/queryClient)
-    meta: { action: '게시' },
+    // 서버가 사진을 받지 않으면(형식·용량·장수) 이미지 업로드 실패 안내 (공시 쓰기 4-4)
+    // 그 밖의 실패는 작성한 내용을 그대로 두고 공통 토스트 (libs/queryClient)
+    onError: (error) => {
+      if (IMAGE_ERROR_CODES.includes(getApiErrorCode(error) ?? '')) {
+        notify.error('이미지를 업로드하지 못했어요.');
+      }
+    },
+    meta: { action: '게시', handledErrors: IMAGE_ERROR_CODES },
   });
 
   // 사진 선택 (공시 쓰기 4, v.1.7)
@@ -104,9 +126,12 @@ function DisclosureCreateOverlay({ roomId }: DisclosureCreateOverlayProps) {
         title="새 공시"
         action={{
           label: '게시',
-          disabled: !isDisclosureFilled(title, content),
+          // 내 종목을 알아야 보낼 수 있다 (공시는 내 종목에만 쓴다)
+          disabled: !isDisclosureFilled(title, content) || !myStock,
           isPending,
-          onClick: () => mutate(),
+          onClick: () => {
+            if (myStock) mutate(myStock.stockId);
+          },
         }}
       />
       {/* 시안 '공시 작성 콘텐츠': 위아래 8, 안쪽 폼은 위 20·좌우 24·아래 16, 칸 사이 24

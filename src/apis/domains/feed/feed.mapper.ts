@@ -1,43 +1,28 @@
-import type { Reaction } from '@/apis/domains/disclosure/disclosure.types';
-import type { Sentiment } from '@/apis/domains/news/news.types';
+import type { CommentResponse } from '@/apis/domains/comment/comment.types';
+import type { Reaction, ReactionType } from '@/apis/domains/disclosure/disclosure.types';
+import type { NewsSentiment, Sentiment } from '@/apis/domains/news/news.types';
 import { withKstOffset } from '@/utils/date';
 import type {
   CommentPreview,
-  CommentResponse,
   FeedItem,
   FeedItemResponse,
   FeedPageResponse,
   FeedResponse,
-  NewsSentiment,
-  ReactionType,
 } from './feed.types';
 
 // 서버(피드) → 화면 모양 바꾸기. 일시는 KST에 시간대를 붙여 둔다 (utils/date withKstOffset)
+// 다른 도메인 함수는 가져오지 않는 규칙(docs/ARCHITECTURE)이라 호재/악재·댓글 바꾸기는
+// disclosure·news·comment 매퍼와 같은 내용을 둔다
 
 const WITHDRAWN_NAME = '탈퇴한 사용자';
 
-const REACTION_FROM_SERVER: Record<ReactionType, Reaction> = {
-  LIKE: 'BULLISH',
-  DISLIKE: 'BEARISH',
-};
-const REACTION_TO_SERVER: Record<Reaction, ReactionType> = {
-  BULLISH: 'LIKE',
-  BEARISH: 'DISLIKE',
-};
-const SENTIMENT_FROM_SERVER: Record<NewsSentiment, Sentiment> = {
-  POSITIVE: 'BULLISH',
-  NEGATIVE: 'BEARISH',
-};
+const toReaction = (type: ReactionType | null): Reaction | null =>
+  type === 'LIKE' ? 'BULLISH' : type === 'DISLIKE' ? 'BEARISH' : null;
 
-export const toReaction = (type: ReactionType | null): Reaction | null =>
-  type ? REACTION_FROM_SERVER[type] : null;
+const toSentiment = (sentiment: NewsSentiment): Sentiment =>
+  sentiment === 'POSITIVE' ? 'BULLISH' : 'BEARISH';
 
-export const toReactionType = (reaction: Reaction): ReactionType => REACTION_TO_SERVER[reaction];
-
-export const toSentiment = (sentiment: NewsSentiment): Sentiment =>
-  SENTIMENT_FROM_SERVER[sentiment];
-
-export const toCommentPreview = (comment: CommentResponse | null): CommentPreview | null =>
+const toCommentPreview = (comment: CommentResponse | null): CommentPreview | null =>
   comment && {
     commentId: comment.commentId,
     authorName: comment.authorName ?? WITHDRAWN_NAME,

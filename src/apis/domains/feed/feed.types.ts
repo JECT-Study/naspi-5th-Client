@@ -1,33 +1,16 @@
 // API layer type
 // 위: 서버 응답 그대로 (Swagger 리그 공시·뉴스 통합 피드). 아래: 화면이 쓰는 모양 (feed.mapper가 바꾼다)
 
-import type { Reaction } from '@/apis/domains/disclosure/disclosure.types';
-import type { Sentiment } from '@/apis/domains/news/news.types';
+import type { CommentResponse } from '@/apis/domains/comment/comment.types';
+import type {
+  DisclosureImageResponse,
+  Reaction,
+  ReactionType,
+} from '@/apis/domains/disclosure/disclosure.types';
+import type { NewsSentiment, Sentiment } from '@/apis/domains/news/news.types';
 import type { StockId } from '@/apis/domains/stock/stock.types';
 
 // ── 서버 응답 (GET /api/leagues/{leagueId}/feed) ──
-
-/** 공시 반응 버튼: LIKE 호재, DISLIKE 악재 */
-export type ReactionType = 'LIKE' | 'DISLIKE';
-/** 뉴스 호재·악재: POSITIVE 호재, NEGATIVE 악재 */
-export type NewsSentiment = 'POSITIVE' | 'NEGATIVE';
-
-export interface CommentResponse {
-  commentId: number;
-  content: string;
-  authorPlayerId: number;
-  /** 탈퇴한 사용자면 비어 올 수 있어 대비한다 */
-  authorName: string | null;
-  mine: boolean;
-  createdAt: string;
-}
-
-export interface DisclosureImageResponse {
-  imageId: number;
-  /** 발급 후 5분 동안만 열리는 주소. 지나면 목록·상세를 다시 조회해 새 주소를 받는다 */
-  signedUrl: string;
-  expiresAt: string;
-}
 
 export interface DisclosureListItemResponse {
   type: 'DISCLOSURE';
@@ -88,18 +71,6 @@ export interface FeedQuery {
   type?: FeedContentType;
   cursor?: string;
   size: number;
-}
-
-// 반응 토글 (POST .../disclosures/{disclosureId}/reaction): 누른 버튼을 보내면 서버가 토글한다
-export interface ReactToDisclosureRequest {
-  type: ReactionType;
-}
-
-export interface DisclosureReactionResponse {
-  disclosureId: number;
-  likeCount: number;
-  dislikeCount: number;
-  myReaction: ReactionType | null;
 }
 
 // ── 화면 모양 ──
