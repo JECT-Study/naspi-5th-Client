@@ -5,6 +5,7 @@ import { assetQueries } from '@/apis/domains/asset/asset.queries';
 import { orderQueries } from '@/apis/domains/order/order.queries';
 import type { OpenOrder } from '@/apis/domains/order/order.types';
 import { splitMyStock } from '@/apis/domains/stock/stock.utils';
+import { userQueries } from '@/apis/domains/user/user.queries';
 import HoldingRow from '@/components/stock/HoldingRow';
 import { CaretDownIcon, CaretUpIcon, ChevronRightIcon } from '@/components/ui/icons';
 import LoadError from '@/components/status/LoadError';
@@ -21,6 +22,8 @@ function AssetsPage() {
   const roomId = useRoomId();
   const assets = useQuery(assetQueries.mine(roomId));
   const openOrders = useQuery(orderQueries.open(roomId));
+  // 자산 응답에 이름이 없어 내 이름(로그인 확인 때 받아 둔 값)을 쓴다
+  const { data: me } = useQuery(userQueries.me());
   const [cancelTarget, setCancelTarget] = useState<OpenOrder | null>(null);
   const [isOpenOrdersExpanded, setIsOpenOrdersExpanded] = useState(false);
 
@@ -55,7 +58,7 @@ function AssetsPage() {
     return (
       <>
         <AssetSummary
-          name={assets.data.userName}
+          name={me?.name ?? ''}
           totalAsset={assets.data.totalAsset}
           profit={assets.data.profit}
           profitRate={assets.data.profitRate}

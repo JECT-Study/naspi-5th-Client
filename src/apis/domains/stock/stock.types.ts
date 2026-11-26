@@ -59,6 +59,22 @@ export interface UpdateStockDescriptionRequest {
   description: string;
 }
 
+// GET /api/leagues/{leagueId}/stocks/{stockId}/orderbook (진행 중인 리그에서만)
+export interface OrderBookLevelResponse {
+  orderPrice: number;
+  /** 그 가격의 미체결 잔여 수량 합계 */
+  remainingQuantity: number;
+}
+
+export interface OrderBookResponse {
+  /** 현재가. 첫 체결 전에는 시초가 */
+  currentPrice: number;
+  /** 매도 호가: 낮은 가격부터 최대 5단계 */
+  asks: OrderBookLevelResponse[];
+  /** 매수 호가: 높은 가격부터 최대 5단계 */
+  bids: OrderBookLevelResponse[];
+}
+
 // 리그 종목 목록 조회 (시장 탭). 서버가 상장 순으로 준다
 export interface Stock {
   stockId: StockId;

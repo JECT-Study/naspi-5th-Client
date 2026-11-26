@@ -13,7 +13,12 @@ import type {
   UpdateStockDescriptionRequest,
 } from '@/apis/domains/stock/stock.types';
 import type { UpdateMyNameRequest } from '@/apis/domains/user/user.types';
+import type {
+  PlaceLimitOrderRequest,
+  PlaceMarketOrderRequest,
+} from '@/apis/domains/order/order.types';
 import type { ApiResponse } from '@/apis/types';
+import { mockAccountServer } from '@/mocks/account.mock';
 import { mockContentServer } from '@/mocks/content.mock';
 import { delay as mockDelay } from '@/mocks/delay';
 import { mockStockServer } from '@/mocks/market.mock';
@@ -190,9 +195,52 @@ export const createHandlers = (scenario: MswScenario) => {
       requireLogin(() => fromMock(600, () => mockRoomServer.startLeague(Number(params.leagueId)))),
     ),
 
-    // 종목 목록(시세 포함, 상장 순)·소개 수정 (mocks/market.mock, 리그마다 같은 종목)
+    // 종목 목록(시세 포함, 상장 순)·개별 조회·호가·소개 수정 (mocks/market.mock, 리그마다 같은 종목)
     http.get('*/api/leagues/:leagueId/stocks', () =>
       requireLogin(() => fromMock(300, () => mockStockServer.getStocks())),
+    ),
+
+    http.get('*/api/leagues/:leagueId/stocks/:stockId', ({ params }) =>
+      requireLogin(() => fromMock(300, () => mockStockServer.getStock(Number(params.stockId)))),
+    ),
+
+    http.get('*/api/leagues/:leagueId/stocks/:stockId/orderbook', ({ params }) =>
+      requireLogin(() => fromMock(300, () => mockStockServer.getOrderbook(Number(params.stockId)))),
+    ),
+
+    // 내 자산·주문 (mocks/account.mock, 리그마다 같은 계좌)
+    http.get('*/api/leagues/:leagueId/assets/me', () =>
+      requireLogin(() => fromMock(300, () => mockAccountServer.getMyAssets())),
+    ),
+
+    http.get('*/api/leagues/:leagueId/orders', ({ request }) =>
+      requireLogin(() => {
+        const query = new URL(request.url).searchParams;
+        const stockId = query.get('stockId');
+        return fromMock(300, () =>
+          mockAccountServer.getOrders(
+            query.get('status'),
+            stockId === null ? undefined : Number(stockId),
+          ),
+        );
+      }),
+    ),
+
+    ...(['limit', 'market'] as const).map((path) =>
+      http.post(`*/api/leagues/:leagueId/orders/${path}`, ({ request }) =>
+        requireLogin(async () => {
+          const body = (await request.json()) as PlaceLimitOrderRequest | PlaceMarketOrderRequest;
+          return fromMock(500, () =>
+            mockAccountServer.placeOrder(path === 'limit' ? 'LIMIT' : 'MARKET', body),
+          );
+        }),
+      ),
+    ),
+
+    http.post('*/api/leagues/:leagueId/orders/:orderId/cancel', ({ params }) =>
+      requireLogin(() =>
+        fromMock(300, () => mockAccountServer.cancelOrder(Number(params.orderId))),
+      ),
     ),
 
     http.post('*/api/leagues/:leagueId/stocks/:stockId/description', ({ params, request }) =>

@@ -4,11 +4,11 @@ import { assetKeys, assetQueries } from '@/apis/domains/asset/asset.queries';
 import type { MyAssets } from '@/apis/domains/asset/asset.types';
 import { orderKeys } from '@/apis/domains/order/order.queries';
 import { createOrder } from '@/apis/domains/order/order.service';
-import type {
-  CreateOrderRequest,
-  OrderErrorCode,
-  OrderSide,
-  OrderType,
+import {
+  ORDER_ERROR_CODE,
+  type CreateOrderRequest,
+  type OrderSide,
+  type OrderType,
 } from '@/apis/domains/order/order.types';
 import type { RoomId } from '@/apis/domains/room/room.types';
 import {
@@ -52,6 +52,13 @@ interface OrderOverlayProps {
   stockId: StockId;
   side: OrderSide;
 }
+
+// 수량 칸에 안내하는 서버 거절: 현금 부족(401), 매도 수량 부족(402), 자사주 최소 유지분(403)
+const SHORTAGE_ERROR_CODES: readonly string[] = [
+  ORDER_ERROR_CODE.INSUFFICIENT_CASH,
+  ORDER_ERROR_CODE.INSUFFICIENT_SHARES,
+  ORDER_ERROR_CODE.TREASURY_MIN_SHARES,
+];
 
 // 제목·제출 버튼은 '매수·매도', 안내 문장("원하는 가격에 구매할 수 있어요.")은 '구매·판매' (설계서 v.1.5 주문)
 const SIDE_LABEL: Record<OrderSide, string> = { BUY: '매수', SELL: '매도' };
@@ -121,16 +128,13 @@ function OrderForm({ roomId, side, stock, assets }: OrderFormProps) {
       });
       closeOverlay();
     },
-    // 서버가 현금·주식 부족으로 거절하면 수량 칸에 안내하고, 그 밖의 실패는 공통 토스트 (libs/queryClient)
-    meta: {
-      action: '주문 접수',
-      handledErrors: ['INSUFFICIENT_CASH', 'INSUFFICIENT_SHARES'] satisfies OrderErrorCode[],
-    },
+    // 서버가 현금·주식 부족(자사주 최소 유지분 포함)으로 거절하면 수량 칸에 안내하고, 그 밖의 실패는 공통 토스트 (libs/queryClient)
+    meta: { action: '주문 접수', handledErrors: SHORTAGE_ERROR_CODES },
     onError: (error) => {
-      const code = getApiErrorCode(error) as OrderErrorCode | undefined;
-      if (code === 'INSUFFICIENT_CASH') {
+      const code = getApiErrorCode(error);
+      if (code === ORDER_ERROR_CODE.INSUFFICIENT_CASH) {
         setFieldErrors({ quantity: ORDER_MESSAGES.cashShortage });
-      } else if (code === 'INSUFFICIENT_SHARES') {
+      } else if (code && SHORTAGE_ERROR_CODES.includes(code)) {
         setFieldErrors({ quantity: ORDER_MESSAGES.sharesShortage });
       }
     },
