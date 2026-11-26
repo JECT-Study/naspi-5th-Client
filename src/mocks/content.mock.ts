@@ -5,8 +5,20 @@ import type {
   NewsStatus,
   Reaction,
 } from '@/apis/domains/disclosure/disclosure.types';
-import type { DisclosureFeedItem, FeedItem, NewsFeedItem } from '@/apis/domains/feed/feed.types';
+import type {
+  CommentPreview,
+  CommentResponse,
+  DisclosureFeedItem,
+  DisclosureReactionResponse,
+  FeedItem,
+  FeedItemResponse,
+  FeedPageResponse,
+  FeedQuery,
+  NewsFeedItem,
+  ReactionType,
+} from '@/apis/domains/feed/feed.types';
 import type { NewsDetail } from '@/apis/domains/news/news.types';
+import { startsWithNoFeed } from './delay';
 import { feedMock, SAMPLE_IMAGES } from './feed.mock';
 import { marketMock } from './market.mock';
 import { createMockApiError } from './mockError';
@@ -82,6 +94,68 @@ feedMock.forEach((item, index) => {
     });
   });
 });
+
+// ── 화면 모양 mock → 서버 응답 모양 ──
+
+// 서버처럼 비즈니스 실패도 HTTP 200 + code
+const fail = (code: string, message: string): never => {
+  throw createMockApiError(code, message, 200);
+};
+
+const toServerReaction = (reaction: Reaction | null): ReactionType | null =>
+  reaction === 'BULLISH' ? 'LIKE' : reaction === 'BEARISH' ? 'DISLIKE' : null;
+
+const toServerComment = (comment: CommentPreview | null): CommentResponse | null =>
+  comment && {
+    commentId: comment.commentId,
+    content: comment.content,
+    authorPlayerId: 0,
+    authorName: comment.authorName,
+    mine: comment.authorName === meMock.name,
+    createdAt: comment.createdAt,
+  };
+
+// 이미지 주소는 서버처럼 5분 뒤 만료로 적는다 (mock 주소는 만료되지 않는다)
+const IMAGE_URL_TTL_MS = 5 * 60_000;
+
+const toServerFeedItem = (item: FeedItem): FeedItemResponse => {
+  const base = {
+    stockId: item.stockId,
+    stockName: item.stockName,
+    title: item.title,
+    body: item.content,
+    tradingDay: 1,
+    commentCount: item.commentCount,
+    previewComment: toServerComment(item.firstComment),
+  };
+  if (isNews(item)) {
+    return {
+      ...base,
+      type: 'NEWS',
+      newsId: item.newsId,
+      sentiment: item.sentiment === 'BULLISH' ? 'POSITIVE' : 'NEGATIVE',
+      createdAt: item.createdAt,
+      publishedAt: item.createdAt,
+    };
+  }
+  const expiresAt = new Date(Date.now() + IMAGE_URL_TTL_MS).toISOString();
+  return {
+    ...base,
+    type: 'DISCLOSURE',
+    disclosureId: item.disclosureId,
+    createdAt: item.createdAt,
+    authorPlayerId: 0,
+    mine: item.stockId === myStockId,
+    images: item.imageUrls.map((signedUrl, index) => ({
+      imageId: index + 1,
+      signedUrl,
+      expiresAt,
+    })),
+    likeCount: item.bullishCount,
+    dislikeCount: item.bearishCount,
+    myReaction: toServerReaction(item.myReaction),
+  };
+};
 
 const commentsOf = (targetType: CommentTargetType, targetId: number) =>
   comments.filter((comment) => comment.targetType === targetType && comment.targetId === targetId);
@@ -226,13 +300,42 @@ export const mockContentServer = {
     publishNewsLater(disclosureId);
   },
 
-  react: (disclosureId: number, reaction: Reaction | null) => {
-    const item = findDisclosureItem(disclosureId) ?? contentDeleted();
+  // ── 서버 모양 (msw/handlers가 쓴다) ──
+
+  /** GET /api/leagues/{leagueId}/feed. 커서는 목록 위치 (실제 형식은 서버가 정한다) */
+  getFeedPage: ({ stockId, type, cursor, size }: FeedQuery): FeedPageResponse => {
+    const matched = startsWithNoFeed
+      ? []
+      : feedMock.filter(
+          (item) =>
+            (stockId === undefined || item.stockId === stockId) &&
+            (type === undefined || item.type === type),
+        );
+    const start = cursor ? Number(cursor) : 0;
+    if (Number.isNaN(start)) fail('002', '요청 값이 올바르지 않습니다.');
+    const end = start + size;
+    return structuredClone({
+      items: matched.slice(start, end).map(toServerFeedItem),
+      nextCursor: end < matched.length ? String(end) : null,
+    });
+  },
+
+  /** POST .../disclosures/{disclosureId}/reaction: 누른 버튼으로 토글 (같으면 취소, 다르면 등록·변경) */
+  toggleReaction: (disclosureId: number, pressed: ReactionType): DisclosureReactionResponse => {
+    const item = findDisclosureItem(disclosureId) ?? fail('607', '공시를 찾을 수 없습니다.');
+    const reaction: Reaction = pressed === 'LIKE' ? 'BULLISH' : 'BEARISH';
+    const next = item.myReaction === reaction ? null : reaction;
     if (item.myReaction === 'BULLISH') item.bullishCount -= 1;
     if (item.myReaction === 'BEARISH') item.bearishCount -= 1;
-    if (reaction === 'BULLISH') item.bullishCount += 1;
-    if (reaction === 'BEARISH') item.bearishCount += 1;
-    item.myReaction = reaction;
+    if (next === 'BULLISH') item.bullishCount += 1;
+    if (next === 'BEARISH') item.bearishCount += 1;
+    item.myReaction = next;
+    return {
+      disclosureId,
+      likeCount: item.bullishCount,
+      dislikeCount: item.bearishCount,
+      myReaction: toServerReaction(next),
+    };
   },
 
   getComments: (targetType: CommentTargetType, targetId: number): Comment[] =>

@@ -6,7 +6,6 @@ import type {
   CreateDisclosureResponse,
   DisclosureDetail,
   DisclosureId,
-  ReactToDisclosureRequest,
 } from './disclosure.types';
 
 // TODO: API가 준비되면 각 함수 안쪽을 apiClient 호출로 바꾼다 (ApiResponse<T>로 받고 data만 반환)
@@ -44,11 +43,4 @@ export const retryNewsGeneration = async (
   mockContentServer.retryNews(disclosureId);
 };
 
-export const reactToDisclosure = async (
-  _roomId: RoomId,
-  disclosureId: DisclosureId,
-  request: ReactToDisclosureRequest,
-): Promise<void> => {
-  await delay(200);
-  mockContentServer.react(disclosureId, request.reaction);
-};
+// 공시 반응 토글은 피드에서 쓰는 feed.service toggleDisclosureReaction (실제 API)

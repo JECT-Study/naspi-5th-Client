@@ -13,8 +13,16 @@ export type Reaction = Sentiment;
  */
 export type NewsStatus = 'GENERATING' | 'PUBLISHED' | 'FAILED' | 'NONE';
 
-/** 화면에서 문구를 나눠 보여주는 서버 에러 코드. TODO: BE와 코드 이름 맞추기 */
+/** 화면에서 문구를 나눠 보여주는 서버 에러 코드. TODO: 공시 상세 연동 때 서버 코드(607)로 바꾸기 */
 export type DisclosureErrorCode = 'CONTENT_DELETED';
+
+/** 공시 API 실패 코드 (Swagger) */
+export const DISCLOSURE_ERROR_CODE = {
+  /** 공시가 없거나 삭제됨 */
+  NOT_FOUND: '607',
+  /** 진행 중인 리그가 아님 (대기실, 종료) */
+  LEAGUE_NOT_ACTIVE: '609',
+} as const;
 
 // 공시 상세 조회
 export interface DisclosureDetail {
@@ -47,9 +55,4 @@ export interface CreateDisclosureRequest {
 
 export interface CreateDisclosureResponse {
   disclosureId: DisclosureId;
-}
-
-// 반응 (같은 반응을 다시 누르면 취소: null)
-export interface ReactToDisclosureRequest {
-  reaction: Reaction | null;
 }

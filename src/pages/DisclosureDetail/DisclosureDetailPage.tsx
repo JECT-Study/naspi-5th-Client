@@ -152,6 +152,7 @@ function DisclosureDetailPage() {
             <div className="flex gap-2">
               <DisclosureReactions
                 roomId={roomId}
+                stockId={item.stockId}
                 disclosureId={disclosureId}
                 myReaction={item.myReaction}
                 bullishCount={item.bullishCount}
