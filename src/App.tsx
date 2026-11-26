@@ -67,8 +67,12 @@ const router = createBrowserRouter([
                 ],
               },
               { path: 'orders', element: <OrderHistoryPage /> },
-              { path: 'disclosures/:disclosureId', element: <DisclosureDetailPage /> },
-              { path: 'news/:newsId', element: <NewsDetailPage /> },
+              // 공시·뉴스 상세는 서버 주소처럼 종목 아래에 둔다 (API가 종목 id를 받는다). 종목 탭 레이아웃 밖의 Depth 3
+              {
+                path: 'stocks/:stockId/disclosures/:disclosureId',
+                element: <DisclosureDetailPage />,
+              },
+              { path: 'stocks/:stockId/news/:newsId', element: <NewsDetailPage /> },
               { path: 'result', element: <LeagueResultPage /> },
             ],
           },

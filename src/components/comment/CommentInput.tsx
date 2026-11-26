@@ -2,7 +2,7 @@ import { useRef, useState, type SubmitEvent } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { commentKeys } from '@/apis/domains/comment/comment.queries';
 import { createComment } from '@/apis/domains/comment/comment.service';
-import type { CommentTargetType } from '@/apis/domains/comment/comment.types';
+import type { Comment, CommentTarget } from '@/apis/domains/comment/comment.types';
 import type { RoomId } from '@/apis/domains/room/room.types';
 import { useAutoHeight } from '@/hooks/useAutoHeight';
 import { cn } from '@/utils/cn';
@@ -13,28 +13,28 @@ import { SendIcon } from '@/components/ui/icons';
 
 interface CommentInputProps {
   roomId: RoomId;
-  targetType: CommentTargetType;
-  targetId: number;
-  /** 댓글을 단 뒤 (상세의 댓글 수 등 다시 조회) */
-  onChanged?: () => void;
+  target: CommentTarget;
+  /** 댓글을 단 뒤 (새 댓글 목록을 받은 다음). 상세의 댓글 수·피드 갱신에 쓴다 */
+  onChanged?: (comments: Comment[]) => void;
 }
 
 /** 댓글 최대 글자 수 (서비스 정책 3.3) */
 const COMMENT_MAX_LENGTH = 100;
 
 // 상세 화면 맨 아래 댓글 입력. 글자 수는 처음부터 (100자면 붉게), 보내면 비운다
-function CommentInput({ roomId, targetType, targetId, onChanged }: CommentInputProps) {
+function CommentInput({ roomId, target, onChanged }: CommentInputProps) {
   const queryClient = useQueryClient();
   const [content, setContent] = useState('');
 
   const { mutate, isPending } = useMutation({
-    mutationFn: (text: string) => createComment(roomId, targetType, targetId, { content: text }),
-    onSuccess: () => {
+    mutationFn: (text: string) => createComment(roomId, target, { content: text }),
+    onSuccess: async () => {
       setContent('');
-      queryClient.invalidateQueries({
-        queryKey: commentKeys.list(roomId, targetType, targetId),
-      });
-      onChanged?.();
+      // 댓글 목록 API로 새 목록을 받아 그린다 (댓글 목록 아래에 새 댓글)
+      const listKey = commentKeys.list(roomId, target.type, target.id);
+      await queryClient.invalidateQueries({ queryKey: listKey });
+      const latest = queryClient.getQueryData<Comment[]>(listKey);
+      if (latest) onChanged?.(latest);
     },
     // 실패하면 입력값을 그대로 두고 공통 토스트 (libs/queryClient)
     meta: { action: '전송' },

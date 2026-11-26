@@ -1,5 +1,6 @@
 import { queryOptions } from '@tanstack/react-query';
 import type { RoomId } from '@/apis/domains/room/room.types';
+import type { StockId } from '@/apis/domains/stock/stock.types';
 import { getDisclosure } from './disclosure.service';
 import type { DisclosureId } from './disclosure.types';
 
@@ -10,9 +11,9 @@ export const disclosureKeys = {
 };
 
 export const disclosureQueries = {
-  detail: (roomId: RoomId, disclosureId: DisclosureId) =>
+  detail: (roomId: RoomId, stockId: StockId, disclosureId: DisclosureId) =>
     queryOptions({
       queryKey: disclosureKeys.detail(roomId, disclosureId),
-      queryFn: () => getDisclosure(roomId, disclosureId),
+      queryFn: () => getDisclosure(roomId, stockId, disclosureId),
     }),
 };

@@ -13,7 +13,7 @@ import WithdrawModal from './components/WithdrawModal';
 // 로그인 가드: 내 이름 조회(GET /api/members/me/name)로 로그인 여부를 확인한다
 // - 확인 중: 아무것도 그리지 않는다 (안쪽 화면의 조회가 로그인 확인 뒤에 시작된다)
 // - 로그인 안 함·탈퇴(401, 003, 103): 랜딩으로 보낸다. 들어오려던 주소를 넘겨서 로그인 후 그리로 돌아오게 한다
-//   (예: 친구가 공유한 공시 링크 /leagues/3/disclosures/5 를 로그인 전에 열어도 로그인 후 그 공시로 간다)
+//   (예: 친구가 공유한 공시 링크 /leagues/3/stocks/2/disclosures/5 를 로그인 전에 열어도 로그인 후 그 공시로 간다)
 // - 그 밖의 실패(서버 오류 등): 로그인 여부를 알 수 없어 [공통 오류] 페이지 (공통 7)
 //   '메인 페이지로 이동'을 누르면 로그인 확인을 다시 한다. 인터넷 끊김은 네트워크 오류 페이지가 덮는다 (libs/queryClient)
 function AuthLayout() {

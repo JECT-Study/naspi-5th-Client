@@ -1,7 +1,7 @@
 import { queryOptions } from '@tanstack/react-query';
 import type { RoomId } from '@/apis/domains/room/room.types';
 import { getComments } from './comment.service';
-import type { CommentTargetType } from './comment.types';
+import type { CommentTarget, CommentTargetType } from './comment.types';
 
 export const commentKeys = {
   room: (roomId: RoomId) => ['rooms', roomId, 'comments'] as const,
@@ -10,9 +10,9 @@ export const commentKeys = {
 };
 
 export const commentQueries = {
-  list: (roomId: RoomId, targetType: CommentTargetType, targetId: number) =>
+  list: (roomId: RoomId, target: CommentTarget) =>
     queryOptions({
-      queryKey: commentKeys.list(roomId, targetType, targetId),
-      queryFn: () => getComments(roomId, targetType, targetId),
+      queryKey: commentKeys.list(roomId, target.type, target.id),
+      queryFn: () => getComments(roomId, target),
     }),
 };

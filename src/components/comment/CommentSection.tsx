@@ -2,8 +2,13 @@ import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { commentKeys, commentQueries } from '@/apis/domains/comment/comment.queries';
 import { deleteComment } from '@/apis/domains/comment/comment.service';
-import type { Comment, CommentTargetType } from '@/apis/domains/comment/comment.types';
+import {
+  COMMENT_ERROR_CODE,
+  type Comment,
+  type CommentTarget,
+} from '@/apis/domains/comment/comment.types';
 import type { RoomId } from '@/apis/domains/room/room.types';
+import { getApiErrorCode } from '@/libs/apiError';
 import ConfirmModal from '@/components/overlay/ConfirmModal';
 import Dropdown from '@/components/ui/Dropdown';
 import { MoreIcon } from '@/components/ui/icons';
@@ -12,28 +17,44 @@ import CommentRow from './CommentRow';
 
 interface CommentSectionProps {
   roomId: RoomId;
-  targetType: CommentTargetType;
-  targetId: number;
-  /** 댓글이 지워진 뒤 (상세의 댓글 수 등 다시 조회) */
-  onChanged?: () => void;
+  target: CommentTarget;
+  /** 상세 조회에 같이 온 댓글. 있으면 댓글 목록을 따로 부르지 않고 이걸로 시작한다 */
+  initialComments?: Comment[];
+  /** 댓글 목록이 바뀐 뒤 (새 댓글 목록을 받은 다음). 상세의 댓글 수·피드 갱신에 쓴다 */
+  onChanged?: (comments: Comment[]) => void;
 }
 
 // 공시·뉴스 상세의 댓글 목록 (오래된 순). 내 댓글은 지울 수 있다 (서비스 정책 3.3)
-function CommentSection({ roomId, targetType, targetId, onChanged }: CommentSectionProps) {
+// 처음 목록은 상세 응답의 comments로 그리고, 쓰거나 지운 뒤에만 댓글 목록 API로 다시 받는다 (Swagger 안내)
+function CommentSection({ roomId, target, initialComments, onChanged }: CommentSectionProps) {
   const queryClient = useQueryClient();
-  const comments = useQuery(commentQueries.list(roomId, targetType, targetId));
+  const listKey = commentKeys.list(roomId, target.type, target.id);
+  const comments = useQuery({
+    ...commentQueries.list(roomId, target),
+    initialData: initialComments,
+  });
   const [deleteTarget, setDeleteTarget] = useState<Comment | null>(null);
 
+  const refreshComments = async () => {
+    await queryClient.invalidateQueries({ queryKey: listKey });
+    const latest = queryClient.getQueryData<Comment[]>(listKey);
+    if (latest) onChanged?.(latest);
+  };
+
   const { mutate, isPending } = useMutation({
-    mutationFn: (comment: Comment) => deleteComment(roomId, comment.commentId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: commentKeys.list(roomId, targetType, targetId),
-      });
-      onChanged?.();
+    mutationFn: (comment: Comment) => deleteComment(roomId, target, comment.commentId),
+    onSuccess: async () => {
+      await refreshComments();
       setDeleteTarget(null);
     },
-    meta: { action: '삭제' },
+    // 그사이 이미 지워진 댓글(617)이면 목록만 새로 받는다
+    onError: (error) => {
+      if (getApiErrorCode(error) === COMMENT_ERROR_CODE.NOT_FOUND) {
+        void refreshComments();
+        setDeleteTarget(null);
+      }
+    },
+    meta: { action: '삭제', handledErrors: [COMMENT_ERROR_CODE.NOT_FOUND] },
   });
 
   if (comments.isPending) {

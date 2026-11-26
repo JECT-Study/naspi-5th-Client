@@ -152,6 +152,7 @@ function FeedCard({ roomId, item, to, variant }: FeedCardProps) {
             <div className={cn(ABOVE_CARD_LINK, 'flex gap-2')}>
               <DisclosureReactions
                 roomId={roomId}
+                stockId={item.stockId}
                 disclosureId={item.disclosureId}
                 myReaction={item.myReaction}
                 bullishCount={item.bullishCount}
