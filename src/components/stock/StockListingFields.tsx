@@ -54,6 +54,7 @@ function StockListingFields({ value, onChange, errors = {} }: StockListingFields
         placeholder="종목 이름을 입력해 주세요."
         value={value.name}
         maxLength={STOCK_NAME_MAX_LENGTH}
+        blockEmoji
         error={errors.name}
         onChange={(event) => onChange({ ...value, name: normalizeStockName(event.target.value) })}
       />

@@ -48,6 +48,9 @@ function NameFormModal({ title, isPending, serverError, onChange, onSubmit }: Na
           placeholder="이름을 입력해 주세요."
           value={name}
           maxLength={NAME_MAX_LENGTH}
+          // 설계서 v1.9: 이름은 공백·이모지 입력 불가
+          blockSpace
+          blockEmoji
           // 시안: 모달 입력칸은 글자 수 오른쪽 10
           counterInset={10}
           error={error ?? serverError}

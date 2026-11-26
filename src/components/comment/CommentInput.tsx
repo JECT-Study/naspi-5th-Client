@@ -6,6 +6,7 @@ import type { CommentTargetType } from '@/apis/domains/comment/comment.types';
 import type { RoomId } from '@/apis/domains/room/room.types';
 import { useAutoHeight } from '@/hooks/useAutoHeight';
 import { cn } from '@/utils/cn';
+import { countGraphemes } from '@/utils/graphemes';
 import { maxLengthHandlers } from '@/utils/maxLength';
 import CharCounter from '@/components/ui/CharCounter';
 import { SendIcon } from '@/components/ui/icons';
@@ -63,16 +64,18 @@ function CommentInput({ roomId, targetType, targetId, onChanged }: CommentInputP
           aria-label="댓글"
           placeholder="댓글을 입력해 주세요."
           rows={1}
-          maxLength={COMMENT_MAX_LENGTH}
           value={content}
           className={cn(
             'block w-full resize-none bg-transparent px-4 pt-3.5 text-title4-5 text-grey-8 outline-none placeholder:text-grey-4',
             content.length > 0 ? 'max-h-36.5 pb-8' : 'max-h-32 pb-3.5',
           )}
-          {...maxLengthHandlers<HTMLTextAreaElement>((event) => setContent(event.target.value))}
+          // 글자 수는 보이는 글자 단위 (이모지도 1자, utils/maxLength)
+          {...maxLengthHandlers<HTMLTextAreaElement>(COMMENT_MAX_LENGTH, (event) =>
+            setContent(event.target.value),
+          )}
         />
         <CharCounter
-          length={content.length}
+          length={countGraphemes(content)}
           max={COMMENT_MAX_LENGTH}
           className="pointer-events-none absolute right-3 bottom-1.5"
         />

@@ -20,7 +20,7 @@ export const NAME_MAX_LENGTH = 5;
 export const INVALID_NAME_MESSAGE = '한글만 사용할 수 있어요.';
 
 // 회원가입 이름 입력, 이름 수정에서 같이 쓴다
-// 공백은 앞뒤도 지우지 않고 그대로 막는다
+// 공백은 앞뒤도 지우지 않고 그대로 막는다 (입력칸에서도 공백·이모지가 들어가지 않는다, 설계서 v1.9)
 // 설계서의 이름 오류 문구는 1-2-1 하나뿐이라, 유효하지 않으면 모두 이 문구다
 // (공란은 버튼이 비활성화돼서, 5자 초과는 입력칸에서 막혀서 실제로는 오지 않는다. 혹시 넘어와도 막는다)
 export const validateNameForm = (data: NameFormData): ValidationResult => {

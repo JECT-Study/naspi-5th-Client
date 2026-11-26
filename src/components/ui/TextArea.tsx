@@ -1,5 +1,6 @@
 import { useId, type ComponentProps } from 'react';
 import { cn } from '@/utils/cn';
+import { countGraphemes } from '@/utils/graphemes';
 import { maxLengthHandlers } from '@/utils/maxLength';
 import CharCounter from './CharCounter';
 import FieldMessage from './FieldMessage';
@@ -17,7 +18,7 @@ interface TextAreaProps extends Omit<ComponentProps<'textarea'>, 'value'> {
 // 모서리 6, 흰색 + Grey/3 테두리, 입력값 Body2.5 Grey/8, 안내 문구 Grey/4
 // 글자 수는 입력을 시작할 때부터 오른쪽 아래에 (오른쪽 12·아래 6, Grey/5. 최대에 닿아도 색 그대로)
 // 입력 중(포커스)이면 Grey/8 테두리 (시안 DescriptionInput 입력 상태), 오류가 있으면 NSBuy 테두리
-// maxLength를 넘는 한글(조합 중인 글자)은 조합이 끝나면 잘라 낸다 (utils/maxLength)
+// 글자 수는 보이는 글자 단위로 세고(이모지도 1자), 넘친 글자는 직접 잘라 낸다 (utils/maxLength, 브라우저 maxLength 속성은 안 씀)
 function TextArea({
   label,
   error,
@@ -45,7 +46,6 @@ function TextArea({
         <textarea
           id={inputId}
           value={value}
-          maxLength={maxLength}
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? errorId : undefined}
           className={cn(
@@ -53,10 +53,10 @@ function TextArea({
             error ? 'border-ns-buy' : 'border-grey-3 focus:border-grey-8',
           )}
           {...props}
-          {...maxLengthHandlers(onChange, onCompositionEnd)}
+          {...maxLengthHandlers(maxLength, onChange, onCompositionEnd)}
         />
         <CharCounter
-          length={value.length}
+          length={countGraphemes(value)}
           max={maxLength}
           className="pointer-events-none absolute right-3 bottom-1.5"
         />
