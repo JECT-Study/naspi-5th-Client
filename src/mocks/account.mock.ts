@@ -22,7 +22,6 @@ const INITIAL_PRICE = 10_000;
 const MIN_OWN_HOLDING = 1_000;
 const PRICE_TICK = 100;
 const MARKET_PROTECTION_RATE = 0.05;
-const MARKET_FILL_DELAY_MS = 1_000;
 const LIMIT_FILL_DELAY_MS = 8_000;
 // 취소하려 하면 그 사이 체결된 것으로 응답하는 주문 (주문 취소 실패 토스트 확인용)
 const FILLED_ON_CANCEL_ORDER_ID = 2;
@@ -121,20 +120,26 @@ const getOrderableQuantity = (stockId: StockId) => {
 };
 const roundRate = (value: number) => Math.round(value * 10) / 10;
 
+/** 체결된 수량만큼 현금·보유 주식을 바꾼다 */
+const settle = (stockId: StockId, side: OrderSide, quantity: number, price: number) => {
+  const holding = findHolding(stockId);
+  if (side === 'BUY') {
+    const cost = holding.averagePrice * holding.quantity + price * quantity;
+    holding.quantity += quantity;
+    holding.averagePrice = Math.floor(cost / holding.quantity);
+    cash -= price * quantity;
+  } else {
+    holding.quantity -= quantity;
+    cash += price * quantity;
+  }
+};
+
+/** 대기 중이던 내 지정가 주문이 다른 사람 주문으로 전량 체결된 것으로 친다. 체결 알림은 이때만 보낸다 */
 const fill = (orderId: OrderId, price: number) => {
   const order = openOrders.find((item) => item.orderId === orderId);
   if (!order) return;
   openOrders = openOrders.filter((item) => item.orderId !== orderId);
-  const holding = findHolding(order.stockId);
-  if (order.side === 'BUY') {
-    const cost = holding.averagePrice * holding.quantity + price * order.quantity;
-    holding.quantity += order.quantity;
-    holding.averagePrice = Math.floor(cost / holding.quantity);
-    cash -= price * order.quantity;
-  } else {
-    holding.quantity -= order.quantity;
-    cash += price * order.quantity;
-  }
+  settle(order.stockId, order.side, order.quantity, price);
   emit({
     type: 'ORDER_FILLED',
     data: { orderId, stockId: order.stockId, side: order.side },
@@ -223,6 +228,16 @@ export const mockAccountServer = {
     const stock = findStock(stockId);
     if (quantity < 1) fail('501', '주문 수량은 1주 이상이어야 합니다.');
     const isLimit = type === 'LIMIT';
+    const canceled = (): PlaceOrderResponse => ({
+      orderId: nextOrderId++,
+      status: 'CANCELED',
+      quantity,
+      remainingQuantity: quantity,
+    });
+
+    // 시장가인데 상대 호가가 없으면 예약 없이 바로 전량 취소 (서버 MarketOrderService)
+    const opposite = side === 'BUY' ? stock.orderbook.asks : stock.orderbook.bids;
+    if (!isLimit && opposite.length === 0) return canceled();
     if (isLimit) {
       if (price === undefined || price < PRICE_TICK || price % PRICE_TICK !== 0) {
         fail('500', '주문 가격은 100원 이상의 100원 단위여야 합니다.');
@@ -257,6 +272,36 @@ export const mockAccountServer = {
       fail('402', '매도 가능한 수량이 부족합니다.');
     }
 
+    // 내 반대 주문과 체결될 가격이면 자전거래로 전량 취소 (서버 OrderMatcher, 먼저 체결되는 남의 주문은 mock에서 생략)
+    const crossesMyOrder = openOrders.some(
+      (order) =>
+        order.stockId === stockId &&
+        order.side !== side &&
+        (side === 'BUY' ? order.price <= orderPrice : order.price >= orderPrice),
+    );
+    if (crossesMyOrder) return canceled();
+
+    // 시장가: 보호 범위 안의 상대 호가를 최우선부터 바로 체결하고, 모자란 수량은 취소한다 (서비스 정책 5.2)
+    // 응답이 최종 결과라 체결 알림은 보내지 않는다 (새 주문을 낸 사람은 응답으로 안내)
+    if (!isLimit) {
+      let remaining = quantity;
+      for (const level of opposite) {
+        const inRange = side === 'BUY' ? level.price <= marketPrice : level.price >= marketPrice;
+        if (remaining <= 0 || !inRange) break;
+        const filled = Math.min(level.quantity, remaining);
+        settle(stockId, side, filled, level.price);
+        remaining -= filled;
+      }
+      if (remaining === quantity) return canceled();
+      return {
+        orderId: nextOrderId++,
+        status: remaining > 0 ? 'CANCELED' : 'FILLED',
+        quantity,
+        remainingQuantity: remaining,
+      };
+    }
+
+    // 지정가: 대기 주문으로 두고, 잠시 뒤 다른 사람 주문으로 체결된 것으로 친다 (이때 체결 알림)
     const orderId = nextOrderId++;
     openOrders.push({
       orderId,
@@ -267,9 +312,7 @@ export const mockAccountServer = {
       price: orderPrice,
       orderedAt: new Date().toISOString(),
     });
-    // 지정가는 잠시 뒤 지정한 가격으로, 시장가는 곧바로(현재가로) 체결된 것으로 친다 (체결 알림을 보낸다)
-    if (isLimit) setTimeout(() => fill(orderId, orderPrice), LIMIT_FILL_DELAY_MS);
-    else setTimeout(() => fill(orderId, findStock(stockId).price), MARKET_FILL_DELAY_MS);
+    setTimeout(() => fill(orderId, orderPrice), LIMIT_FILL_DELAY_MS);
     return { orderId, status: 'PENDING', quantity, remainingQuantity: quantity };
   },
 

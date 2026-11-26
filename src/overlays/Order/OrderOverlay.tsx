@@ -19,6 +19,7 @@ import {
   floorToTick,
   getMaxLimitBuyQuantity,
   getMaxMarketBuyQuantity,
+  getOrderResultMessages,
 } from '@/apis/domains/order/order.utils';
 import {
   ORDER_CORRECTION_DELAY_MS,
@@ -122,13 +123,14 @@ function OrderForm({ roomId, side, stock, assets }: OrderFormProps) {
 
   const { mutate, isPending } = useMutation({
     mutationFn: (request: CreateOrderRequest) => createOrder(roomId, request),
-    onSuccess: () => {
+    onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: assetKeys.room(roomId) });
       queryClient.invalidateQueries({ queryKey: orderKeys.room(roomId) });
-      // 공통 5-3: 확인하기 → 종목 - 내 주식
-      notify.success('주문이 접수됐어요.', {
-        link: { label: '확인하기', to: `/leagues/${roomId}/stocks/${stockId}/mine` },
-      });
+      // 접수 (5-4) → 결과 (체결 5-5 / 일부 체결 5-6 / 취소 5-7) 순서로 띄운다. 모두 확인하기 → 종목 - 내 주식
+      const link = { label: '확인하기', to: `/leagues/${roomId}/stocks/${stockId}/mine` };
+      for (const message of getOrderResultMessages(stock.name, side, result)) {
+        notify.success(message, { link });
+      }
       closeOverlay();
     },
     // 서버가 현금·주식 부족(자사주 최소 유지분 포함)으로 거절하면 수량 칸에 안내하고, 그 밖의 실패는 공통 토스트 (libs/queryClient)

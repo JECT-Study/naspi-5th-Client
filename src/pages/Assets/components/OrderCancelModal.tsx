@@ -3,6 +3,7 @@ import { assetKeys } from '@/apis/domains/asset/asset.queries';
 import { orderKeys } from '@/apis/domains/order/order.queries';
 import { cancelOrder } from '@/apis/domains/order/order.service';
 import { ORDER_ERROR_CODE, type OpenOrder } from '@/apis/domains/order/order.types';
+import { ORDER_CANCELED_MESSAGE } from '@/apis/domains/order/order.utils';
 import type { RoomId } from '@/apis/domains/room/room.types';
 import ConfirmModal from '@/components/overlay/ConfirmModal';
 import { getApiErrorCode } from '@/libs/apiError';
@@ -32,7 +33,7 @@ function OrderCancelModal({ roomId, order, onClose }: OrderCancelModalProps) {
   const { mutate, isPending } = useMutation({
     mutationFn: () => cancelOrder(roomId, order.orderId),
     onSuccess: () => {
-      notify.success('주문을 취소했어요.', { link: toastLink });
+      notify.success(ORDER_CANCELED_MESSAGE, { link: toastLink });
       refreshOrders();
       onClose();
     },

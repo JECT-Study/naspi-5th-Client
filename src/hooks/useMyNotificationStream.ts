@@ -43,7 +43,8 @@ export const useMyNotificationStream = (roomId: RoomId) => {
           refetchAccount();
           const { stockId, side } = event.data;
           const stockName = findStockName(stockId);
-          // 주문 체결 토스트 (v1.9 공통 5-3, 이전 5-6): {종목 이름} {매매 구분} 주문이 체결됐어요. + 확인하기 → 종목 - 내 주식
+          // 대기 중이던 주문의 체결 토스트 (v1.10 공통 5-5): {종목 이름} {매매 구분} 주문이 체결됐어요. + 확인하기 → 종목 - 내 주식
+          // TODO: 웹소켓을 붙이면 서버가 주는 문구(message)·이동 경로(url)를 그대로 쓴다 (백엔드와 합의)
           notify.success(
             `${stockName ? `${stockName} ` : ''}${side === 'BUY' ? '매수' : '매도'} 주문이 체결됐어요.`,
             { link: { label: '확인하기', to: `/leagues/${roomId}/stocks/${stockId}/mine` } },
@@ -57,11 +58,12 @@ export const useMyNotificationStream = (roomId: RoomId) => {
           // 새 기준가·상한가·하한가와 "어제보다" 문구를 다시 받는다
           queryClient.invalidateQueries({ queryKey: roomKeys.room(roomId) });
           queryClient.invalidateQueries({ queryKey: stockKeys.room(roomId) });
-          // 설계서 v1.9 공통 5-1: 대기 중이던 주문이 만료된 사용자 / 5-2: 만료된 주문이 없는 사용자
-          // 만료된 주문은 내 자산·대기 주문에서 빠지므로 다시 받는다. 만료로 인한 취소는 주문 취소 토스트를 띄우지 않는다
+          // 설계서 v1.10 공통 5-2: 대기 중이던 주문이 취소된 사용자 / 5-3: 취소된 주문이 없는 사용자
+          // 취소된 주문은 내 자산·대기 주문에서 빠지므로 다시 받는다. 거래일 갱신 취소는 주문 취소 토스트(5-7)를 띄우지 않는다
+          // TODO: 웹소켓을 붙이면 서버가 사람마다 주는 문구를 그대로 쓴다 (백엔드와 합의)
           if (event.data.hasExpiredOrders) {
             refetchAccount();
-            notify.announce('새 거래일이 시작돼 대기 중인 주문이 만료됐어요.');
+            notify.announce('새 거래일이 시작돼 대기 중인 주문이 취소됐어요.');
           } else {
             notify.announce('새 거래일이 시작됐어요.');
           }
