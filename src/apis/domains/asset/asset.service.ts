@@ -1,10 +1,12 @@
+import { apiClient, unwrap } from '@/apis/client';
 import type { RoomId } from '@/apis/domains/room/room.types';
-import { mockAccountServer } from '@/mocks/account.mock';
-import { delay } from '@/mocks/delay';
-import type { MyAssets } from './asset.types';
+import type { ApiResponse } from '@/apis/types';
+import { toMyAssets } from './asset.mapper';
+import type { MyAssetResponse, MyAssets } from './asset.types';
 
-// TODO: API가 준비되면 apiClient 호출로 바꾼다 (ApiResponse<T>로 받고 data만 반환)
-export const getMyAssets = async (_roomId: RoomId): Promise<MyAssets> => {
-  await delay(300);
-  return mockAccountServer.getMyAssets();
-};
+/** 리그에서 내 자산 (현금·보유 주식·총자산). 평가 가격은 현재가. 실패: 400 리그 시작 전 */
+export const getMyAssets = (roomId: RoomId): Promise<MyAssets> =>
+  apiClient
+    .get<ApiResponse<MyAssetResponse>>(`/api/leagues/${roomId}/assets/me`)
+    .then(unwrap)
+    .then(toMyAssets);

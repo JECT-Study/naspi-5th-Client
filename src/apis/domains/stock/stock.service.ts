@@ -1,12 +1,11 @@
 import { apiClient, unwrap } from '@/apis/client';
 import type { ApiResponse } from '@/apis/types';
 import type { RoomId } from '@/apis/domains/room/room.types';
-import { delay } from '@/mocks/delay';
-import { marketMock } from '@/mocks/market.mock';
-import { toStock } from './stock.mapper';
+import { toStock, toStockDetail } from './stock.mapper';
 import type {
   ListStockRequest,
   MemberStockResponse,
+  OrderBookResponse,
   Stock,
   StockDetail,
   StockId,
@@ -23,13 +22,16 @@ export const getStocks = (roomId: RoomId): Promise<Stock[]> =>
     .then(unwrap)
     .then((stocks) => stocks.map(toStock));
 
-// 종목 화면(시세 요약·차트·호가)용 상세. 호가·차트는 웹소켓 범위라 아직 mock
-// TODO: 웹소켓 연동 때 종목 개별 조회(GET .../stocks/{stockId})·호가 조회로 바꾼다
-export const getStock = async (_roomId: RoomId, stockId: StockId): Promise<StockDetail> => {
-  await delay(300);
-  const stock = marketMock.find(({ detail }) => detail.stockId === stockId);
-  if (!stock) throw new Error('종목을 찾을 수 없어요.');
-  return structuredClone(stock.detail);
+/**
+ * 종목 화면(시세 요약·호가·종목 정보·주문)용 상세: 종목 개별 조회 + 호가 조회를 함께 부른다
+ * 호가는 진행 중인 리그에서만 조회된다 (종목 화면은 진행 중인 리그에서만 열린다). 실시간 갱신은 웹소켓 때
+ */
+export const getStock = (roomId: RoomId, stockId: StockId): Promise<StockDetail> => {
+  const stockPath = `/api/leagues/${roomId}/stocks/${stockId}`;
+  return Promise.all([
+    apiClient.get<ApiResponse<MemberStockResponse>>(stockPath).then(unwrap),
+    apiClient.get<ApiResponse<OrderBookResponse>>(`${stockPath}/orderbook`).then(unwrap),
+  ]).then(([stock, orderbook]) => toStockDetail(stock, orderbook));
 };
 
 /**

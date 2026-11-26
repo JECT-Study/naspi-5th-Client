@@ -1,5 +1,39 @@
 import type { StockDetail } from '@/apis/domains/stock/stock.types';
-import type { OrderSide } from './order.types';
+import type { CreateOrderResponse, OrderSide } from './order.types';
+
+const SIDE_LABEL: Record<OrderSide, string> = { BUY: '매수', SELL: '매도' };
+
+/** 주문 취소 토스트 문구 (설계서 v1.10 공통 5-7). 사용자 취소와 주문 직후 전량 취소가 같은 문구 */
+export const ORDER_CANCELED_MESSAGE = '접수된 주문이 취소됐어요.';
+
+/**
+ * 새 주문 응답으로 띄울 토스트 문구들. 앞에서부터 순서대로 띄운다 (설계서 v1.10 공통 5, 기획 주문 토스트 케이스 A01~B05)
+ * 서버는 접수·매칭·체결·취소를 요청 한 번에 끝내고 최종 상태를 주므로, 결과 안내도 응답으로 정한다
+ * - 접수 (5-4)는 결과와 상관없이 늘 먼저
+ * - 체결 (5-5): 전량 체결, 일부 체결 후 잔량 대기 (FILLED, PARTIALLY_FILLED)
+ * - 일부 체결 (5-6): 일부 체결 후 잔량 취소 (CANCELED, 남은 수량 < 주문 수량)
+ * - 취소 (5-7): 하나도 체결되지 않고 전량 취소 (CANCELED, 남은 수량 = 주문 수량. 자전거래 방지, 시장가 상대 주문 없음)
+ * - 전량 대기 (PENDING)는 접수만
+ * 취소 이유(자전거래·상대 주문 없음)는 기획이 같은 토스트로 묶어서 구분하지 않는다
+ */
+export const getOrderResultMessages = (
+  stockName: string,
+  side: OrderSide,
+  { status, quantity, remainingQuantity }: CreateOrderResponse,
+): string[] => {
+  const messages = ['주문이 접수됐어요.'];
+  const stockSide = `${stockName} ${SIDE_LABEL[side]}`;
+  if (status === 'FILLED' || status === 'PARTIALLY_FILLED') {
+    messages.push(`${stockSide} 주문이 체결됐어요.`);
+  } else if (status === 'CANCELED') {
+    messages.push(
+      remainingQuantity < quantity
+        ? `${stockSide} 주문이 일부 체결됐어요.`
+        : ORDER_CANCELED_MESSAGE,
+    );
+  }
+  return messages;
+};
 
 /** 주문 가격 단위 (서비스 정책 5.2: 100원 단위) */
 export const PRICE_TICK = 100;

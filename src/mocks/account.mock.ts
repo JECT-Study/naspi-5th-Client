@@ -1,18 +1,20 @@
-import type { Holding, MyAssets } from '@/apis/domains/asset/asset.types';
+import type { HoldingResponse, MyAssetResponse } from '@/apis/domains/asset/asset.types';
 import type { MyNotificationEvent } from '@/apis/domains/notification/notification.types';
 import type {
-  CreateOrderRequest,
-  CreateOrderResponse,
-  OpenOrder,
-  OrderErrorCode,
+  CancelOrderResponse,
   OrderId,
+  OrderListItem,
+  OrderListResponse,
+  OrderSide,
+  OrderType,
+  PlaceOrderResponse,
 } from '@/apis/domains/order/order.types';
 import type { StockId } from '@/apis/domains/stock/stock.types';
 import { marketMock } from './market.mock';
 import { createMockApiError } from './mockError';
-import { meMock } from './user.mock';
 
-// 내 계좌 mock: 보유 주식·현금·대기 중인 주문을 메모리에 두고, 주문하면 잠시 뒤 체결 알림(내 알림)을 보낸다
+// 내 계좌 mock 서버 (msw/handlers가 서버 응답 모양으로 쓴다)
+// 보유 주식·현금·대기 중인 주문을 메모리에 두고, 주문하면 잠시 뒤 체결 알림(내 알림)을 보낸다
 // 가격은 시장 mock(marketMock)의 현재가를 그대로 쓴다
 
 const INITIAL_ASSET = 100_000_000;
@@ -20,10 +22,10 @@ const INITIAL_PRICE = 10_000;
 const MIN_OWN_HOLDING = 1_000;
 const PRICE_TICK = 100;
 const MARKET_PROTECTION_RATE = 0.05;
-const MARKET_FILL_DELAY_MS = 1_000;
 const LIMIT_FILL_DELAY_MS = 8_000;
 // 취소하려 하면 그 사이 체결된 것으로 응답하는 주문 (주문 취소 실패 토스트 확인용)
 const FILLED_ON_CANCEL_ORDER_ID = 2;
+const PLAYER_ID = 1;
 
 interface MockHolding {
   stockId: StockId;
@@ -32,13 +34,25 @@ interface MockHolding {
   averagePrice: number;
 }
 
-const fail = (code: OrderErrorCode): never => {
-  throw createMockApiError(code);
+interface MockOpenOrder {
+  orderId: OrderId;
+  stockId: StockId;
+  side: OrderSide;
+  type: OrderType;
+  /** 남은(미체결) 수량 */
+  quantity: number;
+  price: number;
+  orderedAt: string;
+}
+
+// 서버처럼 비즈니스 실패도 HTTP 200 + code
+const fail = (code: string, message: string): never => {
+  throw createMockApiError(code, message, 200);
 };
 
 const findStock = (stockId: StockId) => {
   const stock = marketMock.find(({ detail }) => detail.stockId === stockId)?.detail;
-  if (!stock) throw createMockApiError('NOT_FOUND', '종목을 찾을 수 없어요.', 404);
+  if (!stock) return fail('304', '리그에 없는 종목입니다.');
   return stock;
 };
 
@@ -59,12 +73,12 @@ let cash =
 
 const minutesAgo = (minutes: number) => new Date(Date.now() - minutes * 60_000).toISOString();
 let nextOrderId = 3;
-let openOrders: OpenOrder[] = [
+let openOrders: MockOpenOrder[] = [
   {
     orderId: 1,
     stockId: 2,
-    stockName: findStock(2).name,
     side: 'BUY',
+    type: 'LIMIT',
     quantity: 3,
     price: 9_900,
     orderedAt: minutesAgo(30),
@@ -72,8 +86,8 @@ let openOrders: OpenOrder[] = [
   {
     orderId: FILLED_ON_CANCEL_ORDER_ID,
     stockId: 3,
-    stockName: findStock(3).name,
     side: 'SELL',
+    type: 'LIMIT',
     quantity: 10,
     price: findStock(3).upperLimit,
     orderedAt: minutesAgo(90),
@@ -99,84 +113,137 @@ const findHolding = (stockId: StockId) => {
   }
   return holding;
 };
-const getSellableQuantity = (stockId: StockId) => {
+// 서버의 매도 가능 수량: 보유 - 매도 주문 중 - (자사주면 최소 유지분)
+const getOrderableQuantity = (stockId: StockId) => {
   const minimum = findStock(stockId).isMine ? MIN_OWN_HOLDING : 0;
   return Math.max(0, findHolding(stockId).quantity - sellingQuantity(stockId) - minimum);
 };
 const roundRate = (value: number) => Math.round(value * 10) / 10;
 
+/** 체결된 수량만큼 현금·보유 주식을 바꾼다 */
+const settle = (stockId: StockId, side: OrderSide, quantity: number, price: number) => {
+  const holding = findHolding(stockId);
+  if (side === 'BUY') {
+    const cost = holding.averagePrice * holding.quantity + price * quantity;
+    holding.quantity += quantity;
+    holding.averagePrice = Math.floor(cost / holding.quantity);
+    cash -= price * quantity;
+  } else {
+    holding.quantity -= quantity;
+    cash += price * quantity;
+  }
+};
+
+/** 대기 중이던 내 지정가 주문이 다른 사람 주문으로 전량 체결된 것으로 친다. 체결 알림은 이때만 보낸다 */
 const fill = (orderId: OrderId, price: number) => {
   const order = openOrders.find((item) => item.orderId === orderId);
   if (!order) return;
   openOrders = openOrders.filter((item) => item.orderId !== orderId);
-  const holding = findHolding(order.stockId);
-  if (order.side === 'BUY') {
-    const cost = holding.averagePrice * holding.quantity + price * order.quantity;
-    holding.quantity += order.quantity;
-    holding.averagePrice = Math.round(cost / holding.quantity);
-    cash -= price * order.quantity;
-  } else {
-    holding.quantity -= order.quantity;
-    cash += price * order.quantity;
-  }
+  settle(order.stockId, order.side, order.quantity, price);
   emit({
     type: 'ORDER_FILLED',
     data: { orderId, stockId: order.stockId, side: order.side },
   });
 };
 
+const toOrderListItem = (order: MockOpenOrder): OrderListItem => ({
+  orderId: order.orderId,
+  stockId: order.stockId,
+  stockName: findStock(order.stockId).name,
+  side: order.side,
+  type: order.type,
+  orderedAt: order.orderedAt,
+  quantity: order.quantity,
+  price: order.type === 'LIMIT' ? order.price : null,
+  filledQuantity: null,
+  pendingQuantity: order.quantity,
+  canceledQuantity: null,
+  executionPrice: null,
+  averagedPrice: false,
+});
+
 export const mockAccountServer = {
-  getMyAssets: (): MyAssets => {
-    // 서버처럼 상장 순 (시장 mock 순서)
-    const listingOrder = (stockId: StockId) =>
-      marketMock.findIndex(({ detail }) => detail.stockId === stockId);
-    const rows: Holding[] = holdings
+  /** GET /api/leagues/{leagueId}/assets/me (보유 종목은 종목 ID 순) */
+  getMyAssets: (): MyAssetResponse => {
+    const rows: HoldingResponse[] = holdings
       .filter((holding) => holding.quantity > 0)
-      .sort((a, b) => listingOrder(a.stockId) - listingOrder(b.stockId))
+      .sort((a, b) => a.stockId - b.stockId)
       .map((holding) => {
         const stock = findStock(holding.stockId);
-        const evaluationAmount = stock.price * holding.quantity;
+        const valuation = stock.price * holding.quantity;
         const cost = holding.averagePrice * holding.quantity;
-        const profit = evaluationAmount - cost;
+        const profit = valuation - cost;
         return {
           stockId: holding.stockId,
           stockName: stock.name,
-          isMine: stock.isMine,
+          treasuryStock: stock.isMine,
           quantity: holding.quantity,
+          orderableQuantity: getOrderableQuantity(holding.stockId),
+          currentPrice: stock.price,
           averagePrice: holding.averagePrice,
-          sellingQuantity: sellingQuantity(holding.stockId),
-          sellableQuantity: getSellableQuantity(holding.stockId),
-          evaluationAmount,
+          valuation,
           profit,
-          profitRate: cost > 0 ? roundRate((profit / cost) * 100) : 0,
+          returnRate: cost > 0 ? roundRate((profit / cost) * 100) : 0,
         };
       });
-    const stockValue = rows.reduce((sum, row) => sum + row.evaluationAmount, 0);
-    const totalAsset = cash + stockValue;
-    const profit = totalAsset - INITIAL_ASSET;
+    const stockValuation = rows.reduce((sum, row) => sum + row.valuation, 0);
+    const totalAsset = cash + stockValuation;
+    const totalProfit = totalAsset - INITIAL_ASSET;
     return {
-      userName: meMock.name,
+      playerId: PLAYER_ID,
+      deposit: cash,
+      orderableDeposit: cash - reservedCash(),
+      stockValuation,
       totalAsset,
-      profit,
-      profitRate: roundRate((profit / INITIAL_ASSET) * 100),
-      cash,
-      availableCash: cash - reservedCash(),
-      stockValue,
+      totalProfit,
+      totalReturnRate: roundRate((totalProfit / INITIAL_ASSET) * 100),
       holdings: rows,
     };
   },
 
-  getOpenOrders: (): OpenOrder[] =>
-    structuredClone(
-      [...openOrders].sort((a, b) => Date.parse(b.orderedAt) - Date.parse(a.orderedAt)),
-    ),
+  /** GET /api/leagues/{leagueId}/orders?status=pending|completed (최신 먼저). 완료된 주문은 mock에 없다 */
+  getOrders: (status: string | null, stockId?: StockId): OrderListResponse => {
+    if (status !== 'pending' && status !== 'completed') {
+      return fail('001', '요청 값이 올바르지 않습니다.');
+    }
+    if (status === 'completed') return { orders: [] };
+    return {
+      orders: [...openOrders]
+        .filter((order) => stockId === undefined || order.stockId === stockId)
+        .sort((a, b) => Date.parse(b.orderedAt) - Date.parse(a.orderedAt))
+        .map(toOrderListItem),
+    };
+  },
 
-  createOrder: (request: CreateOrderRequest): CreateOrderResponse => {
-    const stock = findStock(request.stockId);
-    const isLimit = request.type === 'LIMIT';
-    if (isLimit && request.price !== undefined) {
-      if (request.price > stock.upperLimit || request.price < stock.lowerLimit) {
-        fail('PRICE_OUT_OF_RANGE');
+  /** POST .../orders/limit, .../orders/market */
+  placeOrder: (
+    type: OrderType,
+    {
+      stockId,
+      side,
+      quantity,
+      price,
+    }: { stockId: StockId; side: OrderSide; quantity: number; price?: number },
+  ): PlaceOrderResponse => {
+    const stock = findStock(stockId);
+    if (quantity < 1) fail('501', '주문 수량은 1주 이상이어야 합니다.');
+    const isLimit = type === 'LIMIT';
+    const canceled = (): PlaceOrderResponse => ({
+      orderId: nextOrderId++,
+      status: 'CANCELED',
+      quantity,
+      remainingQuantity: quantity,
+    });
+
+    // 시장가인데 상대 호가가 없으면 예약 없이 바로 전량 취소 (서버 MarketOrderService)
+    const opposite = side === 'BUY' ? stock.orderbook.asks : stock.orderbook.bids;
+    if (!isLimit && opposite.length === 0) return canceled();
+    if (isLimit) {
+      if (price === undefined || price < PRICE_TICK || price % PRICE_TICK !== 0) {
+        fail('500', '주문 가격은 100원 이상의 100원 단위여야 합니다.');
+      }
+      if ((price ?? 0) > stock.upperLimit || (price ?? 0) < stock.lowerLimit) {
+        fail('503', '주문 가격이 당일 상·하한가 범위를 벗어났습니다.');
       }
     }
 
@@ -184,7 +251,7 @@ export const mockAccountServer = {
     const bestAsk = stock.orderbook.asks[0]?.price ?? stock.price;
     const bestBid = stock.orderbook.bids[0]?.price ?? stock.price;
     const marketPrice =
-      request.side === 'BUY'
+      side === 'BUY'
         ? Math.min(
             stock.upperLimit,
             Math.floor((bestAsk * (1 + MARKET_PROTECTION_RATE)) / PRICE_TICK) * PRICE_TICK,
@@ -193,39 +260,77 @@ export const mockAccountServer = {
             stock.lowerLimit,
             Math.floor((bestBid * (1 - MARKET_PROTECTION_RATE)) / PRICE_TICK) * PRICE_TICK,
           );
-    const price = isLimit ? (request.price ?? stock.price) : marketPrice;
+    const orderPrice = isLimit ? (price ?? stock.price) : marketPrice;
 
-    if (request.side === 'BUY' && price * request.quantity > cash - reservedCash()) {
-      fail('INSUFFICIENT_CASH');
+    if (side === 'BUY' && orderPrice * quantity > cash - reservedCash()) {
+      fail('401', '주문 가능한 현금이 부족합니다.');
     }
-    if (request.side === 'SELL' && request.quantity > getSellableQuantity(request.stockId)) {
-      fail('INSUFFICIENT_SHARES');
+    if (side === 'SELL' && quantity > getOrderableQuantity(stockId)) {
+      const unreserved = findHolding(stockId).quantity - sellingQuantity(stockId);
+      if (stock.isMine && quantity <= unreserved)
+        fail('403', '자사주는 1,000주 이상 남겨야 합니다.');
+      fail('402', '매도 가능한 수량이 부족합니다.');
     }
 
+    // 내 반대 주문과 체결될 가격이면 자전거래로 전량 취소 (서버 OrderMatcher, 먼저 체결되는 남의 주문은 mock에서 생략)
+    const crossesMyOrder = openOrders.some(
+      (order) =>
+        order.stockId === stockId &&
+        order.side !== side &&
+        (side === 'BUY' ? order.price <= orderPrice : order.price >= orderPrice),
+    );
+    if (crossesMyOrder) return canceled();
+
+    // 시장가: 보호 범위 안의 상대 호가를 최우선부터 바로 체결하고, 모자란 수량은 취소한다 (서비스 정책 5.2)
+    // 응답이 최종 결과라 체결 알림은 보내지 않는다 (새 주문을 낸 사람은 응답으로 안내)
+    if (!isLimit) {
+      let remaining = quantity;
+      for (const level of opposite) {
+        const inRange = side === 'BUY' ? level.price <= marketPrice : level.price >= marketPrice;
+        if (remaining <= 0 || !inRange) break;
+        const filled = Math.min(level.quantity, remaining);
+        settle(stockId, side, filled, level.price);
+        remaining -= filled;
+      }
+      if (remaining === quantity) return canceled();
+      return {
+        orderId: nextOrderId++,
+        status: remaining > 0 ? 'CANCELED' : 'FILLED',
+        quantity,
+        remainingQuantity: remaining,
+      };
+    }
+
+    // 지정가: 대기 주문으로 두고, 잠시 뒤 다른 사람 주문으로 체결된 것으로 친다 (이때 체결 알림)
     const orderId = nextOrderId++;
     openOrders.push({
       orderId,
-      stockId: stock.stockId,
-      stockName: stock.name,
-      side: request.side,
-      quantity: request.quantity,
-      price,
+      stockId,
+      side,
+      type,
+      quantity,
+      price: orderPrice,
       orderedAt: new Date().toISOString(),
     });
-    // 시장가는 바로(현재가로), 지정가는 잠시 뒤 지정한 가격으로 체결된 것으로 친다
-    if (isLimit) setTimeout(() => fill(orderId, price), LIMIT_FILL_DELAY_MS);
-    else setTimeout(() => fill(orderId, findStock(stock.stockId).price), MARKET_FILL_DELAY_MS);
-    return { orderId };
+    setTimeout(() => fill(orderId, orderPrice), LIMIT_FILL_DELAY_MS);
+    return { orderId, status: 'PENDING', quantity, remainingQuantity: quantity };
   },
 
-  cancelOrder: (orderId: OrderId) => {
+  /** POST .../orders/{orderId}/cancel */
+  cancelOrder: (orderId: OrderId): CancelOrderResponse => {
     const order = openOrders.find((item) => item.orderId === orderId);
-    if (!order) return fail('ORDER_ALREADY_FILLED');
+    if (!order) return fail('504', '주문을 찾을 수 없습니다.');
     if (orderId === FILLED_ON_CANCEL_ORDER_ID) {
       fill(orderId, order.price);
-      return fail('ORDER_ALREADY_FILLED');
+      return fail('502', '처리할 수 없는 주문 상태입니다.');
     }
     openOrders = openOrders.filter((item) => item.orderId !== orderId);
+    return {
+      orderId,
+      quantity: order.quantity,
+      filledQuantity: 0,
+      canceledQuantity: order.quantity,
+    };
   },
 
   /**

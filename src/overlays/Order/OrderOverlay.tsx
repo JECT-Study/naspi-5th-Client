@@ -4,11 +4,11 @@ import { assetKeys, assetQueries } from '@/apis/domains/asset/asset.queries';
 import type { MyAssets } from '@/apis/domains/asset/asset.types';
 import { orderKeys } from '@/apis/domains/order/order.queries';
 import { createOrder } from '@/apis/domains/order/order.service';
-import type {
-  CreateOrderRequest,
-  OrderErrorCode,
-  OrderSide,
-  OrderType,
+import {
+  ORDER_ERROR_CODE,
+  type CreateOrderRequest,
+  type OrderSide,
+  type OrderType,
 } from '@/apis/domains/order/order.types';
 import type { RoomId } from '@/apis/domains/room/room.types';
 import {
@@ -19,6 +19,7 @@ import {
   floorToTick,
   getMaxLimitBuyQuantity,
   getMaxMarketBuyQuantity,
+  getOrderResultMessages,
 } from '@/apis/domains/order/order.utils';
 import {
   ORDER_CORRECTION_DELAY_MS,
@@ -52,6 +53,13 @@ interface OrderOverlayProps {
   stockId: StockId;
   side: OrderSide;
 }
+
+// 수량 칸에 안내하는 서버 거절: 현금 부족(401), 매도 수량 부족(402), 자사주 최소 유지분(403)
+const SHORTAGE_ERROR_CODES: readonly string[] = [
+  ORDER_ERROR_CODE.INSUFFICIENT_CASH,
+  ORDER_ERROR_CODE.INSUFFICIENT_SHARES,
+  ORDER_ERROR_CODE.TREASURY_MIN_SHARES,
+];
 
 // 제목·제출 버튼은 '매수·매도', 안내 문장("원하는 가격에 구매할 수 있어요.")은 '구매·판매' (설계서 v.1.5 주문)
 const SIDE_LABEL: Record<OrderSide, string> = { BUY: '매수', SELL: '매도' };
@@ -95,6 +103,9 @@ function OrderForm({ roomId, side, stock, assets }: OrderFormProps) {
   const correctionTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   // 숫자 키패드가 고치는 칸. 처음에는 수량 (시장가는 고칠 칸이 수량뿐, 지정가 가격은 현재가로 채워져 있다)
   const [activeField, setActiveField] = useState<OrderField>('quantity');
+  // 사용자가 수량 칸을 직접 누르거나 입력한 적이 있는지. 처음에 키패드가 수량을 가리키는 것만으로는 포커스로 보지 않는다
+  // (열자마자 가격 칸을 누르면 "수량을 입력해 주세요."가 뜨지 않게)
+  const hasTouchedQuantityRef = useRef(false);
 
   // 1초 뒤 되돌릴 "현재가"는 그때의 실시간 현재가
   const latestPriceRef = useRef(stock.price);
@@ -112,25 +123,23 @@ function OrderForm({ roomId, side, stock, assets }: OrderFormProps) {
 
   const { mutate, isPending } = useMutation({
     mutationFn: (request: CreateOrderRequest) => createOrder(roomId, request),
-    onSuccess: () => {
+    onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: assetKeys.room(roomId) });
       queryClient.invalidateQueries({ queryKey: orderKeys.room(roomId) });
-      // 공통 5-3: 확인하기 → 종목 - 내 주식
-      notify.success('주문이 접수됐어요.', {
-        link: { label: '확인하기', to: `/leagues/${roomId}/stocks/${stockId}/mine` },
-      });
+      // 접수 (5-4) → 결과 (체결 5-5 / 일부 체결 5-6 / 취소 5-7) 순서로 띄운다. 모두 확인하기 → 종목 - 내 주식
+      const link = { label: '확인하기', to: `/leagues/${roomId}/stocks/${stockId}/mine` };
+      for (const message of getOrderResultMessages(stock.name, side, result)) {
+        notify.success(message, { link });
+      }
       closeOverlay();
     },
-    // 서버가 현금·주식 부족으로 거절하면 수량 칸에 안내하고, 그 밖의 실패는 공통 토스트 (libs/queryClient)
-    meta: {
-      action: '주문 접수',
-      handledErrors: ['INSUFFICIENT_CASH', 'INSUFFICIENT_SHARES'] satisfies OrderErrorCode[],
-    },
+    // 서버가 현금·주식 부족(자사주 최소 유지분 포함)으로 거절하면 수량 칸에 안내하고, 그 밖의 실패는 공통 토스트 (libs/queryClient)
+    meta: { action: '주문 접수', handledErrors: SHORTAGE_ERROR_CODES },
     onError: (error) => {
-      const code = getApiErrorCode(error) as OrderErrorCode | undefined;
-      if (code === 'INSUFFICIENT_CASH') {
+      const code = getApiErrorCode(error);
+      if (code === ORDER_ERROR_CODE.INSUFFICIENT_CASH) {
         setFieldErrors({ quantity: ORDER_MESSAGES.cashShortage });
-      } else if (code === 'INSUFFICIENT_SHARES') {
+      } else if (code && SHORTAGE_ERROR_CODES.includes(code)) {
         setFieldErrors({ quantity: ORDER_MESSAGES.sharesShortage });
       }
     },
@@ -159,6 +168,7 @@ function OrderForm({ roomId, side, stock, assets }: OrderFormProps) {
   };
 
   const changeQuantity = (next: number) => {
+    hasTouchedQuantityRef.current = true;
     cancelCorrection();
     setQuantity(next);
     setFieldErrors((prev) => ({ ...prev, quantity: undefined }));
@@ -202,10 +212,11 @@ function OrderForm({ roomId, side, stock, assets }: OrderFormProps) {
       }
       return;
     }
-    checkQuantity(ceilToTick(limitPrice), { requireQuantity: true });
+    checkQuantity(ceilToTick(limitPrice), { requireQuantity: hasTouchedQuantityRef.current });
   };
 
   const selectField = (field: OrderField) => {
+    if (field === 'quantity') hasTouchedQuantityRef.current = true;
     if (field === keypadTarget) return;
     leaveField(keypadTarget);
     setActiveField(field);
@@ -215,6 +226,7 @@ function OrderForm({ roomId, side, stock, assets }: OrderFormProps) {
   const changeOrderType = (type: OrderType) => {
     cancelCorrection();
     setFieldErrors({});
+    hasTouchedQuantityRef.current = false;
     setActiveField('quantity');
     setOrderType(type);
   };

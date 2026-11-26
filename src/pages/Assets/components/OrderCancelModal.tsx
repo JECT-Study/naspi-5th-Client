@@ -2,7 +2,8 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { assetKeys } from '@/apis/domains/asset/asset.queries';
 import { orderKeys } from '@/apis/domains/order/order.queries';
 import { cancelOrder } from '@/apis/domains/order/order.service';
-import type { OpenOrder, OrderErrorCode } from '@/apis/domains/order/order.types';
+import { ORDER_ERROR_CODE, type OpenOrder } from '@/apis/domains/order/order.types';
+import { ORDER_CANCELED_MESSAGE } from '@/apis/domains/order/order.utils';
 import type { RoomId } from '@/apis/domains/room/room.types';
 import ConfirmModal from '@/components/overlay/ConfirmModal';
 import { getApiErrorCode } from '@/libs/apiError';
@@ -26,23 +27,27 @@ function OrderCancelModal({ roomId, order, onClose }: OrderCancelModalProps) {
     queryClient.invalidateQueries({ queryKey: orderKeys.room(roomId) });
   };
 
+  // 주문 취소·취소 실패 토스트의 확인하기 → 해당 종목 [종목 - 내 주식] (설계서 v1.10 공통 5-7·5-8)
+  const toastLink = { label: '확인하기', to: `/leagues/${roomId}/stocks/${order.stockId}/mine` };
+
   const { mutate, isPending } = useMutation({
     mutationFn: () => cancelOrder(roomId, order.orderId),
     onSuccess: () => {
-      notify.success('주문을 취소했어요.');
+      notify.success(ORDER_CANCELED_MESSAGE, { link: toastLink });
       refreshOrders();
       onClose();
     },
-    meta: {
-      action: '주문 취소',
-      handledErrors: ['ORDER_ALREADY_FILLED'] satisfies OrderErrorCode[],
-    },
+    meta: { action: '주문 취소', handledErrors: [ORDER_ERROR_CODE.NOT_CANCELABLE] },
     onError: (error) => {
-      if ((getApiErrorCode(error) as OrderErrorCode | undefined) === 'ORDER_ALREADY_FILLED') {
-        notify.error('주문이 이미 체결되어 취소할 수 없어요.');
+      const code = getApiErrorCode(error);
+      // 그사이 체결·취소·만료됨(502): 주문 취소 실패 토스트 후 닫는다
+      if (code === ORDER_ERROR_CODE.NOT_CANCELABLE) {
+        notify.error('주문이 이미 체결되어 취소할 수 없어요.', { link: toastLink });
         refreshOrders();
         onClose();
       }
+      // 주문을 찾을 수 없음(504): 공통 실패 토스트와 함께 목록을 새로 받는다
+      if (code === ORDER_ERROR_CODE.NOT_FOUND) refreshOrders();
     },
   });
 

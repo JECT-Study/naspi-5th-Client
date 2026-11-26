@@ -7,6 +7,7 @@ import type {
 import type {
   MemberStockResponse,
   Orderbook,
+  OrderBookResponse,
   StockDetail,
   StockResponse,
 } from '@/apis/domains/stock/stock.types';
@@ -15,7 +16,7 @@ import { createMockApiError } from './mockError';
 import { meMock } from './user.mock';
 
 // 시장 mock: 종목 상태를 메모리에 두고, 실시간 mock이 돌 때마다 가격을 조금씩 움직인다
-// 종목 목록·소개 수정은 msw 핸들러가 서버 응답 모양으로(mockStockServer), 종목 상세·봉은 아직 service가 직접 쓴다
+// 종목 목록·개별 조회·호가·소개 수정은 msw 핸들러가 서버 응답 모양으로(mockStockServer), 봉은 아직 service가 직접 쓴다
 // REST mock과 실시간 mock이 같은 상태를 보므로 다시 조회해도 값이 이어진다
 
 interface MockStock {
@@ -136,6 +137,12 @@ export const marketMock: MockStock[] = [...leagueMembersMock]
     ),
   );
 
+const findMockStock = (stockId: number): MockStock => {
+  const stock = marketMock.find(({ detail }) => detail.stockId === stockId);
+  if (!stock) throw createMockApiError('304', '해당 리그에 종목이 없습니다.', 200);
+  return stock;
+};
+
 const toMemberStock = ({ detail, bars }: MockStock): MemberStockResponse => ({
   stockId: detail.stockId,
   name: detail.name,
@@ -156,6 +163,23 @@ const toMemberStock = ({ detail, bars }: MockStock): MemberStockResponse => ({
 export const mockStockServer = {
   // GET /api/leagues/{leagueId}/stocks
   getStocks: (): MemberStockResponse[] => marketMock.map(toMemberStock),
+
+  // GET /api/leagues/{leagueId}/stocks/{stockId} (리그에 없는 종목 304)
+  getStock: (stockId: number): MemberStockResponse => toMemberStock(findMockStock(stockId)),
+
+  // GET /api/leagues/{leagueId}/stocks/{stockId}/orderbook (최대 5단계)
+  getOrderbook: (stockId: number): OrderBookResponse => {
+    const { detail } = findMockStock(stockId);
+    const toLevel = ({ price, quantity }: { price: number; quantity: number }) => ({
+      orderPrice: price,
+      remainingQuantity: quantity,
+    });
+    return {
+      currentPrice: detail.price,
+      asks: detail.orderbook.asks.slice(0, 5).map(toLevel),
+      bids: detail.orderbook.bids.slice(0, 5).map(toLevel),
+    };
+  },
 
   // POST /api/leagues/{leagueId}/stocks/{stockId}/description (내 종목만, 서버 305)
   updateDescription: (stockId: number, description: string): StockResponse => {

@@ -9,7 +9,7 @@ interface CodeInputProps {
   hasError?: boolean;
 }
 
-// 초대 코드 7칸 (영문·숫자 섞인 7자). 보이지 않는 입력창 하나를 칸 위에 겹쳐서 붙여넣기·지우기를 그대로 쓴다
+// 초대 코드 7칸 (영문·숫자 섞인 7자). 투명한 입력창 하나를 칸 위에 겹쳐서 붙여넣기·지우기를 그대로 쓴다
 // 확인 중에는 막았다가(disabled), 끝나면 다시 입력할 수 있게 포커스를 돌려준다
 function CodeInput({ value, onChange, disabled = false, hasError = false }: CodeInputProps) {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -40,7 +40,10 @@ function CodeInput({ value, onChange, disabled = false, hasError = false }: Code
         autoCapitalize="characters"
         spellCheck={false}
         aria-label={`초대 코드 ${INVITE_CODE_LENGTH}자리`}
-        className="absolute inset-0 z-10 cursor-text opacity-0"
+        // opacity-0으로 숨기면 iOS가 안 보이는 입력창으로 보고 길게 눌러도 '붙여넣기' 메뉴를 띄우지 않는다
+        // 그래서 입력창은 보이게 두고 글자·커서·선택 표시·바탕만 투명하게 한다
+        // 글자 크기 16px: 그보다 작으면 iOS가 포커스할 때 화면을 확대한다
+        className="absolute inset-0 z-10 cursor-text border-0 bg-transparent text-[16px] text-transparent caret-transparent outline-none selection:bg-transparent"
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
         onChange={(event) => {
